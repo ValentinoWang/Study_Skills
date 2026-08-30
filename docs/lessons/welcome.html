@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>交互式主动学习页面 · Study Skills</title>
+  <style>
+    :root {
+      --bg:#f5f7fb;--surface:#fff;--ink:#172033;--muted:#667085;--line:#e4e7ec;
+      --accent:#4f46e5;--accent-soft:#eef2ff;--hint:#9a6700;--hint-soft:#fff8db;
+      --success:#157f5b;--success-soft:#ecfdf3;--shadow:0 14px 40px rgba(23,32,51,.07)
+    }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.75}
+    .shell{width:min(900px,calc(100% - 32px));margin:0 auto;padding:48px 0 72px}.back{display:inline-block;margin-bottom:28px;color:var(--accent);text-decoration:none;font-weight:700}
+    .hero,.card{border:1px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:var(--shadow)}.hero{padding:36px}.eyebrow{margin:0 0 8px;color:var(--accent);font-size:.76rem;font-weight:850;letter-spacing:.12em;text-transform:uppercase}h1{margin:0;font-size:clamp(2rem,6vw,3.8rem);line-height:1.08;letter-spacing:-.04em}.lede{max-width:650px;margin:16px 0 0;color:var(--muted)}
+    .progress{margin-top:22px}.track{height:9px;border-radius:99px;background:#e9ebf3;overflow:hidden}.fill{width:0;height:100%;background:var(--accent);transition:width .2s ease}.checks{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:12px;color:var(--muted);font-size:.9rem}.checks label{cursor:pointer}.checks input{accent-color:var(--accent)}
+    .card{margin-top:18px;padding:28px}h2{margin-top:0;font-size:1.4rem}details{margin:12px 0;border:1px solid var(--line);border-radius:14px;background:#fafbff;overflow:hidden}summary{padding:14px 16px;cursor:pointer;font-weight:800}.body{padding:0 16px 16px;color:var(--muted)}.body strong{color:var(--ink)}
+    .hint{border-color:#efd994;background:var(--hint-soft)}textarea{width:100%;min-height:150px;padding:14px 16px;border:1px solid #cfd4df;border-radius:12px;resize:vertical;font:inherit;line-height:1.6}.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}button{padding:9px 14px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:inherit;font-weight:800;cursor:pointer}button.secondary{border:1px solid rgba(79,70,229,.2);background:#fff;color:var(--accent)}.status{min-height:1.4em;margin-top:8px;color:var(--success);font-size:.88rem}.success{padding:16px 18px;border-left:4px solid var(--success);background:var(--success-soft);border-radius:0 12px 12px 0}.footer{margin-top:30px;color:var(--muted);font-size:.86rem;text-align:center}@media(max-width:640px){.shell{padding-top:24px}.hero,.card{padding:22px}}
+  </style>
+</head>
+<body data-lesson-id="welcome-demo">
+  <main class="shell">
+    <a class="back" href="../index.html">← 返回 Study Skills</a>
+    <section class="hero">
+      <p class="eyebrow">Interactive Demo</p>
+      <h1>这是一节会“等你思考”的网页课。</h1>
+      <p class="lede">它不是为了展示复杂前端，而是验证最重要的主动学习交互：术语按需展开、提示分级开放、答案自己先写、进度在浏览器本地保存。</p>
+      <div class="progress">
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="checks">
+          <label><input type="checkbox" data-progress="term"> 看懂术语</label>
+          <label><input type="checkbox" data-progress="case"> 理解案例</label>
+          <label><input type="checkbox" data-progress="answer"> 完成作答</label>
+          <label><input type="checkbox" data-progress="reflect"> 完成反思</label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>1. 一个核心术语</h2>
+      <details>
+        <summary>什么是 GitHub Pages？</summary>
+        <div class="body">
+          <p><strong>直觉：</strong>把 GitHub 仓库里的静态网页文件直接变成一个可以访问的网站。</p>
+          <p><strong>严格一点：</strong>它是 GitHub 提供的静态站点托管能力，适合 HTML、CSS、JavaScript 这类不需要常驻后端进程的内容。</p>
+          <p><strong>比喻：</strong>仓库像书库，Pages 像自动把其中一个文件夹摆到橱窗里。</p>
+          <p><strong>边界：</strong>它不是一台长期运行的虚拟机，所以不能直接承载数据库或常驻 Python/Node 服务。</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>2. 把它当成一道题</h2>
+      <p>假设你有 100 份由 AI 生成的单文件 HTML 学习材料，希望低成本分享给别人，而且不需要登录和数据库。你会优先选择“虚拟机”还是“静态托管”？为什么？</p>
+      <textarea id="answer" placeholder="先写下你的判断和理由……"></textarea>
+      <div class="row">
+        <button type="button" id="copy">复制作答</button>
+        <button type="button" class="secondary" id="clear">清空</button>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. 逐级看提示</h2>
+      <details class="hint"><summary>Hint 1 · 先看需求性质</summary><div class="body">这些页面是否需要服务器持续执行代码，还是浏览器拿到文件以后自己就能运行？</div></details>
+      <details class="hint"><summary>Hint 2 · 再看运维成本</summary><div class="body">如果只是 HTML/CSS/JS，虚拟机意味着你还要维护系统、Web Server、端口和服务状态。</div></details>
+      <details class="hint"><summary>Hint 3 · 接近答案</summary><div class="body">优先选择 GitHub Pages 这类静态托管；只有真正出现后端状态或服务端计算时，再升级到服务器。</div></details>
+    </section>
+
+    <section class="card">
+      <h2>4. 反思</h2>
+      <div class="success">真正应该记住的不是“GitHub Pages 这个产品名”，而是：<strong>先判断问题到底需要静态托管还是常驻计算资源。</strong></div>
+    </section>
+
+    <p class="footer">Study_Skills · Learn → Apply → Hint → Solve → Reflect → Transfer</p>
+  </main>
+
+  <script>
+    (() => {
+      const key = 'study-skills:welcome-demo';
+      const answer = document.getElementById('answer');
+      const checks = [...document.querySelectorAll('[data-progress]')];
+      const fill = document.getElementById('fill');
+      const status = document.getElementById('status');
+      let state = {answer:'', checks:{}};
+      try { state = {...state, ...(JSON.parse(localStorage.getItem(key)||'{}'))}; } catch (_) {}
+      answer.value = state.answer || '';
+      checks.forEach(c => { c.checked = Boolean(state.checks && state.checks[c.dataset.progress]); });
+      const persist = () => { localStorage.setItem(key, JSON.stringify(state)); };
+      const render = () => {
+        const done = checks.filter(c => c.checked).length;
+        fill.style.width = `${done / checks.length * 100}%`;
+      };
+      answer.addEventListener('input', () => { state.answer = answer.value; persist(); });
+      checks.forEach(c => c.addEventListener('change', () => { state.checks[c.dataset.progress] = c.checked; persist(); render(); }));
+      document.getElementById('copy').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(answer.value); status.textContent = '已复制，可以直接粘贴回 AI 对话。'; }
+        catch (_) { status.textContent = '浏览器未允许自动复制，请手动复制文本。'; }
+      });
+      document.getElementById('clear').addEventListener('click', () => { answer.value=''; state.answer=''; persist(); status.textContent='已清空。'; });
+      render();
+    })();
+  </script>
+</body>
+</html>
