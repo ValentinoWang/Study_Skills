@@ -5,7 +5,8 @@ description: >
   转换成“最小知识学习 → 案例还原 → 主动做题 → 分级提示 → 成熟解法 →
   反思迁移”的干中学课程。使用双模板：交互式练习工作表负责做题，
   LaTeX 风格讲义负责结题沉淀与打印。为 Study_Skills 生成的案例 HTML
-  默认必须同步到 ValentinoWang/Study_Skills 的 main 分支并返回 commit SHA。
+  默认必须同步到 ValentinoWang/Study_Skills 的 main 分支，同时发布到
+  GitHub Pages 的 docs/lessons、注册首页导航并验证 Pages 部署。
 ---
 
 # Case-Driven Active Learning
@@ -25,11 +26,15 @@ description: >
 → 成熟解法、验证标准与专家心智模型
 → 迁移练习
 → 生成 HTML
+→ 归档 examples/
+→ 发布 docs/lessons/
+→ 注册 docs/index.html
 → 提交 GitHub main
-→ 验证文件与 commit
+→ 验证文件、commit 与 Pages deployment
+→ 返回可访问的 GitHub Pages URL
 ```
 
-### 0.1 GitHub 同步是强制交付闭环
+### 0.1 GitHub 同步与网页发布是强制交付闭环
 
 对于本 Skill 生成并归档到 `Study_Skills` 的 HTML，下面这些状态都**不算完成**：
 
@@ -37,16 +42,22 @@ description: >
 - 只生成到 `/mnt/data`、sandbox 或当前会话；
 - 只给一个下载链接；
 - 只建议用户“之后提交 GitHub”；
-- 已经写入 GitHub，但没有确认目标分支与 commit。
+- 已经写入 GitHub，但没有确认目标分支与 commit；
+- 只写入 `skills/case-driven-active-learning/examples/`，但没有发布到 `docs/lessons/`；
+- 已发布到 `docs/lessons/`，但没有把课程注册到 `docs/index.html`；
+- 仓库文件存在，但没有确认 GitHub Pages 是否针对最新 commit 成功部署。
 
 除非用户明确要求仅本地生成，否则完成条件必须同时包括：
 
 1. HTML 真实生成；
-2. 写入 `ValentinoWang/Study_Skills`；
-3. 目标分支为 `main`；
-4. 获得本次写入的 commit SHA；
-5. 重新读取目标路径，确认 `main` 上文件存在；
-6. 最终回复给出仓库路径、commit SHA 和 GitHub 文件链接。
+2. 归档到 `skills/case-driven-active-learning/examples/<slug>.html`；
+3. 发布到 `docs/lessons/<slug>.html`；
+4. 在 `docs/index.html` 增加可导航到该课程的入口；
+5. 写入 `ValentinoWang/Study_Skills` 的 `main`；
+6. 获得本次写入的 commit SHA；
+7. 重新读取归档文件、发布文件和首页，确认 `main` 上均存在且导航路径正确；
+8. 检查 GitHub Pages 最新 `pages build and deployment` 针对该 commit 成功；
+9. 最终回复给出仓库路径、commit SHA、GitHub 文件链接和 GitHub Pages 页面 URL。
 
 若 GitHub 写入失败，状态必须明确为：
 
@@ -54,12 +65,30 @@ description: >
 LOCAL_ONLY / GITHUB_SYNC_BLOCKED
 ```
 
-不要把本地生成描述成最终完成。
+若仓库写入成功但 Pages 发布失败，状态必须明确为：
 
-默认案例目录：
+```text
+GITHUB_SYNCED / PAGES_DEPLOY_BLOCKED
+```
+
+不要把本地生成、仓库归档或未部署成功的网页描述成最终发布完成。
+
+默认归档目录：
 
 ```text
 skills/case-driven-active-learning/examples/
+```
+
+默认网页发布目录：
+
+```text
+docs/lessons/
+```
+
+默认站点入口：
+
+```text
+https://valentinowang.github.io/Study_Skills/index.html
 ```
 
 ---
@@ -428,28 +457,49 @@ LaTeX 风格模板中的“网格感”是视觉风格，不意味着必须运�
 
 ---
 
-# 14. GitHub 写入流程
+# 14. GitHub 写入与 Pages 发布流程
 
 默认目标：
 
 ```text
 repository: ValentinoWang/Study_Skills
 branch: main
+archive: skills/case-driven-active-learning/examples/<slug>.html
+publish: docs/lessons/<slug>.html
+index: docs/index.html
+pages base: https://valentinowang.github.io/Study_Skills/
 ```
 
 操作顺序：
 
 ```text
 生成 HTML
-→ 选择 examples/ 下目标文件名
-→ 检查 main 上是否存在
-→ 不存在：create
-→ 已存在：fetch 当前 blob SHA 后 update
+→ 选择稳定 slug
+→ 写入 / 更新 examples/<slug>.html 作为 Skill 案例归档
+→ 写入 / 更新 docs/lessons/<slug>.html 作为 Pages 发布副本
+→ 读取 docs/index.html
+→ 若首页没有该课程：新增课程卡片与相对链接 lessons/<slug>.html
+→ 若已有该课程：更新对应卡片，禁止重复注册
 → 写入 main
-→ 获取 commit SHA
-→ 重新读取 main 上目标文件
-→ 最终回复 GitHub 路径 + commit SHA + 链接
+→ 获取最终 commit SHA
+→ 重新读取三个目标：examples、docs/lessons、docs/index.html
+→ 验证首页 href 与课程文件路径一致
+→ 查询最新 pages build and deployment
+→ 确认 head_sha 覆盖最终 commit，且 status=completed、conclusion=success
+→ 返回首页 URL + 课程 URL + commit SHA
 ```
+
+页面 URL 规则：
+
+```text
+首页：
+https://valentinowang.github.io/Study_Skills/index.html
+
+课程：
+https://valentinowang.github.io/Study_Skills/lessons/<slug>.html
+```
+
+不要把 GitHub blob URL 当作最终课程 URL。
 
 不要默认创建分支或 PR。只有用户明确要求 code review / PR 时才走分支流程。
 
@@ -471,7 +521,10 @@ branch: main
 10. 让打印依赖背景色才能看清；
 11. 用 `break-inside: avoid` 把每个大章节锁成不可分页卡片；
 12. 把最终 HTML 只留在 sandbox 而不做 GitHub 同步；
-13. 在最终文档暴露内部推理草稿或隐藏思维链。
+13. 只归档到 `skills/.../examples/` 就宣称网页已发布；
+14. 发布到 `docs/lessons/` 却不更新 `docs/index.html` 导航；
+15. Pages deployment 未成功就返回“已经可以从站点看到”；
+16. 在最终文档暴露内部推理草稿或隐藏思维链。
 
 ---
 
@@ -500,6 +553,14 @@ branch: main
 
 ### 发布成功
 
-HTML 已同步到 GitHub `main`，并返回可验证的 commit SHA 与文件链接。
+必须同时满足：
+
+- HTML 已归档到 `skills/case-driven-active-learning/examples/`；
+- HTML 已发布到 `docs/lessons/`；
+- `docs/index.html` 能从首页导航到课程；
+- 三处修改已同步到 GitHub `main`；
+- 返回可验证的最终 commit SHA；
+- 最新 GitHub Pages deployment 覆盖该 commit 且成功；
+- 最终回复返回可直接访问的首页 URL 与课程 URL。
 
 # Learn → Apply → Fail → Hint → Solve → Reflect → Transfer → Publish
