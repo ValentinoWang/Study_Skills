@@ -47,7 +47,7 @@
       margin: 0;
       font-size: clamp(2.6rem, 8vw, 5.4rem);
       line-height: 1.02;
-      letter-spacing: -.055em;
+      letter-spacing: -.035em;
     }
     .lede {
       max-width: 720px;
@@ -136,6 +136,13 @@
     <main>
       <h2 class="section-title">当前内容</h2>
       <section class="grid" aria-label="课程列表">
+        <a class="card" href="lessons/git-three-state-divergence-20260831.html">
+          <span class="tag">GIT · CASE</span>
+          <h2>Git 三个状态为什么会不一致？</h2>
+          <p>用本地前端分支、GitHub main 与 106 服务器 checkout 的真实分叉，学习 HEAD、origin/main、worktree、ahead/behind 和安全收敛。</p>
+          <div class="meta">15–20 min · 中等 →</div>
+        </a>
+
         <a class="card" href="lessons/welcome.html">
           <span class="tag">DEMO</span>
           <h2>交互式主动学习页面</h2>
@@ -152,7 +159,7 @@
       </section>
 
       <div class="note">
-        后续生成的新课程统一放到 <code>docs/lessons/&lt;slug&gt;.html</code>。提交到 <code>main</code> 后，GitHub Pages 会直接更新网页。
+        新课程统一发布到 <code>docs/lessons/&lt;slug&gt;.html</code>，并注册到本首页。提交到 <code>main</code> 后，由 GitHub Pages 对外提供网页访问。
       </div>
     </main>
 
