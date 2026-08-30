@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="{{META_DESCRIPTION}}">
+  <title>{{TITLE}} · 主动学习讲义</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        tags: 'ams'
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --paper: #fffdf8;
+      --canvas: #ece9e1;
+      --ink: #24221f;
+      --muted: #6b665e;
+      --faint: #938d83;
+      --rule: #cfc8bc;
+      --soft-rule: #e7e1d7;
+      --accent: #7a3e2b;
+      --accent-soft: #f3e9e3;
+      --code-bg: #f3f0e9;
+      --warning-bg: #faf0e3;
+      --success-bg: #eef3ec;
+      --shadow: 0 18px 55px rgba(50, 43, 34, 0.12);
+      --serif: "Latin Modern Roman", "Libertinus Serif", "STIX Two Text",
+        "Noto Serif CJK SC", "Songti SC", "SimSun", "Times New Roman", serif;
+      --sans: Inter, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--canvas);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: var(--serif);
+      font-size: 17px;
+      line-height: 1.82;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.16em;
+    }
+
+    a:hover {
+      text-decoration-thickness: 2px;
+    }
+
+    .report {
+      width: min(920px, calc(100% - 32px));
+      margin: 34px auto 64px;
+      padding: 66px 72px 76px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .title-page {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 22px 0 58px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .series {
+      margin: 0 0 1.6rem;
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      color: var(--ink);
+      font-family: var(--serif);
+      font-weight: 700;
+      line-height: 1.28;
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 16ch;
+      margin: 0;
+      font-size: clamp(2.45rem, 7vw, 4.65rem);
+      letter-spacing: -0.035em;
+    }
+
+    .subtitle {
+      max-width: 38em;
+      margin: 1.35rem 0 0;
+      color: var(--muted);
+      font-size: 1.18rem;
+      line-height: 1.72;
+    }
+
+    .title-rule {
+      width: 88px;
+      height: 3px;
+      margin: 2.1rem 0 1.75rem;
+      border: 0;
+      background: var(--accent);
+    }
+
+    .metadata {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.7rem 2rem;
+      max-width: 640px;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .metadata div {
+      display: grid;
+      grid-template-columns: 5.5em 1fr;
+      gap: 0.8rem;
+      padding: 0.32rem 0;
+      border-bottom: 1px solid var(--soft-rule);
+    }
+
+    .metadata dt {
+      color: var(--faint);
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+    }
+
+    .metadata dd {
+      margin: 0;
+    }
+
+    .abstract {
+      max-width: 46em;
+      margin-top: 2.4rem;
+      padding-left: 1.2rem;
+      border-left: 3px solid var(--rule);
+    }
+
+    .abstract h2 {
+      margin: 0 0 0.45rem;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .abstract p {
+      margin: 0;
+      color: #3c3934;
+      font-size: 0.98rem;
+    }
+
+    .toc {
+      margin: 3.4rem 0 4.4rem;
+      padding: 1.45rem 1.6rem 1.5rem;
+      border: 1px solid var(--rule);
+      background: rgba(255, 255, 255, 0.32);
+    }
+
+    .toc h2 {
+      margin: 0 0 0.9rem;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .toc ol {
+      columns: 2;
+      column-gap: 2.2rem;
+      margin: 0;
+      padding-left: 1.35rem;
+    }
+
+    .toc li {
+      break-inside: avoid;
+      margin: 0.28rem 0;
+      padding-right: 0.8rem;
+    }
+
+    .toc a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+    }
+
+    .chapter {
+      margin: 0 0 4.5rem;
+      scroll-margin-top: 2rem;
+    }
+
+    .chapter > h2 {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.9rem;
+      align-items: baseline;
+      margin: 0 0 1.8rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--rule);
+      font-size: 1.8rem;
+      letter-spacing: -0.018em;
+    }
+
+    .section-number {
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 0.82em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    h3 {
+      margin: 2.1rem 0 0.85rem;
+      font-size: 1.26rem;
+    }
+
+    h4 {
+      margin: 1.55rem 0 0.55rem;
+      font-size: 1.02rem;
+    }
+
+    p {
+      margin: 0.82rem 0;
+      hanging-punctuation: first last;
+    }
+
+    strong {
+      font-weight: 700;
+    }
+
+    ul,
+    ol {
+      margin: 0.85rem 0 1.1rem 1.4rem;
+      padding: 0;
+    }
+
+    li {
+      margin: 0.35rem 0;
+      padding-left: 0.2rem;
+    }
+
+    blockquote {
+      margin: 1.4rem 0;
+      padding: 0.2rem 0 0.2rem 1.35rem;
+      border-left: 3px solid var(--rule);
+      color: #48443e;
+      font-style: italic;
+    }
+
+    .lead {
+      color: #383530;
+      font-size: 1.08rem;
+    }
+
+    .smallcaps {
+      font-variant-caps: small-caps;
+      letter-spacing: 0.04em;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .environment {
+      position: relative;
+      margin: 1.55rem 0;
+      padding: 1.05rem 1.2rem 1.1rem;
+      border-left: 3px solid var(--rule);
+      background: rgba(255, 255, 255, 0.42);
+      break-inside: avoid;
+    }
+
+    .environment-title {
+      margin: 0 0 0.48rem;
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 0.81rem;
+      font-weight: 750;
+      letter-spacing: 0.045em;
+    }
+
+    .environment > :last-child {
+      margin-bottom: 0;
+    }
+
+    .definition {
+      border-left-color: #715246;
+    }
+
+    .intuition {
+      border-left-color: #5c6b6f;
+      background: #f4f6f4;
+    }
+
+    .analogy {
+      border-left-color: #8a6b3f;
+      background: #f8f3e9;
+    }
+
+    .caveat,
+    .warning {
+      border-left-color: #a1612d;
+      background: var(--warning-bg);
+    }
+
+    .example {
+      border-left-color: #596955;
+      background: var(--success-bg);
+    }
+
+    .exercise {
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--accent);
+      background: #fffefa;
+    }
+
+    .solution {
+      border-left-color: #4f6755;
+      background: #f0f5ef;
+    }
+
+    .mental-model {
+      border: 1px solid #b8ada0;
+      border-left: 4px double var(--accent);
+      background: #f7f2ec;
+    }
+
+    .knowledge-card {
+      border-left-color: #65606e;
+      background: #f3f1f6;
+    }
+
+    .term-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1.2rem 0;
+    }
+
+    .term-card {
+      padding: 1rem 1.05rem;
+      border: 1px solid var(--soft-rule);
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .term-card h3 {
+      margin: 0 0 0.6rem;
+      font-size: 1.08rem;
+    }
+
+    .term-card dl {
+      margin: 0;
+    }
+
+    .term-card dt {
+      margin-top: 0.55rem;
+      color: var(--accent);
+      font-family: var(--sans);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .term-card dd {
+      margin: 0.15rem 0 0;
+      color: #3f3b36;
+      font-size: 0.94rem;
+    }
+
+    .table-wrap {
+      width: 100%;
+      margin: 1.45rem 0;
+      overflow-x: auto;
+      border: 1px solid var(--soft-rule);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.93rem;
+    }
+
+    caption {
+      padding: 0.72rem 0.9rem;
+      color: var(--muted);
+      text-align: left;
+      font-size: 0.84rem;
+      font-style: italic;
+    }
+
+    th,
+    td {
+      padding: 0.7rem 0.78rem;
+      border-bottom: 1px solid var(--soft-rule);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #3b3732;
+      background: #f1ede5;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code,
+    kbd,
+    samp {
+      font-family: var(--mono);
+      font-size: 0.88em;
+    }
+
+    :not(pre) > code {
+      padding: 0.08em 0.32em;
+      border: 1px solid #ded8cd;
+      border-radius: 3px;
+      background: var(--code-bg);
+    }
+
+    pre {
+      max-width: 100%;
+      margin: 1.35rem 0;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      border: 1px solid #d9d2c6;
+      background: var(--code-bg);
+      line-height: 1.55;
+      tab-size: 2;
+    }
+
+    pre code {
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    figure {
+      margin: 1.8rem auto;
+      text-align: center;
+      break-inside: avoid;
+    }
+
+    figure svg,
+    figure img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    figcaption {
+      margin-top: 0.7rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-style: italic;
+    }
+
+    .math-display {
+      margin: 1.3rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    details {
+      margin: 0.9rem 0;
+      border: 1px solid var(--soft-rule);
+      background: rgba(255, 255, 255, 0.48);
+      break-inside: avoid;
+    }
+
+    summary {
+      padding: 0.78rem 0.95rem;
+      cursor: pointer;
+      color: #3a3631;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 700;
+      list-style-position: outside;
+    }
+
+    summary:hover {
+      color: var(--accent);
+    }
+
+    .details-body {
+      padding: 0 1rem 1rem;
+      border-top: 1px solid var(--soft-rule);
+    }
+
+    details.hint summary {
+      color: #6a4d2f;
+    }
+
+    details.answer summary {
+      color: #3f5b47;
+    }
+
+    .answer-space {
+      min-height: 150px;
+      margin: 1.1rem 0;
+      padding: 0.8rem 1rem;
+      border: 1px dashed #aaa294;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 31px,
+        rgba(133, 123, 110, 0.2) 32px
+      );
+    }
+
+    .source-list {
+      padding-left: 1.3rem;
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+
+    .source-list li {
+      margin-bottom: 0.62rem;
+    }
+
+    .document-footer {
+      margin-top: 5rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.77rem;
+      text-align: center;
+    }
+
+    .screen-actions {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 10;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .screen-actions button {
+      padding: 0.62rem 0.8rem;
+      border: 1px solid #b9b0a3;
+      border-radius: 4px;
+      color: var(--ink);
+      background: rgba(255, 253, 248, 0.96);
+      box-shadow: 0 6px 20px rgba(50, 43, 34, 0.12);
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 0.78rem;
+      font-weight: 650;
+    }
+
+    .screen-actions button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    @media (max-width: 760px) {
+      body {
+        font-size: 16px;
+      }
+
+      .report {
+        width: 100%;
+        margin: 0;
+        padding: 38px 22px 56px;
+        box-shadow: none;
+      }
+
+      .title-page {
+        min-height: auto;
+        padding-top: 18px;
+      }
+
+      h1 {
+        max-width: none;
+        font-size: clamp(2.2rem, 12vw, 3.5rem);
+      }
+
+      .metadata,
+      .term-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toc ol {
+        columns: 1;
+      }
+
+      .chapter > h2 {
+        font-size: 1.55rem;
+      }
+
+      .screen-actions {
+        right: 10px;
+        bottom: 10px;
+      }
+    }
+
+    @page {
+      size: A4;
+      margin: 18mm 17mm 20mm;
+    }
+
+    @media print {
+      :root {
+        --paper: #ffffff;
+        --canvas: #ffffff;
+        --ink: #000000;
+        --muted: #333333;
+        --rule: #777777;
+        --soft-rule: #bbbbbb;
+        --accent: #000000;
+      }
+
+      html,
+      body {
+        background: #ffffff;
+      }
+
+      body {
+        font-size: 10.6pt;
+        line-height: 1.62;
+      }
+
+      .report {
+        width: auto;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+      }
+
+      .title-page {
+        min-height: 238mm;
+        page-break-after: always;
+      }
+
+      .toc {
+        page-break-after: always;
+      }
+
+      .chapter {
+        margin-bottom: 2.6rem;
+      }
+
+      .chapter > h2 {
+        break-after: avoid;
+      }
+
+      h3,
+      h4,
+      figure,
+      table,
+      pre,
+      .environment,
+      details {
+        break-inside: avoid;
+      }
+
+      .screen-actions {
+        display: none !important;
+      }
+
+      details {
+        border-color: #999999;
+      }
+
+      details > summary {
+        display: none;
+      }
+
+      details > .details-body {
+        display: block !important;
+        padding-top: 0.7rem;
+      }
+
+      a {
+        color: #000000;
+        text-decoration: none;
+      }
+
+      .table-wrap,
+      pre,
+      .math-display {
+        overflow: visible;
+      }
+
+      .answer-space {
+        min-height: 90px;
+        background: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="report">
+    <article>
+      <header class="title-page">
+        <p class="series">Case-Driven Active Learning</p>
+        <h1>{{TITLE}}</h1>
+        <p class="subtitle">{{SUBTITLE}}</p>
+        <hr class="title-rule">
+
+        <dl class="metadata">
+          <div><dt>领域</dt><dd>{{DOMAIN}}</dd></div>
+          <div><dt>模式</dt><dd>{{MODE}}</dd></div>
+          <div><dt>日期</dt><dd>{{DATE}}</dd></div>
+          <div><dt>学习时间</dt><dd>{{DURATION}}</dd></div>
+          <div><dt>难度</dt><dd>{{DIFFICULTY}}</dd></div>
+          <div><dt>学习者</dt><dd>{{LEARNER_LEVEL}}</dd></div>
+        </dl>
+
+        <section class="abstract" aria-labelledby="abstract-title">
+          <h2 id="abstract-title">摘要</h2>
+          <p>{{ABSTRACT}}</p>
+        </section>
+      </header>
+
+      <nav class="toc" aria-label="目录">
+        <h2>目录</h2>
+        <ol>
+          <li><a href="#objectives">学习目标</a></li>
+          <li><a href="#terms">核心术语</a></li>
+          <li><a href="#concept-map">概念关系图</a></li>
+          <li><a href="#minimum-knowledge">最小知识闭包</a></li>
+          <li><a href="#case">案例还原</a></li>
+          <li><a href="#mapping">概念—案例映射</a></li>
+          <li><a href="#exercise">训练题</a></li>
+          <li><a href="#hints">分级提示</a></li>
+          <li><a href="#solution">成熟解法</a></li>
+          <li><a href="#mental-model">专家心智模型</a></li>
+          <li><a href="#transfer">迁移训练</a></li>
+          <li><a href="#cards">知识卡片</a></li>
+          <li><a href="#sources">证据与来源</a></li>
+        </ol>
+      </nav>
+
+      <section class="chapter" id="objectives">
+        <h2><span class="section-number">1</span><span>学习目标</span></h2>
+        {{OBJECTIVES_HTML}}
+      </section>
+
+      <section class="chapter" id="terms">
+        <h2><span class="section-number">2</span><span>核心术语</span></h2>
+        <p class="lead">本节只保留解决当前案例所需的最小知识，不追求百科式覆盖。</p>
+        <div class="term-grid">
+          {{TERMS_HTML}}
+        </div>
+      </section>
+
+      <section class="chapter" id="concept-map">
+        <h2><span class="section-number">3</span><span>概念关系图</span></h2>
+        {{CONCEPT_MAP_HTML}}
+      </section>
+
+      <section class="chapter" id="minimum-knowledge">
+        <h2><span class="section-number">4</span><span>进入本题只需记住这些</span></h2>
+        {{MINIMUM_KNOWLEDGE_HTML}}
+      </section>
+
+      <section class="chapter" id="case">
+        <h2><span class="section-number">5</span><span>案例还原</span></h2>
+        {{CASE_RECONSTRUCTION_HTML}}
+      </section>
+
+      <section class="chapter" id="mapping">
+        <h2><span class="section-number">6</span><span>概念如何映射到现实</span></h2>
+        {{CONCEPT_CASE_MAPPING_HTML}}
+      </section>
+
+      <section class="chapter" id="exercise">
+        <h2><span class="section-number">7</span><span>把真实案例当成一道题</span></h2>
+        {{EXERCISE_HTML}}
+        <div class="answer-space" aria-label="答题区"></div>
+      </section>
+
+      <section class="chapter" id="hints">
+        <h2><span class="section-number">8</span><span>分级提示</span></h2>
+        <p class="muted">先独立作答，再按顺序展开。每次只看一级提示。</p>
+        {{HINTS_HTML}}
+      </section>
+
+      {{LEARNER_RESPONSE_SECTION_HTML}}
+
+      <section class="chapter" id="solution">
+        <h2><span class="section-number">9</span><span>成熟解法</span></h2>
+        <details class="answer">
+          <summary>展开完整解法、风险与验证标准</summary>
+          <div class="details-body">
+            {{SOLUTION_HTML}}
+          </div>
+        </details>
+      </section>
+
+      <section class="chapter" id="mental-model">
+        <h2><span class="section-number">10</span><span>专家真正掌握的思维方式</span></h2>
+        <div class="environment mental-model">
+          <p class="environment-title">专家心智模型</p>
+          {{MENTAL_MODEL_HTML}}
+        </div>
+      </section>
+
+      <section class="chapter" id="transfer">
+        <h2><span class="section-number">11</span><span>迁移训练</span></h2>
+        {{TRANSFER_HTML}}
+      </section>
+
+      <section class="chapter" id="cards">
+        <h2><span class="section-number">12</span><span>今日真正学会的东西</span></h2>
+        {{KNOWLEDGE_CARDS_HTML}}
+      </section>
+
+      <section class="chapter" id="sources">
+        <h2><span class="section-number">13</span><span>证据与来源</span></h2>
+        {{SOURCES_HTML}}
+      </section>
+
+      <footer class="document-footer">
+        <p>由 Case-Driven Active Learning 生成 · Learn → Apply → Hint → Solve → Reflect → Transfer</p>
+      </footer>
+    </article>
+  </main>
+
+  <div class="screen-actions" aria-label="文档操作">
+    <button type="button" id="toggle-details">展开全部</button>
+    <button type="button" onclick="window.print()">打印 / 保存 PDF</button>
+  </div>
+
+  <script>
+    (() => {
+      const details = Array.from(document.querySelectorAll('details'));
+      const toggle = document.getElementById('toggle-details');
+      let printState = [];
+
+      const syncToggleLabel = () => {
+        if (!toggle) return;
+        const allOpen = details.length > 0 && details.every((item) => item.open);
+        toggle.textContent = allOpen ? '折叠全部' : '展开全部';
+      };
+
+      if (toggle) {
+        toggle.addEventListener('click', () => {
+          const shouldOpen = !details.every((item) => item.open);
+          details.forEach((item) => { item.open = shouldOpen; });
+          syncToggleLabel();
+        });
+      }
+
+      details.forEach((item) => item.addEventListener('toggle', syncToggleLabel));
+
+      window.addEventListener('beforeprint', () => {
+        printState = details.map((item) => item.open);
+        details.forEach((item) => { item.open = true; });
+      });
+
+      window.addEventListener('afterprint', () => {
+        details.forEach((item, index) => {
+          item.open = Boolean(printState[index]);
+        });
+        syncToggleLabel();
+      });
+
+      syncToggleLabel();
+    })();
+  </script>
+</body>
+</html>
