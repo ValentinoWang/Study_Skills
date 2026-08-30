@@ -368,10 +368,12 @@ QA examples/A.html
 5. Hint 1 → 2 → 3 → Final Answer 的展开链；
 6. Final Answer 展开后顶部 `answer` 自动勾选；
 7. 深色 `pre code` 计算样式为透明背景；
-8. 中文长标题；
-9. 宽表格；
-10. 最终答案中的代码块和 callout；
-11. Hero 学习日期存在，且与 `<slug>`、首页卡片一致。
+8. 390px 下必须满足 `document.documentElement.scrollWidth <= window.innerWidth`，不能出现整页横向滚动；
+9. CSS Grid/Flex 中承载长代码、表格的章节容器必须允许收缩（通常显式设置 `min-width: 0`）；
+10. 中文长标题；
+11. 宽表格只能在自身容器内滚动，不能撑宽整页；
+12. 最终答案中的代码块和 callout；
+13. Hero 学习日期存在，且与 `<slug>`、首页卡片一致。
 
 发现硬问题必须修复后重新渲染。
 
