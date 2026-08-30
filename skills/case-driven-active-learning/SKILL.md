@@ -267,6 +267,7 @@ Hint 3 → 查看实际答案
 交互页要求：
 
 - Hero 与正文同版心；
+- Hero meta 必须包含学习日期，见 8.0；
 - 中文正文使用高对比深色文本；
 - 中文 H1 桌面端不要过度放大；
 - 移动端目录折叠；
@@ -274,6 +275,22 @@ Hint 3 → 查看实际答案
 - 语义风险用明确 `.risk-*` 类；
 - 进度 checkbox 与章节 checklist 清楚可点击；
 - 最终答案可和提示区有明显视觉区分。
+
+### 8.0 学习日期硬规则
+
+`<slug>` 里的日期只存在于文件名和 URL，页面上看不见。每节课必须在 Hero meta 里显示学习日期：
+
+```html
+<span class="pill pill-date">学习日期<time datetime="YYYY-MM-DD">YYYY-MM-DD</time></span>
+```
+
+要求：
+
+- 日期与 `<slug>` 末尾的 `YYYYMMDD` 一致；
+- 必须用 `<time datetime>`，不能只写纯文本；
+- 放在 meta-row 最后一位，样式用 `.pill-date`（比其他 pill 更弱），避免和领域/模式/难度这类分类标签混成一片；
+- 同一日期要同步写进 `docs/index.html` 该课卡片的 `.meta`；
+- 打印时保留日期，不要放进 `display:none` 的区域。
 
 ### 8.1 深色代码块硬规则
 
@@ -353,7 +370,8 @@ QA examples/A.html
 7. 深色 `pre code` 计算样式为透明背景；
 8. 中文长标题；
 9. 宽表格；
-10. 最终答案中的代码块和 callout。
+10. 最终答案中的代码块和 callout；
+11. Hero 学习日期存在，且与 `<slug>`、首页卡片一致。
 
 发现硬问题必须修复后重新渲染。
 
