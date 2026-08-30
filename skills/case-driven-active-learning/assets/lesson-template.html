@@ -7,785 +7,419 @@
   <title>{{TITLE}}｜主动学习案例课</title>
   <style>
     :root {
-      --bg: #f5f7fb;
+      --bg: #f4f5f8;
       --surface: #ffffff;
-      --surface-soft: #f8f9ff;
-      --ink: #172033;
-      --muted: #667085;
-      --line: #e4e7ec;
+      --surface-soft: #f8f9fc;
+      --ink: #1d2433;
+      --text: #303849;
+      --muted: #657084;
+      --line: #dfe3ea;
       --accent: #4f46e5;
       --accent-soft: #eef2ff;
-      --hint: #9a6700;
-      --hint-soft: #fff8db;
-      --success: #157f5b;
-      --success-soft: #ecfdf3;
-      --danger: #b42318;
-      --danger-soft: #fff1f0;
-      --shadow: 0 14px 40px rgba(23, 32, 51, 0.08);
-      --radius-lg: 24px;
-      --radius-md: 16px;
-      --radius-sm: 10px;
+      --hint: #8a5b00;
+      --hint-soft: #fff8df;
+      --success: #176348;
+      --success-soft: #eef8f2;
+      --danger: #a33129;
+      --danger-soft: #fff2f0;
+      --radius-lg: 20px;
+      --radius-md: 14px;
       --content: 1180px;
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
     }
 
     * { box-sizing: border-box; }
-
-    html {
-      scroll-behavior: smooth;
-      color-scheme: light;
-    }
-
+    html { scroll-behavior: smooth; color-scheme: light; }
     body {
       margin: 0;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(79, 70, 229, 0.10), transparent 32rem),
-        radial-gradient(circle at 95% 12%, rgba(21, 127, 91, 0.08), transparent 26rem),
-        var(--bg);
-      color: var(--ink);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
       font-size: 16px;
-      line-height: 1.75;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
     }
 
-    a { color: var(--accent); }
-
-    button,
-    textarea,
-    input { font: inherit; }
-
+    a { color: var(--accent); text-underline-offset: 0.16em; }
+    button, textarea, input { font: inherit; }
     button { touch-action: manipulation; }
-
-    :focus-visible {
-      outline: 3px solid rgba(79, 70, 229, 0.32);
-      outline-offset: 3px;
-    }
+    :focus-visible { outline: 3px solid rgba(79, 70, 229, 0.28); outline-offset: 3px; }
 
     .skip-link {
       position: fixed;
-      top: 12px;
       left: 12px;
+      top: 12px;
       z-index: 100;
       padding: 8px 12px;
       border-radius: 8px;
       background: var(--ink);
       color: #fff;
       transform: translateY(-160%);
-      transition: transform 160ms ease;
     }
-
     .skip-link:focus { transform: translateY(0); }
 
-    .hero {
-      padding: 72px 24px 40px;
+    .shell {
+      width: min(var(--content), calc(100% - 48px));
+      margin-inline: auto;
     }
 
-    .hero-inner,
-    .page-shell {
-      width: min(100%, var(--content));
-      margin: 0 auto;
-    }
-
+    .hero { padding: 62px 0 34px; }
     .eyebrow {
       margin: 0 0 10px;
       color: var(--accent);
       font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
-
-    h1,
-    h2,
-    h3 {
-      margin-top: 0;
-      line-height: 1.28;
-      letter-spacing: -0.025em;
-    }
-
+    h1, h2, h3 { color: var(--ink); line-height: 1.28; }
     h1 {
-      max-width: 880px;
-      margin-bottom: 16px;
-      font-size: clamp(2.15rem, 6vw, 4.6rem);
+      max-width: 900px;
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 4.6vw, 3.45rem);
+      font-weight: 700;
+      letter-spacing: 0;
+      text-wrap: balance;
     }
-
-    h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
-    h3 { font-size: 1.08rem; }
-
+    h2 { margin: 0 0 12px; font-size: clamp(1.42rem, 2.4vw, 1.92rem); font-weight: 700; }
+    h3 { margin: 0 0 7px; font-size: 1.06rem; font-weight: 700; }
     .lede {
-      max-width: 760px;
+      max-width: 780px;
       margin: 0;
-      color: var(--muted);
-      font-size: clamp(1.02rem, 2vw, 1.22rem);
+      color: var(--text);
+      font-size: clamp(1rem, 1.6vw, 1.14rem);
     }
-
-    .meta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 24px;
-    }
-
+    .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
     .pill {
       display: inline-flex;
       align-items: center;
-      min-height: 32px;
-      padding: 4px 11px;
-      border: 1px solid rgba(79, 70, 229, 0.16);
+      min-height: 30px;
+      padding: 3px 10px;
+      border: 1px solid #d8dcf7;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.74);
-      color: #35308f;
-      font-size: 0.86rem;
-      font-weight: 700;
-      backdrop-filter: blur(8px);
+      background: #fff;
+      color: #39348d;
+      font-size: 0.84rem;
+      font-weight: 600;
     }
 
-    .page-shell { padding: 0 24px 72px; }
-
+    .page-shell { padding-bottom: 72px; }
     .progress-panel {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 24px;
+      gap: 20px;
       align-items: center;
-      margin-bottom: 24px;
-      padding: 18px 20px;
-      border: 1px solid rgba(79, 70, 229, 0.12);
-      border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.88);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-    }
-
-    .progress-title {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 8px;
-      font-weight: 800;
-    }
-
-    .progress-track {
-      height: 9px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: #e9ebf3;
-    }
-
-    .progress-fill {
-      width: 0;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--accent), #7c72ff);
-      transition: width 220ms ease;
-    }
-
-    .progress-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px 14px;
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    .progress-items label {
-      display: inline-flex;
-      gap: 7px;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .progress-items input { accent-color: var(--accent); }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 230px minmax(0, 1fr);
-      gap: 28px;
-      align-items: start;
-    }
-
-    .toc {
-      position: sticky;
-      top: 20px;
-      padding: 18px;
+      margin-bottom: 22px;
+      padding: 17px 19px;
       border: 1px solid var(--line);
       border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.82);
-      box-shadow: 0 8px 28px rgba(23, 32, 51, 0.05);
-      backdrop-filter: blur(10px);
+      background: var(--surface);
     }
+    .progress-title { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 7px; color: var(--ink); font-weight: 700; }
+    .progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: #e9ebf1; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width 180ms ease; }
+    .progress-items { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 10px; color: var(--muted); font-size: 0.87rem; }
+    .progress-items label { display: inline-flex; gap: 7px; align-items: center; cursor: pointer; }
+    .progress-items input { accent-color: var(--accent); }
 
-    .toc strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 0.86rem;
+    .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 26px; align-items: start; }
+    .toc {
+      position: sticky;
+      top: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: var(--surface);
     }
+    .toc strong { display: block; margin-bottom: 7px; color: var(--ink); font-size: 0.85rem; }
+    .toc a { display: block; padding: 6px 8px; border-radius: 7px; color: var(--muted); font-size: 0.89rem; text-decoration: none; }
+    .toc a:hover { background: var(--accent-soft); color: var(--accent); }
+    .mobile-toc { display: none; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .mobile-toc summary { padding: 12px 14px; cursor: pointer; color: var(--ink); font-weight: 700; }
+    .mobile-toc nav { padding: 0 14px 12px; }
+    .mobile-toc a { display: inline-block; margin: 4px 9px 4px 0; color: var(--muted); font-size: 0.9rem; }
 
-    .toc a {
-      display: block;
-      padding: 7px 9px;
-      border-radius: 8px;
-      color: var(--muted);
-      font-size: 0.9rem;
-      text-decoration: none;
-    }
-
-    .toc a:hover {
-      background: var(--accent-soft);
-      color: var(--accent);
-    }
-
-    main {
-      min-width: 0;
-      display: grid;
-      gap: 20px;
-    }
-
+    main { min-width: 0; display: grid; gap: 18px; }
     .section-card {
-      padding: clamp(22px, 4vw, 38px);
+      padding: clamp(22px, 3.2vw, 34px);
       border: 1px solid var(--line);
       border-radius: var(--radius-lg);
       background: var(--surface);
-      box-shadow: 0 12px 34px rgba(23, 32, 51, 0.055);
-      scroll-margin-top: 20px;
+      scroll-margin-top: 18px;
     }
+    .section-kicker { margin: 0 0 5px; color: var(--accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .section-intro { max-width: 780px; margin: -4px 0 0; color: var(--text); }
 
-    .section-kicker {
-      margin: 0 0 6px;
-      color: var(--accent);
-      font-size: 0.76rem;
-      font-weight: 850;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
+    .callout { margin-top: 20px; padding: 16px 18px; border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; background: var(--accent-soft); color: var(--text); }
+    .callout.hint { border-left-color: var(--hint); background: var(--hint-soft); }
+    .callout.success { border-left-color: var(--success); background: var(--success-soft); }
+    .callout.risk { border-left-color: var(--danger); background: var(--danger-soft); }
 
-    .section-intro {
-      max-width: 760px;
-      margin-top: -8px;
-      color: var(--muted);
-    }
-
-    .callout {
-      margin: 22px 0 0;
-      padding: 18px 20px;
-      border-left: 4px solid var(--accent);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      background: var(--accent-soft);
-    }
-
-    .callout strong { color: #312e81; }
-    .callout.hint { border-color: var(--hint); background: var(--hint-soft); }
-    .callout.success { border-color: var(--success); background: var(--success-soft); }
-    .callout.risk { border-color: var(--danger); background: var(--danger-soft); }
-
-    .term-grid,
-    .card-grid,
-    .knowledge-grid {
+    .term-grid, .card-grid, .knowledge-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 13px;
+      margin-top: 18px;
     }
-
     details.term-card {
       overflow: hidden;
       border: 1px solid var(--line);
       border-radius: var(--radius-md);
       background: var(--surface-soft);
     }
-
-    details.term-card[open] {
-      border-color: rgba(79, 70, 229, 0.28);
-      background: #fff;
-    }
-
+    details.term-card[open] { border-color: #c8c7ef; background: #fff; }
     details.term-card summary {
       display: flex;
       justify-content: space-between;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
-      padding: 16px 18px;
+      padding: 15px 17px;
       cursor: pointer;
-      font-weight: 800;
+      color: var(--ink);
+      font-weight: 700;
       list-style: none;
     }
-
     details.term-card summary::-webkit-details-marker { display: none; }
-
-    details.term-card summary::after {
-      content: "+";
-      color: var(--accent);
-      font-size: 1.25rem;
-      line-height: 1;
-    }
-
+    details.term-card summary::after { content: "+"; color: var(--accent); font-size: 1.18rem; line-height: 1; }
     details.term-card[open] summary::after { content: "−"; }
-
-    .term-body {
-      padding: 0 18px 18px;
-      color: var(--muted);
-    }
-
+    .term-body { padding: 0 17px 17px; color: var(--text); }
     .term-body dl { margin: 0; }
-    .term-body dt {
-      margin-top: 12px;
-      color: var(--ink);
-      font-weight: 800;
-    }
-    .term-body dd { margin: 4px 0 0; }
+    .term-body dt { margin-top: 11px; color: var(--ink); font-weight: 700; }
+    .term-body dd { margin: 3px 0 0; color: var(--text); }
 
-    .flow {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-top: 20px;
-    }
+    .flow { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; margin-top: 18px; }
+    .flow-node { padding: 9px 12px; border: 1px solid #d7daf7; border-radius: 10px; background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+    .flow-arrow { color: var(--muted); font-weight: 600; }
 
-    .flow-node {
-      padding: 10px 14px;
-      border: 1px solid rgba(79, 70, 229, 0.2);
-      border-radius: 12px;
-      background: var(--accent-soft);
-      font-weight: 780;
-    }
+    .mini-card, .knowledge-card { padding: 16px 17px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-soft); }
+    .mini-card p, .knowledge-card p { margin: 0; color: var(--text); }
+    .fact-card { border-top: 3px solid var(--accent); }
+    .inference-card { border-top: 3px solid var(--success); }
+    .unknown-card { border-top: 3px solid var(--hint); }
+    .risk-card { border-top: 3px solid var(--danger); }
 
-    .flow-arrow {
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .mini-card,
-    .knowledge-card {
-      padding: 17px 18px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: var(--surface-soft);
-    }
-
-    .mini-card h3,
-    .knowledge-card h3 { margin-bottom: 6px; }
-    .mini-card p,
-    .knowledge-card p { margin: 0; color: var(--muted); }
-
-    .fact { border-top: 4px solid var(--accent); }
-    .inference { border-top: 4px solid var(--success); }
-    .unknown { border-top: 4px solid var(--hint); }
-    .risk { border-top: 4px solid var(--danger); }
-
-    .question {
-      margin-top: 18px;
-      padding: 20px;
-      border: 1px solid rgba(79, 70, 229, 0.18);
-      border-radius: var(--radius-md);
-      background: var(--surface-soft);
-    }
-
+    .question { margin-top: 17px; padding: 18px; border: 1px solid #d7daf7; border-radius: var(--radius-md); background: var(--surface-soft); }
     .question-number {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 30px;
+      min-width: 30px;
       height: 30px;
       margin-right: 8px;
-      border-radius: 9px;
+      padding-inline: 7px;
+      border-radius: 8px;
       background: var(--accent);
       color: #fff;
-      font-size: 0.86rem;
-      font-weight: 900;
+      font-size: 0.85rem;
+      font-weight: 700;
     }
-
     textarea.answer-box {
       width: 100%;
-      min-height: 150px;
-      margin-top: 14px;
-      padding: 14px 16px;
+      min-height: 155px;
+      margin-top: 13px;
+      padding: 13px 15px;
       resize: vertical;
-      border: 1px solid #cfd4df;
-      border-radius: 12px;
+      border: 1px solid #cbd1dd;
+      border-radius: 10px;
       background: #fff;
       color: var(--ink);
       line-height: 1.65;
     }
+    .button-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+    .button { min-height: 40px; padding: 8px 14px; border: 1px solid transparent; border-radius: 9px; background: var(--accent); color: #fff; cursor: pointer; font-weight: 700; }
+    .button.secondary { border-color: #cfd1f2; background: #fff; color: var(--accent); }
+    .button.subtle { border-color: var(--line); background: var(--surface-soft); color: var(--ink); }
+    .status-text { min-height: 1.3em; margin: 7px 0 0; color: var(--success); font-size: 0.87rem; }
 
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .button {
-      min-height: 42px;
-      padding: 9px 15px;
-      border: 1px solid transparent;
-      border-radius: 11px;
-      background: var(--accent);
-      color: #fff;
-      cursor: pointer;
-      font-weight: 800;
-    }
-
-    .button:hover { filter: brightness(0.97); }
-
-    .button.secondary {
-      border-color: rgba(79, 70, 229, 0.22);
-      background: #fff;
-      color: var(--accent);
-    }
-
-    .button.subtle {
-      border-color: var(--line);
-      background: var(--surface-soft);
-      color: var(--ink);
-    }
-
-    .status-text {
-      min-height: 1.4em;
-      margin: 8px 0 0;
-      color: var(--success);
-      font-size: 0.88rem;
-    }
-
-    .hint-box,
-    .solution-box {
-      margin-top: 12px;
-      padding: 16px 18px;
-      border-radius: var(--radius-md);
-    }
-
-    .hint-box {
-      border: 1px solid #efd994;
-      background: var(--hint-soft);
-    }
-
-    .solution-box {
-      border: 1px solid #a9dfc8;
-      background: var(--success-soft);
-    }
-
-    .solution-box h3 { color: #0f6a4b; }
-
-    pre,
-    code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    code {
-      padding: 0.12em 0.36em;
-      border-radius: 6px;
-      background: #eef0f5;
-      font-size: 0.92em;
-    }
-
-    pre {
-      max-width: 100%;
-      overflow-x: auto;
-      padding: 16px;
-      border-radius: 12px;
-      background: #111827;
-      color: #f8fafc;
-      line-height: 1.58;
-    }
-
-    pre code { padding: 0; background: transparent; color: inherit; }
-
-    .footer {
-      padding: 30px 0 0;
-      color: var(--muted);
-      text-align: center;
-      font-size: 0.88rem;
-    }
-
+    .hint-stage { margin-top: 12px; padding: 15px 17px; border: 1px solid #ead89d; border-radius: var(--radius-md); background: var(--hint-soft); }
+    .hint-stage h3 { color: #6f4a00; }
     [hidden] { display: none !important; }
 
+    pre, code { font-family: var(--mono); }
+    code { padding: 0.11em 0.34em; border-radius: 5px; background: #eef0f4; color: var(--ink); font-size: 0.91em; }
+    pre { max-width: 100%; overflow-x: auto; padding: 15px; border-radius: 10px; background: #151a24; color: #f6f7f9; line-height: 1.58; }
+    pre code { padding: 0; background: transparent; color: inherit; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+    .table-wrap { width: 100%; overflow-x: auto; margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; }
+    th, td { padding: 10px 11px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: #f1f3f7; color: var(--ink); font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+
+    .footer { padding: 28px 0 0; color: var(--muted); text-align: center; font-size: 0.86rem; }
+
     @media (max-width: 860px) {
+      .shell { width: min(100% - 32px, var(--content)); }
+      .hero { padding: 42px 0 24px; }
+      h1 { font-size: clamp(2rem, 10vw, 2.85rem); }
+      .progress-panel { grid-template-columns: 1fr; gap: 12px; }
       .layout { grid-template-columns: 1fr; }
-      .toc { position: static; }
-      .toc-links {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      .toc { display: none; }
+      .mobile-toc { display: block; }
+      .term-grid, .card-grid, .knowledge-grid { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 640px) {
-      .hero { padding: 52px 18px 28px; }
-      .page-shell { padding: 0 14px 52px; }
-      .progress-panel { grid-template-columns: 1fr; }
-      .term-grid,
-      .card-grid,
-      .knowledge-grid { grid-template-columns: 1fr; }
-      .section-card { border-radius: 18px; }
-      .toc-links { grid-template-columns: 1fr; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { transition-duration: 0.01ms !important; }
-    }
-
+    @page { size: A4; margin: 17mm 16mm 19mm; }
     @media print {
-      body { background: #fff; color: #000; font-size: 11pt; }
-      .hero { padding: 20px 0; }
-      .page-shell { width: 100%; padding: 0; }
-      .layout { display: block; }
-      .toc,
-      .progress-panel,
-      .button-row,
-      .screen-only,
-      .skip-link { display: none !important; }
-      .section-card {
-        break-inside: avoid;
-        box-shadow: none;
-        border-color: #ccc;
-        margin-bottom: 14px;
-      }
-      details:not([open]) > *:not(summary),
-      [hidden] { display: block !important; }
-      details summary::after { display: none; }
-      textarea.answer-box { min-height: 90px; }
+      :root { --bg: #fff; --surface: #fff; --surface-soft: #fff; --ink: #111; --text: #222; --muted: #444; --line: #aaa; --accent: #111; }
+      html, body { background: #fff; }
+      body { font-size: 10.5pt; line-height: 1.55; }
+      .shell { width: auto; margin: 0; }
+      .hero { padding: 0 0 10mm; }
+      .page-shell { padding: 0; }
+      .progress-panel, .toc, .mobile-toc, .button-row, .status-text { display: none !important; }
+      .layout, main { display: block; }
+      .section-card { margin: 0 0 8mm; padding: 0; border: 0; border-radius: 0; background: #fff; }
+      .section-card + .section-card { padding-top: 4mm; border-top: 1px solid #bbb; }
+      .term-grid, .card-grid, .knowledge-grid { display: block; }
+      details.term-card, .mini-card, .knowledge-card, .question, .hint-stage, .callout { break-inside: avoid; margin: 0 0 4mm; background: #fff !important; border-color: #999 !important; color: #111 !important; }
+      details.term-card[open] { background: #fff; }
+      textarea.answer-box { min-height: 55mm; border: 1px solid #888; color: #111; }
+      .question-number { background: transparent !important; color: #111 !important; border: 1px solid #111; }
+      pre { background: #f3f3f3 !important; color: #111 !important; border: 1px solid #999; white-space: pre-wrap; }
+      pre code { color: #111 !important; }
+      code { background: #f1f1f1 !important; color: #111 !important; }
+      th { background: #eee !important; color: #111 !important; }
+      a { color: #111; text-decoration: none; }
+      .footer { color: #444; }
     }
   </style>
 </head>
 <body data-lesson-id="{{LESSON_ID}}">
   <a class="skip-link" href="#main-content">跳到正文</a>
 
-  <header class="hero" id="top">
-    <div class="hero-inner">
-      <p class="eyebrow">Case-driven active learning</p>
+  <header class="hero">
+    <div class="shell">
+      <p class="eyebrow">Case-Driven Active Learning</p>
       <h1>{{TITLE}}</h1>
-      <p class="lede">{{ONE_SENTENCE_SUMMARY}}</p>
-      <div class="meta-row" aria-label="课程信息">
-        <span class="pill">领域：{{DOMAIN}}</span>
-        <span class="pill">模式：{{MODE}}</span>
-        <span class="pill">预计学习：{{DURATION}}</span>
+      <p class="lede">{{SUBTITLE}}</p>
+      <div class="meta-row">
+        <span class="pill">{{DOMAIN}}</span>
+        <span class="pill">{{MODE}}</span>
+        <span class="pill">{{DURATION}}</span>
+        <span class="pill">{{DIFFICULTY}}</span>
       </div>
     </div>
   </header>
 
-  <div class="page-shell">
+  <div class="shell page-shell">
     <section class="progress-panel" aria-label="学习进度">
       <div>
-        <div class="progress-title">
-          <span>本课进度</span>
-          <span id="progress-label">0%</span>
-        </div>
-        <div class="progress-track" aria-hidden="true">
-          <div class="progress-fill" id="progress-fill"></div>
-        </div>
+        <div class="progress-title"><span>学习进度</span><span id="progress-label">0 / 4</span></div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
         <div class="progress-items">
           <label><input type="checkbox" data-progress="terms">理解术语</label>
           <label><input type="checkbox" data-progress="case">还原案例</label>
-          <label><input type="checkbox" data-progress="answer">完成作答</label>
+          <label><input type="checkbox" data-progress="attempt">完成作答</label>
           <label><input type="checkbox" data-progress="reflect">完成反思</label>
         </div>
       </div>
-      <a class="button secondary screen-only" href="#exercise">直接进入题目</a>
+      <button class="button subtle" id="reset-progress" type="button">重置本页</button>
     </section>
 
+    <details class="mobile-toc">
+      <summary>本页目录</summary>
+      <nav aria-label="移动端目录">
+        <a href="#orient">先看懂</a><a href="#terms">核心术语</a><a href="#map">知识地图</a>
+        <a href="#case">案例还原</a><a href="#exercise">训练题</a><a href="#hints">分级提示</a>
+      </nav>
+    </details>
+
     <div class="layout">
-      <nav class="toc" aria-label="本页目录">
-        <strong>学习路径</strong>
-        <div class="toc-links">
-          <a href="#overview">先看懂</a>
-          <a href="#terms">术语卡片</a>
-          <a href="#map">知识地图</a>
-          <a href="#case">案例还原</a>
-          <a href="#exercise">开始做题</a>
-          <a href="#hints">分级提示</a>
-          <a href="#solution">成熟方案</a>
-          <a href="#transfer">迁移训练</a>
-        </div>
+      <nav class="toc" aria-label="章节目录">
+        <strong>本页目录</strong>
+        <a href="#orient">01 · 先看懂</a>
+        <a href="#terms">02 · 核心术语</a>
+        <a href="#map">03 · 知识地图</a>
+        <a href="#case">04 · 案例还原</a>
+        <a href="#mapping">05 · 概念映射</a>
+        <a href="#exercise">06 · 训练题</a>
+        <a href="#hints">07 · 分级提示</a>
       </nav>
 
       <main id="main-content">
-        <section class="section-card" id="overview">
-          <p class="section-kicker">01 · Orientation</p>
-          <h2>这段材料到底在说什么</h2>
-          <p class="section-intro">{{PLAIN_LANGUAGE_OVERVIEW}}</p>
-          <div class="callout">
-            <strong>本题真正要解决：</strong>
-            {{REAL_PROBLEM}}
-          </div>
+        <section class="section-card" id="orient">
+          <p class="section-kicker">Orient</p>
+          <h2>① 这段材料到底在说什么</h2>
+          {{ORIENTATION_HTML}}
         </section>
 
         <section class="section-card" id="terms">
-          <p class="section-kicker">02 · Vocabulary</p>
-          <h2>先认识必要术语</h2>
-          <p class="section-intro">点击卡片展开。核心术语使用“直觉—严格定义—比喻—比喻边界—本题作用”五层解释。</p>
-
-          <div class="term-grid">
-            <!-- 按需复制 term-card；不要保留空占位符 -->
-            <details class="term-card">
-              <summary>{{TERM_1}}</summary>
-              <div class="term-body">
-                <dl>
-                  <dt>一句话直觉</dt><dd>{{TERM_1_INTUITION}}</dd>
-                  <dt>严格定义</dt><dd>{{TERM_1_DEFINITION}}</dd>
-                  <dt>像什么</dt><dd>{{TERM_1_ANALOGY}}</dd>
-                  <dt>比喻的边界</dt><dd>{{TERM_1_ANALOGY_LIMIT}}</dd>
-                  <dt>在本题中的作用</dt><dd>{{TERM_1_CASE_ROLE}}</dd>
-                </dl>
-              </div>
-            </details>
-
-            <details class="term-card">
-              <summary>{{TERM_2}}</summary>
-              <div class="term-body">
-                <dl>
-                  <dt>一句话直觉</dt><dd>{{TERM_2_INTUITION}}</dd>
-                  <dt>严格定义</dt><dd>{{TERM_2_DEFINITION}}</dd>
-                  <dt>像什么</dt><dd>{{TERM_2_ANALOGY}}</dd>
-                  <dt>比喻的边界</dt><dd>{{TERM_2_ANALOGY_LIMIT}}</dd>
-                  <dt>在本题中的作用</dt><dd>{{TERM_2_CASE_ROLE}}</dd>
-                </dl>
-              </div>
-            </details>
-          </div>
+          <p class="section-kicker">Learn</p>
+          <h2>② 你必须先认识的概念</h2>
+          <p class="section-intro">只学习解决当前案例所需的最小知识。点击术语展开五层解释。</p>
+          <div class="term-grid">{{TERMS_HTML}}</div>
         </section>
 
         <section class="section-card" id="map">
-          <p class="section-kicker">03 · Map</p>
-          <h2>概念之间是什么关系</h2>
-          <p class="section-intro">{{MAP_EXPLANATION}}</p>
-          <div class="flow" aria-label="概念关系图">
-            <span class="flow-node">{{NODE_1}}</span>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <span class="flow-node">{{NODE_2}}</span>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <span class="flow-node">{{NODE_3}}</span>
-          </div>
-          <div class="callout success">
-            <strong>进入本题只需记住：</strong>
-            {{MINIMUM_KNOWLEDGE}}
-          </div>
+          <p class="section-kicker">Connect</p>
+          <h2>③ 概念关系与最小知识闭包</h2>
+          {{CONCEPT_MAP_HTML}}
+          {{MINIMUM_KNOWLEDGE_HTML}}
         </section>
 
         <section class="section-card" id="case">
-          <p class="section-kicker">04 · Reconstruction</p>
-          <h2>把真实案例重新还原</h2>
-          <div class="card-grid">
-            <article class="mini-card fact">
-              <h3>已知事实</h3>
-              <p>{{KNOWN_FACTS}}</p>
-            </article>
-            <article class="mini-card inference">
-              <h3>可以推断</h3>
-              <p>{{INFERENCES}}</p>
-            </article>
-            <article class="mini-card unknown">
-              <h3>尚不知道</h3>
-              <p>{{UNKNOWNS}}</p>
-            </article>
-            <article class="mini-card risk">
-              <h3>关键风险</h3>
-              <p>{{KEY_RISKS}}</p>
-            </article>
-          </div>
+          <p class="section-kicker">Reconstruct</p>
+          <h2>④ 把真实案例重新还原</h2>
+          {{CASE_RECONSTRUCTION_HTML}}
+        </section>
+
+        <section class="section-card" id="mapping">
+          <p class="section-kicker">Map</p>
+          <h2>⑤ 概念如何映射到现实</h2>
+          {{CONCEPT_CASE_MAPPING_HTML}}
         </section>
 
         <section class="section-card" id="exercise">
-          <p class="section-kicker">05 · Practice</p>
-          <h2>现在把它当成一道题</h2>
-          <div class="callout">
-            <strong>你的角色：</strong>{{ROLE}}<br>
-            <strong>你的目标：</strong>{{GOAL}}<br>
-            <strong>限制条件：</strong>{{CONSTRAINTS}}
+          <p class="section-kicker">Attempt</p>
+          <h2>⑥ 现在把它当成一道题</h2>
+          {{EXERCISE_HTML}}
+          <label for="answer-box"><strong>你的作答</strong></label>
+          <textarea class="answer-box" id="answer-box" placeholder="先写你的判断、依据、风险和方案顺序。这里会自动保存在本浏览器中。"></textarea>
+          <div class="button-row">
+            <button class="button" type="button" id="copy-answer">复制作答</button>
+            <button class="button secondary" type="button" id="mark-attempt">标记为已完成</button>
           </div>
-
-          <article class="question">
-            <h3><span class="question-number">1</span>{{QUESTION_1}}</h3>
-            <p>{{QUESTION_1_GUIDE}}</p>
-            <label for="answer-1"><strong>你的作答</strong></label>
-            <textarea class="answer-box" id="answer-1" data-save placeholder="先写判断，再写依据，最后写验证方法。"></textarea>
-            <div class="button-row screen-only">
-              <button class="button subtle" type="button" data-copy-from="answer-1">复制我的作答</button>
-            </div>
-            <p class="status-text" id="copy-status" role="status" aria-live="polite"></p>
-          </article>
+          <p class="status-text" id="copy-status" role="status" aria-live="polite"></p>
         </section>
 
         <section class="section-card" id="hints">
-          <p class="section-kicker">06 · Hint ladder</p>
-          <h2>卡住时，再逐级看提示</h2>
-          <p class="section-intro">每次只展开一级，先利用已有信息继续思考。</p>
-          <div class="button-row screen-only">
-            <button class="button secondary" type="button" data-reveal="hint-1" data-next="hint-button-2" data-show-label="查看提示 1" data-hide-label="收起提示 1" aria-expanded="false">查看提示 1</button>
-            <button class="button secondary" id="hint-button-2" type="button" data-reveal="hint-2" data-next="hint-button-3" data-show-label="查看提示 2" data-hide-label="收起提示 2" aria-expanded="false" hidden>查看提示 2</button>
-            <button class="button secondary" id="hint-button-3" type="button" data-reveal="hint-3" data-show-label="查看提示 3" data-hide-label="收起提示 3" aria-expanded="false" hidden>查看提示 3</button>
+          <p class="section-kicker">Hint</p>
+          <h2>⑦ 分级提示</h2>
+          <p class="section-intro">每次只看一级。下一层提示只有在你主动点击后才出现。</p>
+          <div class="hint-stage" id="hint-1">
+            <h3>Hint 1 · 方向</h3>
+            {{HINT_1_HTML}}
+            <button class="button secondary" type="button" data-reveal="hint-2">需要结构提示</button>
           </div>
-          <div class="hint-box" id="hint-1" hidden><strong>方向提示：</strong>{{HINT_1}}</div>
-          <div class="hint-box" id="hint-2" hidden><strong>结构提示：</strong>{{HINT_2}}</div>
-          <div class="hint-box" id="hint-3" hidden><strong>接近答案：</strong>{{HINT_3}}</div>
-        </section>
-
-        <!-- /learn 第一阶段必须删除下面整个 solution section，不能只用 CSS 隐藏。 -->
-        <section class="section-card" id="solution">
-          <p class="section-kicker">07 · Mature solution</p>
-          <h2>成熟方案与专家思路</h2>
-          <div class="button-row screen-only">
-            <button class="button" type="button" data-reveal="solution-content" data-show-label="展开成熟方案" data-hide-label="收起成熟方案" aria-expanded="false">展开成熟方案</button>
+          <div class="hint-stage" id="hint-2" hidden>
+            <h3>Hint 2 · 结构</h3>
+            {{HINT_2_HTML}}
+            <button class="button secondary" type="button" data-reveal="hint-3">需要近答案提示</button>
           </div>
-          <div class="solution-box" id="solution-content" hidden>
-            <h3>问题本质</h3>
-            <p>{{SOLUTION_ESSENCE}}</p>
-            <h3>总体策略</h3>
-            <p>{{SOLUTION_STRATEGY}}</p>
-            <h3>具体执行</h3>
-            <div>{{SOLUTION_STEPS}}</div>
-            <h3>风险与验证</h3>
-            <p>{{SOLUTION_RISKS_AND_VALIDATION}}</p>
-            <h3>专家的心智模型</h3>
-            <p>{{EXPERT_MENTAL_MODEL}}</p>
-          </div>
-        </section>
-
-        <section class="section-card" id="transfer">
-          <p class="section-kicker">08 · Transfer</p>
-          <h2>换一个相似场景，你还会吗</h2>
-          <p>{{TRANSFER_CASE}}</p>
-          <div class="knowledge-grid">
-            <article class="knowledge-card">
-              <h3>{{CARD_1_TITLE}}</h3>
-              <p>{{CARD_1_CONTENT}}</p>
-            </article>
-            <article class="knowledge-card">
-              <h3>{{CARD_2_TITLE}}</h3>
-              <p>{{CARD_2_CONTENT}}</p>
-            </article>
-            <article class="knowledge-card">
-              <h3>{{CARD_3_TITLE}}</h3>
-              <p>{{CARD_3_CONTENT}}</p>
-            </article>
+          <div class="hint-stage" id="hint-3" hidden>
+            <h3>Hint 3 · 接近答案</h3>
+            {{HINT_3_HTML}}
           </div>
         </section>
       </main>
     </div>
 
-    <footer class="footer">
-      Learn → Apply → Fail → Hint → Solve → Reflect → Transfer
-    </footer>
+    <footer class="footer">Learn → Apply → Fail → Hint → Solve → Reflect → Transfer</footer>
   </div>
 
   <script>
     (() => {
-      "use strict";
-
       const lessonId = document.body.dataset.lessonId || document.title || location.pathname;
       const storageKey = `case-driven-learning:${lessonId}`;
-      let state = { checks: {}, answers: {} };
+      let state = { checks: {}, answer: "", revealedHints: [] };
 
       try {
         const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-        if (saved && typeof saved === "object") {
-          state = {
-            checks: saved.checks && typeof saved.checks === "object" ? saved.checks : {},
-            answers: saved.answers && typeof saved.answers === "object" ? saved.answers : {}
-          };
-        }
-      } catch (_) {
-        state = { checks: {}, answers: {} };
-      }
+        if (saved && typeof saved === "object") state = { ...state, ...saved };
+      } catch (_) {}
 
       const persist = () => {
         try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch (_) {}
@@ -794,70 +428,83 @@
       const progressItems = [...document.querySelectorAll("[data-progress]")];
       const progressFill = document.getElementById("progress-fill");
       const progressLabel = document.getElementById("progress-label");
+      const answer = document.getElementById("answer-box");
+      const copyStatus = document.getElementById("copy-status");
 
       const updateProgress = () => {
-        const completed = progressItems.filter((item) => item.checked).length;
-        const percent = progressItems.length ? Math.round((completed / progressItems.length) * 100) : 0;
-        if (progressFill) progressFill.style.width = `${percent}%`;
-        if (progressLabel) progressLabel.textContent = `${percent}%`;
+        const done = progressItems.filter((item) => item.checked).length;
+        progressLabel.textContent = `${done} / ${progressItems.length}`;
+        progressFill.style.width = `${(done / progressItems.length) * 100}%`;
       };
 
       progressItems.forEach((item) => {
-        const key = item.dataset.progress;
-        item.checked = Boolean(state.checks[key]);
+        item.checked = Boolean(state.checks[item.dataset.progress]);
         item.addEventListener("change", () => {
-          state.checks[key] = item.checked;
+          state.checks[item.dataset.progress] = item.checked;
           persist();
           updateProgress();
         });
       });
-      updateProgress();
 
-      document.querySelectorAll("textarea[data-save]").forEach((area, index) => {
-        const key = area.id || `answer-${index + 1}`;
-        if (typeof state.answers[key] === "string") area.value = state.answers[key];
-        area.addEventListener("input", () => {
-          state.answers[key] = area.value;
+      if (answer) {
+        answer.value = state.answer || "";
+        answer.addEventListener("input", () => {
+          state.answer = answer.value;
           persist();
         });
-      });
+      }
 
       document.querySelectorAll("[data-reveal]").forEach((button) => {
-        const target = document.getElementById(button.dataset.reveal);
-        if (!target) return;
-
         button.addEventListener("click", () => {
-          const willShow = target.hidden;
-          target.hidden = !willShow;
-          button.setAttribute("aria-expanded", String(willShow));
-          button.textContent = willShow
-            ? (button.dataset.hideLabel || "收起")
-            : (button.dataset.showLabel || "展开");
-
-          if (willShow && button.dataset.next) {
-            const nextButton = document.getElementById(button.dataset.next);
-            if (nextButton) nextButton.hidden = false;
-          }
+          const id = button.dataset.reveal;
+          const target = document.getElementById(id);
+          if (!target) return;
+          target.hidden = false;
+          if (!state.revealedHints.includes(id)) state.revealedHints.push(id);
+          persist();
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
         });
       });
 
-      document.querySelectorAll("[data-copy-from]").forEach((button) => {
-        button.addEventListener("click", async () => {
-          const source = document.getElementById(button.dataset.copyFrom);
-          if (!source) return;
-          const status = document.getElementById("copy-status");
-
-          try {
-            await navigator.clipboard.writeText(source.value);
-            if (status) status.textContent = "已复制，可以粘贴回对话中获得反馈。";
-          } catch (_) {
-            source.focus();
-            source.select();
-            const copied = document.execCommand("copy");
-            if (status) status.textContent = copied ? "已复制。" : "复制失败，请手动选择文本。";
-          }
-        });
+      state.revealedHints.forEach((id) => {
+        const target = document.getElementById(id);
+        if (target) target.hidden = false;
       });
+
+      document.getElementById("mark-attempt")?.addEventListener("click", () => {
+        const item = document.querySelector('[data-progress="attempt"]');
+        if (item) {
+          item.checked = true;
+          state.checks.attempt = true;
+          persist();
+          updateProgress();
+        }
+      });
+
+      document.getElementById("copy-answer")?.addEventListener("click", async () => {
+        const text = answer?.value || "";
+        try {
+          await navigator.clipboard.writeText(text);
+          copyStatus.textContent = "已复制，可以粘贴回对话继续复盘。";
+        } catch (_) {
+          answer?.select();
+          copyStatus.textContent = "浏览器未授权自动复制，已选中作答文本。";
+        }
+      });
+
+      document.getElementById("reset-progress")?.addEventListener("click", () => {
+        state = { checks: {}, answer: "", revealedHints: [] };
+        try { localStorage.removeItem(storageKey); } catch (_) {}
+        progressItems.forEach((item) => { item.checked = false; });
+        if (answer) answer.value = "";
+        ["hint-2", "hint-3"].forEach((id) => {
+          const target = document.getElementById(id);
+          if (target) target.hidden = true;
+        });
+        updateProgress();
+      });
+
+      updateProgress();
     })();
   </script>
 </body>
