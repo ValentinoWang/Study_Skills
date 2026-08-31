@@ -22,9 +22,9 @@ description: >
 → Hint 1 / Hint 2 / Hint 3
 → 实际答案
 → 反思与迁移
-→ 生成唯一 canonical HTML
+→ 写入 lessons/<slug>.json
+→ tools/build-lessons.py 生成 examples/ 与 docs/lessons/
 → 渲染 QA
-→ 原样同步 examples/ 与 docs/lessons/
 → 注册 docs/index.html
 → GitHub Pages 部署
 → 对最终发布页做 smoke check
@@ -91,6 +91,34 @@ ORIENT → LEARN → CONNECT → RECONSTRUCT → MAP → ATTEMPT
 ```text
 assets/lesson-template.html
 ```
+
+页面由「模板 + `lessons/<slug>.json`」机械生成，见 10.1。
+
+### 概念图：什么时候该用内联 SVG
+
+- **单向链、节点 ≤ 5** → 用 `.flow` + `.node`，够用且最省；
+- **出现分叉、汇合、多条独立历史、或同一节点要重复出现** → 必须改用
+  `.diagram` 内联 SVG，不要硬塞进 `.flow`。
+
+理由：`.flow` 是 flex 换行布局，一旦关系不是单向链，换行会把关系标签甩到错误的
+节点旁边、并让同一个节点被迫重复出现，图会在窄屏彻底失去可读性。
+
+SVG 图的固定写法（组件已在模板中）：
+
+```html
+<figure class="diagram">
+  <div class="diagram-scroll">
+    <svg viewBox="0 0 960 320" role="img" aria-label="完整文字描述">…</svg>
+  </div>
+  <figcaption>读图：颜色/线型各代表什么。</figcaption>
+</figure>
+```
+
+- 颜色只用模板变量（`var(--a)` / `var(--warn-ink)` / `var(--risk-ink)` / `var(--muted)`），
+  不写字面色值，这样打印与后续改版自动跟随；
+- 文字用 `.dg-tag` / `.dg-sha` / `.dg-edge` 三个类，不要内联 `font-size`；
+- `.diagram-scroll` 负责窄屏横向滚动，打印时模板已让它按页宽缩放；
+- `aria-label` 必须是能替代整张图的完整文字描述。
 
 用于 `/learn`。必须包含：
 
@@ -272,7 +300,7 @@ Hint 3 → 查看实际答案
 - 中文 H1 桌面端不要过度放大；
 - 移动端目录折叠；
 - 卡片使用 `auto-fit/minmax`；
-- 语义风险用明确 `.risk-*` 类；
+- 语义卡片用明确修饰类（`.mini.fact` / `.infer` / `.unknown` / `.risk`）；
 - 进度 checkbox 与章节 checklist 清楚可点击；
 - 最终答案可和提示区有明显视觉区分。
 
@@ -355,6 +383,42 @@ QA examples/A.html
 
 在条件允许时，验证归档版和发布版内容哈希一致；至少确认正文、CSS、JS 来自同一 canonical artifact。
 
+## 10.1 课程库必须同版本：禁止模板静默分叉
+
+上面只保证「同一节课的三份文件一致」。还必须保证「不同课程来自同一个模板版本」。
+
+历史教训：做第二个案例时迭代了模板但没迁移第一个案例，于是 Git 课停在
+`.section-card/.button/--surface` 一代，腾讯云课已经是 `.sec/.btn/--s` 一代，
+首页点进去像两个不同产品。**根因不是内容不同，而是允许了模板静默分叉。**
+
+### 硬规则
+
+- 设计系统（CSS + JS + 章节骨架）**只有一个来源**：`assets/lesson-template.html`；
+- 课程之间**只允许内容不同**，不允许自带一套 CSS/JS；
+- 每节课的内容存放在 `lessons/<slug>.json`，页面由 `tools/build-lessons.py`
+  机械生成，**不允许手写或手改 `docs/lessons/*.html`**；
+- 模板发生任何改动 → **同一个 commit 内**重新生成全部课程，不允许分次迁移；
+- 课程需要模板没有的组件时，**把组件提升进模板**，不允许只在单节课里加样式。
+
+### 版本号必须从内容派生
+
+不要用手写的 `<meta name="template-version" content="1.0">` 之类声明。
+我们要防的失效模式恰恰是「改了内容但忘了更新声明」，用同样靠人手写的声明去防它
+是同一个失效模式套娃——实际发生过：两节课都自认是「新一代」，但字节仍然不同。
+
+版本号 = `assets/lesson-template.html` 的 `<style>` + `<script>` 两块的 sha256 前 8 位，
+由 `tools/check-lesson-consistency.py` 计算并逐字节比对。
+
+```text
+python3 tools/build-lessons.py            # 模板 + 数据 → 课程页
+python3 tools/build-lessons.py --check    # 产物是否与「模板 + 数据」一致
+python3 tools/check-lesson-consistency.py # 所有课程是否同一模板版本
+```
+
+两个脚本都必须 exit 0 才能宣称发布完成。
+
+`docs/lessons/welcome.html` 是冒烟测试页不是课程，已在校验脚本中豁免。
+
 ---
 
 # 11. 渲染 QA：不能只读 CSS
@@ -373,7 +437,8 @@ QA examples/A.html
 10. 中文长标题；
 11. 宽表格只能在自身容器内滚动，不能撑宽整页；
 12. 最终答案中的代码块和 callout；
-13. Hero 学习日期存在，且与 `<slug>`、首页卡片一致。
+13. Hero 学习日期存在，且与 `<slug>`、首页卡片一致；
+14. `tools/build-lessons.py --check` 与 `tools/check-lesson-consistency.py` 均 exit 0。
 
 发现硬问题必须修复后重新渲染。
 
@@ -414,10 +479,10 @@ branch: main
 流程：
 
 ```text
-生成 canonical HTML
+写入 lessons/<slug>.json（只放内容，不放 CSS/JS）
+→ python3 tools/build-lessons.py   （同时生成 examples/ 与 docs/lessons/）
 → QA
-→ 更新 examples/<slug>.html
-→ 用完全相同内容更新 docs/lessons/<slug>.html
+→ python3 tools/check-lesson-consistency.py
 → 更新 docs/index.html（若尚未注册）
 → 获取 commit SHA
 → 重新读取三个位置
