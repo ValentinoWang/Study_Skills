@@ -4,62 +4,49 @@ A small library of reusable learning skills and publishable learning pages.
 
 ## Website
 
-This repository is prepared for GitHub Pages using `main/docs` as the publishing source.
-
-Expected site URL:
+GitHub Pages publishes `main/docs`:
 
 - https://valentinowang.github.io/Study_Skills/
 
-## Available skills
+## Skills
 
 ### `math-cs-concept-tutor`
 
-Teach computer-science and software-engineering concepts to learners with a mathematics background.
+For mathematics-background learners studying computer science and software engineering.
 
-Core responsibilities:
+Key rules:
 
-- separate **abstraction hierarchy** from **learning prerequisites**;
-- explain concepts from intuition → mechanism → mathematical model;
-- enforce structured expression and default word budgets;
-- map concepts into real engineering scenarios;
-- select Mermaid / Graphviz / D2 / LaTeX / tables / charts / explanatory images according to information type;
-- end with one reasoning-based scenario question and reference answer.
+- separate abstraction hierarchy from learning prerequisites;
+- **define unfamiliar terminology before it is used for reasoning**;
+- explain intuition → mechanism → mathematical model → real engineering case;
+- use the representation that matches the information structure rather than maximizing diagrams;
+- keep formulas native/copyable instead of turning them into images;
+- finish with a reasoning-based scenario question and reference answer.
 
-Path:
-
-```text
-skills/math-cs-concept-tutor/SKILL.md
-```
+Path: `skills/math-cs-concept-tutor/SKILL.md`
 
 ### `learning-page-design-publisher`
 
-Turn finished or mostly-finished learning content into polished, structured, responsive, printable, publishable static learning pages.
+Turns finished learning content into structured, polished, responsive, printable GitHub Pages lessons.
 
-Core responsibilities:
+Key rules:
 
-- content decomposition and information hierarchy;
-- visual design and typography;
-- HTML layout and interaction;
-- offline-first diagram/formula rendering;
+- terminology-first reading order;
+- collapsed term cards still expose a one-line definition;
+- visual hierarchy comes from typography, spacing, tables, callouts and layout—not image count;
+- formulas, code and commands stay native/copyable;
 - desktop / mobile / print QA;
-- canonical artifact consistency;
-- archive + `docs/lessons` publishing;
-- homepage registration;
-- GitHub Pages verification.
+- GitHub Pages build + final artifact readback.
 
-Path:
+Path: `skills/learning-page-design-publisher/SKILL.md`
 
-```text
-skills/learning-page-design-publisher/SKILL.md
-```
-
-## How the two skills work together
+## How they work together
 
 ```text
 Need to understand a concept
     → math-cs-concept-tutor
 
-Content is ready; need a beautiful web page
+Content is ready; need a learning page
     → learning-page-design-publisher
 
 Need both
@@ -67,11 +54,46 @@ Need both
     → learning-page-design-publisher
 ```
 
-In short:
+## Current publishing architecture
 
-> `math-cs-concept-tutor` decides **what to explain and how to make it understandable**; `learning-page-design-publisher` decides **how to turn that content into a well-designed, stable, publishable page**.
+Canonical content and publishing are deliberately separated:
 
-## Structure
+```text
+skills/learning-page-design-publisher/lessons/<slug>.json
+                    +
+skills/learning-page-design-publisher/term-overrides.yml
+                    ↓
+               canonical data
+                    ↓ mirror
+      docs/_data/lessons/<slug>.json
+      docs/_data/term_overrides.yml
+                    ↓
+          docs/_layouts/lesson.html
+                    ↓
+          docs/lessons/<slug>.html
+          (small Jekyll entry file)
+                    ↓
+             GitHub Pages
+                    ↓
+         rendered static HTML
+```
+
+The shared layout enforces:
+
+```text
+Hero
+→ terminology primer
+→ main explanation
+→ concept map
+→ case
+→ mapping
+→ exercise
+→ hints / answer
+```
+
+This prevents lessons from using terms such as `Runtime`, `HMR`, `E2E`, `readback`, `HEAD`, `CORS`, etc. before the learner has been given a minimal definition.
+
+## Repository structure
 
 ```text
 Study_Skills/
@@ -80,62 +102,63 @@ Study_Skills/
 │   │   └── SKILL.md
 │   └── learning-page-design-publisher/
 │       ├── SKILL.md
+│       ├── term-overrides.yml
 │       ├── assets/
-│       │   └── lesson-template.html
 │       ├── lessons/
 │       ├── examples/
 │       └── templates/
 ├── tools/
+│   ├── backwash-term-gates.py
 │   ├── build-lessons.py
 │   ├── check-lesson-consistency.py
-│   └── check-term-depth.py
+│   ├── check-term-depth.py
+│   └── check-term-gate.py
 └── docs/
-    ├── .nojekyll
+    ├── _data/
+    │   ├── lessons/
+    │   └── term_overrides.yml
+    ├── _layouts/
+    │   └── lesson.html
     ├── index.html
     └── lessons/
 ```
 
-## Publishing a learning page
+`docs/.nojekyll` must **not** exist because GitHub Pages/Jekyll is now the shared lesson renderer.
 
-The canonical publishing workflow is:
+## Backwash / build / verification
 
-```text
-content / lesson data
-→ canonical template
-→ render QA
-→ skills/learning-page-design-publisher/examples/<slug>.html
-→ docs/lessons/<slug>.html
-→ docs/index.html
-→ main
-→ GitHub Pages
-```
-
-Build and verify:
+Synchronize all current lessons after a terminology or layout change:
 
 ```bash
-python3 tools/build-lessons.py
+python3 tools/backwash-term-gates.py
+```
+
+Read-only checks:
+
+```bash
+python3 tools/backwash-term-gates.py --check
 python3 tools/build-lessons.py --check
 python3 tools/check-lesson-consistency.py
+python3 tools/check-term-depth.py
+python3 tools/check-term-gate.py
 ```
 
-For active-learning pages that contain structured terminology cards, also run:
+To validate a real GitHub Pages `_site` or downloaded Pages artifact:
 
 ```bash
-python3 tools/check-term-depth.py
+python3 tools/check-term-gate.py --built-site /path/to/_site
 ```
 
-No server, database, Node.js build, or virtual machine is required for the current static-page workflow.
+The artifact check verifies that the final rendered HTML—not merely the repository source—places the terminology section before the main explanation and contains the required core terms.
 
-## One-time GitHub Pages setting
+## GitHub Pages setting
 
-In the repository open:
+Repository setting:
 
 `Settings → Pages → Build and deployment`
-
-Choose:
 
 - **Source:** Deploy from a branch
 - **Branch:** `main`
 - **Folder:** `/docs`
 
-After saving, GitHub Pages will publish the site and future changes under `docs/` will update it automatically.
+GitHub Pages then runs Jekyll and publishes the generated static site.
