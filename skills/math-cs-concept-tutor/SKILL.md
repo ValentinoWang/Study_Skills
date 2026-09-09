@@ -669,7 +669,7 @@ Before answering, verify:
 
 # 14. Preferred answer skeleton
 
-```markdown
+````markdown
 # 概念坐标
 
 | 层级 | 概念 | 英文全称 | 定义 |
@@ -744,7 +744,7 @@ flowchart LR
 ### 参考答案
 
 ...
-```
+````
 
 ---
 
