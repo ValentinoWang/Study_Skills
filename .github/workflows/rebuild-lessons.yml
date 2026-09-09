@@ -1,0 +1,58 @@
+name: Rebuild learning pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/math-cs-concept-tutor/**'
+      - 'skills/learning-page-design-publisher/**'
+      - 'tools/backwash-term-gates.py'
+      - 'tools/build-lessons.py'
+      - 'tools/check-lesson-consistency.py'
+      - 'tools/check-term-depth.py'
+      - 'tools/check-term-gate.py'
+      - '.github/workflows/rebuild-lessons.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-learning-pages
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Backwash terminology gates
+        run: python3 tools/backwash-term-gates.py
+
+      - name: Rebuild canonical lessons
+        run: python3 tools/build-lessons.py
+
+      - name: Verify generated artifacts
+        run: |
+          python3 tools/build-lessons.py --check
+          python3 tools/check-lesson-consistency.py
+          python3 tools/check-term-depth.py
+          python3 tools/check-term-gate.py
+
+      - name: Commit regenerated sources and pages
+        run: |
+          if git diff --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add skills/learning-page-design-publisher/lessons \
+                  skills/learning-page-design-publisher/examples \
+                  docs/lessons
+          git commit -m 'chore: backwash terminology gates and rebuild lessons [skip ci]'
+          git push origin HEAD:main
