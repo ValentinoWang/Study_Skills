@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""由 canonical 模板 + 课程数据机械生成课程页。
+"""由 canonical 模板 + 课程数据机械生成学习页面。
 
-设计系统（CSS/JS/章节骨架）只有一个来源：assets/lesson-template.html。
+设计系统（CSS/JS/章节骨架）只有一个来源：
+skills/learning-page-design-publisher/assets/lesson-template.html
+
 课程之间只允许内容不同。模板升级后重跑本脚本即可让所有课程一起迁移，
-不存在"改了模板但忘了迁移旧课程"的静默漂移。
+不存在"改了模板但忘了迁移旧页面"的静默漂移。
 
 用法：
     python3 tools/build-lessons.py           # 生成
@@ -15,10 +17,10 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SKILL = ROOT / "skills/case-driven-active-learning"
-TEMPLATE = SKILL / "assets/lesson-template.html"
-DATA_DIR = SKILL / "lessons"
-TARGETS = [ROOT / "docs/lessons", SKILL / "examples"]
+PAGE_SKILL = ROOT / "skills/learning-page-design-publisher"
+TEMPLATE = PAGE_SKILL / "assets/lesson-template.html"
+DATA_DIR = PAGE_SKILL / "lessons"
+TARGETS = [ROOT / "docs/lessons", PAGE_SKILL / "examples"]
 
 PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
 
@@ -39,7 +41,7 @@ def main() -> int:
     template = TEMPLATE.read_text(encoding="utf-8")
     data_files = sorted(DATA_DIR.glob("*.json"))
     if not data_files:
-        raise SystemExit(f"没有课程数据：{DATA_DIR}")
+        raise SystemExit(f"没有页面数据：{DATA_DIR}")
 
     stale = []
     for df in data_files:

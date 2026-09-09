@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""检查所有 active lesson 是否来自当前 canonical 模板。
+"""检查所有 active learning page 是否来自当前 canonical 模板。
 
-canonical = assets/lesson-template.html 的 <style> 与 <script> 两块。
+canonical = skills/learning-page-design-publisher/assets/lesson-template.html
+的 <style> 与 <script> 两块。
 版本号由内容派生（hash），不是手写声明——手写声明防不住"改了忘了改声明"。
 """
 import hashlib
@@ -10,8 +11,9 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TEMPLATE = ROOT / "skills/case-driven-active-learning/assets/lesson-template.html"
-LESSON_DIRS = [ROOT / "docs/lessons", ROOT / "skills/case-driven-active-learning/examples"]
+PAGE_SKILL = ROOT / "skills/learning-page-design-publisher"
+TEMPLATE = PAGE_SKILL / "assets/lesson-template.html"
+PAGE_DIRS = [ROOT / "docs/lessons", PAGE_SKILL / "examples"]
 # 不是课程、不参与设计系统统一的页面
 EXEMPT = {"welcome.html"}
 
@@ -35,7 +37,7 @@ def main():
     print(f"canonical version : {canonical}  (style {len(t_style)}B + script {len(t_script)}B)\n")
 
     failures = []
-    for d in LESSON_DIRS:
+    for d in PAGE_DIRS:
         if not d.is_dir():
             continue
         for f in sorted(d.glob("*.html")):
@@ -56,16 +58,16 @@ def main():
                 note = "  [" + ", ".join(bits) + "]"
                 failures.append(f.relative_to(ROOT))
             if extra:
-                note += f"  (+{len(extra)}B lesson-extra)"
+                note += f"  (+{len(extra)}B page-extra)"
             print(f"  {mark} {f.relative_to(ROOT)}  {got}{note}")
 
     print()
     if failures:
-        print(f"FAIL: {len(failures)} 个课程页未使用当前 canonical 模板：")
+        print(f"FAIL: {len(failures)} 个页面未使用当前 canonical 模板：")
         for f in failures:
             print(f"  - {f}")
         return 1
-    print("PASS: 所有 active lesson 都来自当前 canonical 模板。")
+    print("PASS: 所有 active page 都来自当前 canonical 模板。")
     return 0
 
 

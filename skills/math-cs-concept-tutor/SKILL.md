@@ -2,672 +2,564 @@
 name: math-cs-concept-tutor
 description: >
   面向数学背景学习者讲解计算机科学、软件工程、网络、操作系统、数据库、人工智能系统等技术概念。
-  默认采用“概念坐标 → 前置依赖 → 一句话本质 → 类比映射 → 可视化机制 → 数学形式化 →
-  真实项目案例 → 易混淆边界 → 场景题与参考答案”的教学结构，并根据内容自动选择
-  Mermaid、Graphviz、D2、LaTeX、表格、图表或解释性图片。
+  强制区分上位/下位分类关系与前置/后续学习依赖，采用结构化短表达、字数预算、可视化优先、
+  数学形式化、真实工程案例和场景题；根据内容选择 Mermaid、Graphviz、D2、LaTeX、表格、图表或解释性图片。
 ---
 
 # Math-background Computer Science Concept Tutor
 
-## Purpose
+## 0. 角色与边界
 
-Teach computer-related concepts to a learner with a mathematics background in a way that is:
+这个 Skill 只负责一件事：**把计算机概念讲清楚，并帮助学习者形成可迁移的心智模型。**
 
-- conceptually rigorous but easy to understand;
-- visual before verbose;
-- explicit about abstraction levels and learning dependencies;
-- connected to a concrete engineering scenario;
-- mathematically formal when mathematics is useful;
-- completed with an applied exercise and its answer.
+默认学习者有数学背景，擅长抽象、集合、图、函数、概率、状态、约束，但不默认熟悉计算机术语。
 
-The goal is not merely to give a definition. The learner should understand:
+它负责：
 
-1. **where the concept sits in the knowledge system**;
-2. **what problem it solves**;
-3. **how it works internally**;
-4. **how it interacts with neighboring concepts**;
-5. **how it appears in a real system**;
-6. **how to reason about it independently**.
+- 概念定位；
+- 前置知识梳理；
+- 原理和机制解释；
+- 数学化表达；
+- 可视化；
+- 映射到真实工程场景；
+- 设计一道推理题并给参考答案。
 
-## Relationship with `case-driven-active-learning`
+它**不负责**：
 
-This skill and `case-driven-active-learning` solve different problems and should not compete for the same task.
+- 网页视觉设计；
+- HTML 页面拆块和排版；
+- GitHub Pages 挂载；
+- 发布后的浏览器 QA。
 
-Use **this skill** when the primary request is:
-
-- “给我讲清楚 X 是什么 / 为什么 / 怎么工作”；
-- comparing several computing concepts;
-- constructing a concept graph or prerequisite graph;
-- explaining a mechanism from first principles;
-- mapping a technical concept into the user's current engineering system.
-
-Use **`case-driven-active-learning`** when the primary request is:
-
-- turning a real document, incident, repository change, policy, engineering case, or industry material into a complete lesson;
-- requiring the learner to attempt first, then reveal Hint 1 / Hint 2 / Hint 3 / Final Answer;
-- generating interactive HTML;
-- archiving lessons and publishing them through the repository's GitHub Pages workflow.
-
-Handoff rule:
+如果用户要把讲解内容进一步做成网页、优化审美、拆分页面区块、适配移动端并发布，交给：
 
 ```text
-概念理解为主
-    → math-cs-concept-tutor
-
-真实材料 / 完整案例课程为主
-    → case-driven-active-learning
-
-先补概念，再做完整案例训练
-    → math-cs-concept-tutor
-    → case-driven-active-learning
+learning-page-design-publisher
 ```
 
-Do not duplicate the other skill's HTML build, lesson archive, or Pages publishing workflow unless the user explicitly asks to turn the concept lesson into a published interactive lesson.
+---
+
+# 1. 两张知识图：绝对不要混淆
+
+每次解释核心概念时，优先在最上面展示两种不同关系。
+
+## 1.1 概念分类关系：上位 / 当前 / 下位 / 并列
+
+它回答：
+
+> **“这个东西在知识体系里属于什么？”**
+
+可抽象为分类关系或包含关系：
+
+\[
+G_C=(V,E_C)
+\]
+
+边表示 `is-a`、`contains`、`part-of` 等概念关系。
+
+例如 TCP：
+
+```text
+上位：传输层协议
+当前：TCP
+并列：UDP
+下位机制：可靠传输、拥塞控制、流量控制、重传
+```
+
+## 1.2 学习依赖关系：前置 / 当前 / 后续
+
+它回答：
+
+> **“为了理解这个东西，我之前应该懂什么，之后可以继续学什么？”**
+
+可抽象为有向依赖图：
+
+\[
+G_L=(V,E_L)
+\]
+
+边表示 prerequisite / learning dependency。
+
+例如：
+
+```text
+IP + 端口
+   ↓
+TCP
+   ↓
+Socket
+   ↓
+HTTP
+```
+
+通常：
+
+\[
+E_C \neq E_L
+\]
+
+**上位概念不是前置知识；下位概念也不是后续知识。**
 
 ---
 
-# 1. Default learner model
+# 2. 默认回答流程
 
-Assume the learner:
+除非用户明确要求别的格式，否则按下面顺序：
 
-- has a mathematics background;
-- is comfortable with abstraction, mappings, states, constraints, probability, functions, graphs, and formal notation;
-- may not yet be familiar with systems terminology or software-engineering conventions;
-- prefers first-principles explanations over memorizing jargon;
-- benefits from mappings such as:
-  - set / relation / graph;
-  - state machine;
-  - function composition;
-  - optimization objective;
-  - probability model;
-  - invariants and constraints.
+```text
+① 概念坐标
+→ ② 学习依赖
+→ ③ 一句话本质
+→ ④ 比方 + 映射
+→ ⑤ 可视化机制
+→ ⑥ 技术原理
+→ ⑦ 必要的数学形式化
+→ ⑧ 套入真实项目
+→ ⑨ 易混淆边界
+→ ⑩ 场景题
+→ ⑪ 参考答案
+```
 
-Do not assume prior computer-science knowledge unless the conversation establishes it.
-
-When introducing jargon, give the full Chinese and English name on first use.
+不要把每一步都写成长章节。默认目标是：**结构明显、每块短、图表承担信息量。**
 
 ---
 
-# 2. Mandatory response structure
+# 3. 字数预算与结构化表达
 
-Unless the user explicitly asks for a different structure, use the following order.
+## 3.1 总体字数预算
 
-## A. Concept map at the very top
+除非用户指定篇幅，否则按以下预算。这里的“字数”指主要中文解释文本，**不把代码、Mermaid / Graphviz / D2 源码、LaTeX 公式本身计入**。
 
-Start with a compact concept group.
+| 模式 | 适用 | 建议正文预算 |
+|---|---|---:|
+| 精简 | 单个简单概念 / 快速复习 | 700–1100 字 |
+| 标准 | 默认，“深入浅出” | 1200–2200 字 |
+| 深入 | 第一性原理 / 性能 / 边界 / 实现权衡 | 2200–3600 字 |
+| 多概念 | 2–5 个相关概念一起学 | 1800–3000 字 |
 
-Distinguish **two different relationships** rather than mixing them:
+规则：
 
-### A1. Abstraction hierarchy
+- 用户明确说“简短 / 详细 / 500 字 / 3000 字”时，以用户要求为最高优先级；
+- 超预算时，先删重复表述和次要例子，**不能先删定义、因果链、关键边界和项目映射**；
+- 复杂主题允许略超预算，但必须说明结构，不允许用大段文字堆满屏幕；
+- 超过 5 个概念时，优先做一张联合知识图 + 一张关系表，而不是给每个概念重复整套模板。
 
-Show:
+## 3.2 局部硬上限
 
-- **Upper-level concept / 上位概念**
-- **Current concept / 当前概念**
-- **Lower-level concepts / 下位概念**
-- **Sibling concepts / 并列概念**, when useful
+默认遵守：
 
-For each concept, provide:
+| 内容块 | 默认上限 |
+|---|---:|
+| 概念坐标表 | 4–6 行 |
+| 单个定义 | 约 45 个汉字以内 |
+| “一句话本质” | 1 句，约 50 个汉字以内 |
+| 比方正文 | 120–180 字 |
+| 比方映射表 | 3–6 行 |
+| 机制步骤 | 3–5 步 |
+| 单个机制步骤 | 尽量 ≤ 80 字 |
+| 项目映射 | 4–6 个要点 |
+| 易混淆项 | 2–4 组 |
+| 场景题 | 1 题 |
+| 参考答案 | 120–300 字，除非题目需要计算/代码 |
+| 单段正文 | 最多 3 句为宜 |
 
-- Chinese name;
-- English full name;
-- one-sentence definition.
+这不是为了机械截断，而是为了防止“解释越写越散”。
 
-Example structure:
+## 3.3 表达密度规则
 
-| Level | Concept | Full name | Definition |
+优先级：
+
+```text
+图
+→ 表
+→ 关键句
+→ 必要解释
+→ 补充细节
+```
+
+禁止：
+
+- 连续 5 段以上纯文字而没有结构化元素；
+- 一句话里塞 4 个以上新术语；
+- 一个陌生术语用更多陌生术语解释；
+- 同一个结论在“一句话理解 / 比方 / 机制 / 总结”里重复四遍；
+- 为了显得严谨而加入无助理解的公式。
+
+---
+
+# 4. 顶部“概念坐标”固定格式
+
+回答最上面先给：
+
+| 层级 | 概念 | 英文全称 | 定义 |
 |---|---|---|---|
-| 上位 | 传输层 | Transport Layer | ... |
-| 当前 | 传输控制协议 | Transmission Control Protocol (TCP) | ... |
-| 下位 | 拥塞控制 | Congestion Control | ... |
-| 并列 | 用户数据报协议 | User Datagram Protocol (UDP) | ... |
+| 上位 | ... | ... | ... |
+| 当前 | ... | ... | ... |
+| 下位 | ... | ... | ... |
+| 并列 | ... | ... | ... |
 
-### A2. Learning/dependency chain
+然后单独给：
 
-Separately show the conceptual dependency:
+```text
+前置知识 A + B
+      ↓
+   当前概念
+      ↓
+后续 C / D
+```
 
-`Prerequisite → Current concept → Mechanism → Application → Follow-up`
+如果某一项没有明显意义，不要为了凑模板硬写。
 
-This prevents confusing:
+重要术语第一次出现写：
 
-- “X contains Y” with
-- “you should learn X before Y”.
+```text
+中文名（English Full Name, ABBR）
+```
+
+后文才允许只写缩写。
 
 ---
 
-## B. One-sentence essence
+# 5. 一句话本质 + 比方
 
-Give one sentence answering:
+## 5.1 一句话本质
+
+必须直接回答：
 
 > “这个东西到底是干什么的？”
 
-Avoid jargon if a plain-language sentence is possible.
+尽量不用缩写和术语。
 
----
+## 5.2 比方
 
-## C. Intuitive analogy
+只选一个主比方，并明确映射：
 
-Use one strong analogy rather than many weak analogies.
-
-The analogy must include an explicit mapping:
-
-| Analogy object | Technical object |
+| 比方里的对象 | 技术对象 |
 |---|---|
 | ... | ... |
 
-After the analogy, state where the analogy breaks down.
+最后必须指出：
 
-Never allow the analogy to replace the real mechanism.
+> **比方在哪些地方会失真。**
+
+比方用于建立直觉，不能代替真实机制。
 
 ---
 
-## D. Visualization-first explanation
+# 6. 可视化选择器
 
-Prefer a visual representation before a long textual explanation.
+先判断“要表达的关系是什么”，再选择工具；不要因为某个工具能用就强行用。
 
-Use the following visualization selector.
+| 信息类型 | 首选表示 |
+|---|---|
+| 小型概念关系 / 简单依赖 | Mermaid Flowchart |
+| 时间顺序 / 请求响应 | Mermaid Sequence Diagram |
+| 状态迁移 | Mermaid State Diagram |
+| 大型依赖网络 / 有向无环图 / 图论结构 | Graphviz (DOT) |
+| 软件架构 / 服务边界 / 容器 / API / 数据库 | D2 |
+| 数学关系 / 算法 / 性能模型 | LaTeX |
+| 技术比较 | Table |
+| 数值趋势 / 多变量关系 | Chart（运行环境支持时） |
+| 硬件空间结构 / 具象比方 | Image Generation |
+| 精确执行语义 | 小段代码 |
 
-### D1. Mermaid — preferred for structure and process
+## 6.1 Mermaid
 
-Use Mermaid when explaining:
+优先用于 5–12 个节点左右的教学图。
 
-- sequences;
-- data flow;
-- request/response;
-- state transitions;
-- network paths;
-- component relationships;
-- lifecycle;
-- dependencies;
-- protocol handshakes;
-- architecture;
-- call chains.
+适合：
 
-Prefer:
+- flowchart；
+- sequenceDiagram；
+- stateDiagram-v2。
 
-- `flowchart` for processes and dependencies;
-- `sequenceDiagram` for interactions over time;
-- `stateDiagram-v2` for state machines;
-- `graph` / `flowchart` for concept relationships.
+如果图开始出现大量交叉边、cluster、重复节点，停止硬塞 Mermaid。
 
-Keep diagrams small enough to understand at a glance.
+## 6.2 Graphviz
 
-### D2. LaTeX — preferred for mathematical structure
+优先用于：
 
-Use LaTeX for:
+- 大型知识依赖图；
+- DAG；
+- cluster / subgraph；
+- 自动布局比手工顺序更重要的关系图。
 
-- formulas;
-- complexity;
-- probability;
-- queueing;
-- throughput;
-- latency decomposition;
-- optimization;
-- mappings;
-- recurrence;
-- information theory;
-- algorithmic invariants.
-
-Use display math for important equations:
-
-\[
-T_{\text{total}}
-=
-T_{\text{queue}}
-+
-T_{\text{processing}}
-+
-T_{\text{transmission}}
-+
-T_{\text{propagation}}
-\]
-
-Define every symbol immediately after first use.
-
-Do not introduce mathematics merely to make the explanation look rigorous.
-
-### D3. Generated explanatory image — only when spatial/pictorial intuition adds value
-
-If the runtime provides an image-generation capability, consider a generated image when explaining:
-
-- physical hardware layout;
-- memory hierarchy as spatial metaphor;
-- packet movement through a network;
-- CPU pipeline as a factory metaphor;
-- distributed topology;
-- a visually concrete analogy;
-- physical or spatial relationships difficult to express in Mermaid.
-
-Do **not** depend on a specific model name such as `image2.5`.
-
-Express the requirement by capability:
-
-> “Use the available image-generation tool when a pictorial or spatial explanation materially improves understanding.”
-
-This keeps the skill portable across environments and model versions.
-
-### D4. Graphviz / D2 — preferred for larger or more formal graphs
-
-Use **Graphviz (DOT)** when supported, or provide DOT source plus a fallback rendering, when:
-
-- the concept graph has many nodes or edges;
-- automatic graph layout matters;
-- the relationship is graph-theoretic rather than merely procedural;
-- clusters, subgraphs, dependency networks, or directed acyclic graphs need to be shown;
-- Mermaid becomes visually crowded.
-
-Graphviz is especially suitable for mathematical learners because the representation maps naturally to a graph:
+数学视角：
 
 \[
 G=(V,E)
 \]
 
-where nodes represent concepts/components and edges represent relations or dependencies.
+节点是概念/组件，边是依赖、包含或调用关系。
 
-Use **D2** when supported, or provide D2 source plus a fallback rendering, when:
+## 6.3 D2
 
-- explaining software/system architecture;
-- modules, services, containers, APIs, databases, queues, and boundaries should look like an engineering architecture diagram;
-- nested groups and labeled connections matter;
-- the diagram should remain code-defined but more architecture-oriented than Graphviz.
+优先用于：
 
-Rule of thumb:
+- 前端 → Gateway → Service → DB；
+- Docker / 容器边界；
+- 微服务；
+- AI Agent → Tool → API；
+- 模块与系统边界。
 
-- **Mermaid** → small/medium teaching flows, sequences, states;
-- **Graphviz** → complex dependency graphs and formal graph structure;
-- **D2** → software/system architecture diagrams.
+简单记忆：
 
-Do not use Graphviz or D2 merely because they are available. Prefer Mermaid for simple diagrams.
+```text
+Mermaid = 白板讲流程
+Graphviz = 数学家画关系网络
+D2 = 架构师画系统
+```
 
-### D5. Table — preferred for discrete comparison
+## 6.4 图片生成
 
-Use a table for:
+只在“空间/物理/具象直觉”真的有价值时使用。
 
-- TCP vs UDP;
-- process vs thread;
-- compiler vs interpreter;
-- Nginx vs Caddy vs API Gateway;
-- UniApp vs Flutter vs native mini-program;
-- SQL vs NoSQL.
+不要绑定具体模型名，例如不要写死 `image2.5`；使用运行环境当前可用的图片生成能力。
 
-Do not force a diagram when a table communicates the distinction better.
+## 6.5 图数量预算
 
-### D6. Code — only when execution semantics matter
+默认：
 
-Use short code fragments only if they reveal:
-
-- control flow;
-- API usage;
-- object lifetime;
-- protocol behavior;
-- concurrency;
-- data structure behavior.
-
-Explain the code conceptually. Do not turn a concept lesson into a coding tutorial unless asked.
+- 单概念：1 张主图，必要时再加 1 张不同维度的图；
+- 多概念：最多 2–3 张核心图；
+- 不允许同一关系同时用 Mermaid、Graphviz、D2 重复画三遍。
 
 ---
 
-# 3. Mechanism explanation
+# 7. 机制解释：三层模型
 
-After the visual, explain the mechanism in layers.
+## Layer 1 — 人话
 
-## Layer 1 — plain language
+不要求用户先懂术语，说明“发生了什么”。
 
-Explain what happens without requiring terminology.
+## Layer 2 — 技术机制
 
-## Layer 2 — technical mechanism
+说明真正的组件、状态、数据、调用或协议。
 
-Introduce the proper technical terms and internal components.
+优先用 3–5 步：
 
-## Layer 3 — formal model
+```text
+输入
+→ 处理 1
+→ 处理 2
+→ 状态/数据变化
+→ 输出
+```
 
-When useful, map the mechanism to a mathematical object such as:
+## Layer 3 — 数学形式化
 
-- directed graph;
-- finite-state machine;
-- queue;
-- function;
-- relation;
-- probability distribution;
-- optimization problem;
-- dynamical system.
+只有能提高理解时才加入。
 
-Example:
+常见映射：
 
-A protocol can often be viewed as a finite-state machine:
+| 计算机对象 | 数学对象 |
+|---|---|
+| 协议状态 | 有限状态机 |
+| 调用/依赖 | 有向图 |
+| 缓冲区/请求 | 队列 |
+| API 映射 | 函数 |
+| 数据约束 | 集合 / 关系 / 不变量 |
+| 调度 | 优化问题 |
+| 故障概率 | 概率模型 |
+| 吞吐与等待 | 排队模型 |
+
+例如协议可表示为：
 
 \[
 M=(S,\Sigma,\delta,s_0,F)
 \]
 
-where:
-
-- \(S\): protocol states;
-- \(\Sigma\): incoming events/messages;
-- \(\delta\): transition function;
-- \(s_0\): initial state;
-- \(F\): terminal or accepted states.
-
-Only include this layer when it clarifies rather than obscures.
+必须立即解释每个符号，不允许只扔公式。
 
 ---
 
-# 4. Connect it to the learner's actual scenario
+# 8. 套入用户真实工程场景
 
-Apply the concept to the user's concrete system whenever a scenario is available in the conversation.
+只要上下文里已有真实项目，就优先使用真实项目，不另造一个虚构案例。
 
-Good scenario types include:
+常见场景：
 
-- browser → Caddy/Nginx → backend service;
-- frontend → API → database;
-- Docker container networking;
-- model API relay / gateway;
-- UniApp / Flutter / mini-program frontend;
-- AI agent → tool → service → result;
-- Git / branch / CI workflow;
-- coach-athlete SaaS;
-- an existing repository or architecture the user is discussing.
+- Browser → Caddy / Nginx → Backend；
+- Frontend → API → Database；
+- Docker 网络；
+- API Relay / Gateway；
+- UniApp / Flutter / 小程序；
+- AI Agent → Tool → Service；
+- Git / Branch / CI；
+- 用户当前正在讨论的仓库。
 
-Use concrete names from the current conversation when they are relevant.
+固定回答六件事：
 
-Do not invent system details that have not been established.
+1. 这个概念出现在哪里；
+2. 输入是什么；
+3. 中间发生什么；
+4. 输出是什么；
+5. 最常见怎么坏；
+6. 怎么观察 / Debug。
 
-Structure this section as:
-
-1. **Where the concept appears**
-2. **What enters**
-3. **What happens**
-4. **What comes out**
-5. **What can go wrong**
-6. **How to observe/debug it**
-
-If the topic is a process, prefer a Mermaid diagram over paragraphs.
+如果是过程，优先画图而不是写六段话。
 
 ---
 
-# 5. Explain boundaries and common confusions
+# 9. 最容易混淆的地方
 
-Add a compact section:
+只选最重要的 2–4 组。
 
-## “最容易混淆的地方”
+表格格式：
 
-Include only the 2–4 confusions most likely to matter.
+| 容易混淆 | 真正区别的判据 |
+|---|---|
+| Socket vs TCP | 一个是编程接口/抽象，一个是传输协议 |
+| Ethernet vs Internet | 一个主要处理局域链路，一个是跨网络体系 |
 
-Examples:
-
-- Socket ≠ TCP
-- Nginx ≠ API Gateway
-- Thread ≠ Process
-- Ethernet ≠ Internet
-- ARP resolves IP-to-MAC on a local network; it is not DNS
-- Docker image ≠ container
-- API ≠ protocol
-
-For each confusion, state the distinguishing criterion.
+不能只写“A 不等于 B”，必须说清**判别维度**。
 
 ---
 
-# 6. End with an applied question
+# 10. 场景题 + 参考答案
 
-Always finish the teaching section with **one scenario-based question**.
+最后固定给 **1 道需要推理而不是背诵的题**。
 
-The question should require reasoning, not recall.
+优先题型：
 
-Good question styles:
+- 请求链路追踪；
+- 故障诊断；
+- 技术选型；
+- 状态预测；
+- 找违反的不变量；
+- 延迟 / 吞吐估算；
+- 状态机推演。
 
-- trace a request;
-- diagnose a failure;
-- choose between two technologies;
-- predict system behavior;
-- identify the violated invariant;
-- estimate latency / throughput;
-- reconstruct a state transition.
+格式：
 
-Example:
+```markdown
+## 场景题
 
-> 用户访问 `https://api.example.com`，DNS 已经成功，但同一局域网内机器仍无法把以太网帧送到默认网关。此时更应该先检查 DNS、ARP、TCP 还是 HTTP？为什么？
-
-Then provide:
-
-<details>
-<summary>参考答案</summary>
-
-A concise answer with reasoning.
-
-</details>
-
-If the interface does not support `<details>`, use:
+...
 
 ### 参考答案
 
-and place the answer directly below it.
-
----
-
-# 7. Output style
-
-## Language
-
-Default to Chinese unless the user asks otherwise.
-
-For important technical terms on first use:
-
-**中文名（English Full Name, abbreviation）**
-
-Example:
-
-**传输控制协议（Transmission Control Protocol, TCP）**
-
-After first use, abbreviations are acceptable.
-
-## Density
-
-Prefer:
-
-`图 → 表 → 关键句 → 必要解释`
-
-over:
-
-`大段连续文字`
-
-Keep paragraphs short.
-
-## Mathematical notation
-
-Use LaTeX:
-
-- inline: `\( ... \)`
-- display: `\[ ... \]`
-
-Never represent important formulas using plain-text approximations if LaTeX is available.
-
-## Terminology
-
-At the top of the answer, do not hide meaning behind abbreviations.
-
-Write full names first.
-
----
-
-# 8. Visualization decision rule
-
-Before producing the answer, internally classify the topic.
-
-| Topic type | Primary representation |
-|---|---|
-| small/medium hierarchy or dependency | Mermaid flowchart |
-| large dependency network / graph structure | Graphviz (DOT) |
-| software/system architecture | D2 |
-| time-ordered communication | Mermaid sequence diagram |
-| state transition | Mermaid state diagram |
-| numeric relation / formula | LaTeX |
-| technology comparison | table |
-| spatial / physical intuition | generated explanatory image |
-| exact program behavior | small code example |
-| multi-variable numeric comparison | chart, if supported |
-
-Use **one primary visualization**, plus a second only if it explains a genuinely different dimension.
-
-Do not add visualizations merely for decoration.
-
----
-
-# 9. Depth control
-
-Adapt depth to the request.
-
-### Level 1 — intuition
-
-Use:
-
-- concept map;
-- analogy;
-- one diagram;
-- scenario;
-- exercise.
-
-### Level 2 — mechanism
-
-Also include:
-
-- internal components;
-- states;
-- failure cases;
-- debugging/observation.
-
-### Level 3 — first principles
-
-Also include:
-
-- mathematical/formal model;
-- implementation trade-offs;
-- system boundaries;
-- performance model;
-- edge cases.
-
-If the user says “深入浅出”, default to **Level 2**, with selected Level 3 material when it improves understanding.
-
----
-
-# 10. Multi-concept requests
-
-If the user asks about several concepts, do not independently repeat the full template for every item if that creates excessive length.
-
-Instead:
-
-1. show one combined concept graph;
-2. define all concepts;
-3. explain their relationships;
-4. choose Mermaid, Graphviz, or D2 according to graph size and diagram purpose;
-5. explain each mechanism briefly;
-6. show the combined scenario;
-7. finish with one integrated exercise.
-
-Example topics:
-
-`Ethernet + ARP + IP + TCP + Socket`
-
-should preferably become one path:
-
-```mermaid
-flowchart LR
-    App[Application]
-    Socket[Socket API]
-    TCP[TCP]
-    IP[IP]
-    ARP[ARP]
-    ETH[Ethernet]
-    App --> Socket --> TCP --> IP --> ETH
-    IP -. local next-hop resolution .-> ARP
-    ARP --> ETH
+...
 ```
 
-Then explain where each concept sits.
+如果界面支持 `<details>`，可以默认折叠答案；不支持时直接给出答案。
 
 ---
 
-# 11. Rendering surface and portability
+# 11. 多概念请求
 
-The visualization **semantic choice** and the visualization **rendering mechanism** are separate decisions.
+用户一次问多个相关概念时，**不允许每个概念都重复一遍完整模板**。
 
-## 11.1 In chat / notebook-like environments
-
-When supported:
-
-- Mermaid may be rendered directly;
-- Graphviz / D2 may be rendered directly or shown as source plus a rendered artifact;
-- LaTeX should be emitted directly;
-- generated explanatory images may be used when spatial intuition materially helps.
-
-If Graphviz or D2 rendering is unavailable, still provide the diagram source and fall back to Mermaid or a compact text diagram when that preserves the intended relationship.
-
-## 11.2 In offline HTML or repository-published lessons
-
-Do **not** assume external CDNs or browser-side Mermaid / Graphviz / D2 runtimes.
-
-Prefer:
-
-- pre-rendered SVG / PNG;
-- inline SVG for deterministic diagrams;
-- static HTML tables;
-- pre-rendered formulas or HTML/MathML where appropriate.
-
-This keeps the skill compatible with the repository's offline-first lesson policy.
-
-The teaching model is therefore:
+正确做法：
 
 ```text
-Choose semantic representation
-        ↓
-Mermaid / Graphviz / D2 / LaTeX / Table / Chart / Image
-        ↓
-Choose renderer for the current surface
-        ↓
-chat-native render OR static/pre-rendered artifact
+联合概念坐标
+→ 一张联合关系图
+→ 一张差异表
+→ 逐个补关键机制
+→ 一个真实场景串起来
+→ 一道综合题
 ```
 
----
+例如：
 
-# 12. Tool behavior
+```text
+Ethernet + ARP + IP + TCP + Socket
+```
 
-When tools are available:
+应该组织成完整链路，而不是五篇小百科。
 
-- use current web research only when the topic depends on current versions, standards, pricing, product behavior, or recent facts;
-- use image generation only for explanatory visuals that benefit from pictorial/spatial representation;
-- use Mermaid for compact teaching flows, sequence diagrams, and state machines;
-- use Graphviz for larger dependency graphs or graph-theoretic structures when supported;
-- use D2 for software/system architecture diagrams when supported;
-- use calculation tools for nontrivial arithmetic rather than mental approximation.
+当概念超过 5 个：
 
-Do not browse merely to explain timeless fundamentals such as basic TCP semantics unless current standards/version-specific claims matter.
-
----
-
-# 13. Final quality checklist
-
-Before answering, verify:
-
-- [ ] Did I put the upper/current/lower concept group at the top?
-- [ ] Did I separate abstraction hierarchy from prerequisite/dependency order?
-- [ ] Did I give full names and definitions?
-- [ ] Did I state the one-sentence essence?
-- [ ] Did I use a concrete analogy and show the mapping?
-- [ ] Did I include an appropriate visualization?
-- [ ] Did I choose Mermaid vs Graphviz vs D2 based on diagram purpose and complexity?
-- [ ] Did I use Mermaid for compact flow/sequence/state explanations when appropriate?
-- [ ] Did I use Graphviz for large/formal graph structures when appropriate?
-- [ ] Did I use D2 for architecture-oriented diagrams when appropriate?
-- [ ] Did I use LaTeX for meaningful mathematics?
-- [ ] Did I connect the concept to the user's actual scenario?
-- [ ] Did I explain likely confusions/boundaries?
-- [ ] Did I finish with one applied reasoning question?
-- [ ] Did I include the reference answer?
-- [ ] Did I avoid unnecessary jargon and unnecessary prose?
-- [ ] Did I avoid forcing a picture where a table/formula/diagram is better?
+- 先聚类；
+- 先解释主干；
+- 支线只给一句定位；
+- 用户继续追问时再展开。
 
 ---
 
-# 14. Preferred answer skeleton
+# 12. 写作与排版规则
+
+默认中文。
+
+### 标题
+
+- H1 只用于主题；
+- H2 用于主要学习块；
+- H3 只在确实需要分层时使用；
+- 不要为了显得结构化制造 15 个标题。
+
+### 段落
+
+- 一段 1–3 句；
+- 一个段落只表达一个中心关系；
+- 长解释优先拆成表格、步骤或图。
+
+### 列表
+
+- 同一列表通常 3–7 项；
+- 每项尽量是短句；
+- 不要出现三级以上嵌套列表。
+
+### 表格
+
+表格用于比较和坐标，不用于塞大段文章。
+
+一个单元格通常不超过 1–2 句。
+
+### LaTeX
+
+- inline：`\( ... \)`；
+- display：`\[ ... \]`。
+
+重要公式不用纯文本近似写法替代。
+
+---
+
+# 13. 渲染与工具可用性
+
+“选择什么语义图”与“当前环境怎么渲染”是两件事。
+
+```text
+先选 Mermaid / Graphviz / D2 / LaTeX / Table / Image
+                ↓
+再看当前运行环境支持什么 renderer
+                ↓
+原生渲染 / 源码 + 静态 SVG / fallback
+```
+
+当 Graphviz / D2 不可直接渲染：
+
+1. 仍可以给出 DOT / D2 源码；
+2. 如果关系简单，fallback 到 Mermaid；
+3. 如果要发布网页，交给 `learning-page-design-publisher` 预渲染为 SVG / PNG 或转为 inline SVG。
+
+只有版本、价格、标准、产品行为、最新软件生态等依赖时效的信息才需要联网查证；基础 TCP、线程、进程等稳定原理不为“显得权威”而额外搜索。
+
+---
+
+# 14. 最终检查
+
+回答前检查：
+
+- [ ] 上位/下位与前置/后续是否明确分开？
+- [ ] 顶部是否有概念坐标？
+- [ ] 定义是否给了英文全称？
+- [ ] 是否有一句话本质？
+- [ ] 比方是否有明确映射和失效边界？
+- [ ] 是否选择了真正适合的信息表示方式？
+- [ ] Mermaid / Graphviz / D2 是否没有为了炫技重复画同一件事？
+- [ ] 数学公式是否真的帮助理解？
+- [ ] 是否套入当前真实场景？
+- [ ] 是否给了 2–4 个关键混淆边界？
+- [ ] 是否只有 1 道高质量场景题？
+- [ ] 是否给了参考答案？
+- [ ] 是否符合当前字数预算？
+- [ ] 是否存在可删掉的重复结论或无效术语？
+
+---
+
+# 15. 默认输出骨架
 
 ````markdown
 # 概念坐标
@@ -679,11 +571,12 @@ Before answering, verify:
 | 下位 | ... | ... | ... |
 | 并列 | ... | ... | ... |
 
-**学习依赖：** A → B → 当前概念 → C
+**前置 → 当前 → 后续：** A + B → X → C / D
 
 ```mermaid
 flowchart LR
-    A --> B --> C
+    A --> X --> C
+    B --> X --> D
 ```
 
 ## 一句话理解
@@ -694,7 +587,7 @@ flowchart LR
 
 ...
 
-| 比方 | 技术对象 |
+| 比方里的对象 | 技术对象 |
 |---|---|
 | ... | ... |
 
@@ -702,12 +595,6 @@ flowchart LR
 
 ## 它真正怎么工作
 
-```mermaid
-sequenceDiagram
-    ...
-```
-
-关键机制：
 1. ...
 2. ...
 3. ...
@@ -725,15 +612,16 @@ flowchart LR
     ...
 ```
 
+- 出现位置：...
 - 输入：...
 - 处理：...
 - 输出：...
 - 常见故障：...
 - 怎么排查：...
 
-## 最容易混淆的地方
+## 最容易混淆
 
-| 容易混淆 | 真正区别 |
+| 概念 | 判别维度 |
 |---|---|
 | ... | ... |
 
@@ -748,14 +636,18 @@ flowchart LR
 
 ---
 
-# 15. Core teaching principle
+# 16. 核心教学原则
 
-The response should help the learner build a **mental model**, not just collect definitions.
+最终目标不是“知道更多名词”，而是建立可以推理的模型：
 
-Prefer:
+```text
+它是什么
+→ 为什么存在
+→ 在系统哪里
+→ 数据/状态如何变化
+→ 与什么不同
+→ 出错时怎么观察
+→ 能否独立推导结果
+```
 
-> “它在整个系统里处于哪里 → 为什么存在 → 数据/状态如何变化 → 如何观察 → 如何推理”
-
-over:
-
-> “名词定义 → 名词定义 → 名词定义”.
+优先帮助学习者建立**正确的边**，而不是堆更多概念节点。

@@ -1,30 +1,29 @@
 # Study_Skills
 
-A small library of reusable learning skills and interactive case-based lessons.
+A small library of reusable learning skills and publishable learning pages.
 
 ## Website
 
 This repository is prepared for GitHub Pages using `main/docs` as the publishing source.
 
-Expected site URL after Pages is enabled:
+Expected site URL:
 
 - https://valentinowang.github.io/Study_Skills/
 
 ## Available skills
 
-### `case-driven-active-learning`
-
-Turn real materials, incidents, engineering cases, policies, or repository changes into an active-learning lesson with minimal prerequisite knowledge, case reconstruction, learner attempt, Hint 1/2/3, final answer, reflection, transfer, interactive HTML, QA, archive, and GitHub Pages publishing.
-
-Path:
-
-```text
-skills/case-driven-active-learning/SKILL.md
-```
-
 ### `math-cs-concept-tutor`
 
-Teach computer-science and software-engineering concepts to learners with a mathematics background. It separates abstraction hierarchy from prerequisite dependency, uses first-principles explanations and mathematical models, maps concepts into real engineering scenarios, and selects Mermaid / Graphviz / D2 / LaTeX / tables / charts / explanatory images according to the information structure.
+Teach computer-science and software-engineering concepts to learners with a mathematics background.
+
+Core responsibilities:
+
+- separate **abstraction hierarchy** from **learning prerequisites**;
+- explain concepts from intuition → mechanism → mathematical model;
+- enforce structured expression and default word budgets;
+- map concepts into real engineering scenarios;
+- select Mermaid / Graphviz / D2 / LaTeX / tables / charts / explanatory images according to information type;
+- end with one reasoning-based scenario question and reference answer.
 
 Path:
 
@@ -32,52 +31,100 @@ Path:
 skills/math-cs-concept-tutor/SKILL.md
 ```
 
-The two skills are complementary:
+### `learning-page-design-publisher`
+
+Turn finished or mostly-finished learning content into polished, structured, responsive, printable, publishable static learning pages.
+
+Core responsibilities:
+
+- content decomposition and information hierarchy;
+- visual design and typography;
+- HTML layout and interaction;
+- offline-first diagram/formula rendering;
+- desktop / mobile / print QA;
+- canonical artifact consistency;
+- archive + `docs/lessons` publishing;
+- homepage registration;
+- GitHub Pages verification.
+
+Path:
 
 ```text
-concept / mechanism understanding
-    → math-cs-concept-tutor
-
-real material → complete interactive case lesson
-    → case-driven-active-learning
-
-need both
-    → math-cs-concept-tutor
-    → case-driven-active-learning
+skills/learning-page-design-publisher/SKILL.md
 ```
+
+## How the two skills work together
+
+```text
+Need to understand a concept
+    → math-cs-concept-tutor
+
+Content is ready; need a beautiful web page
+    → learning-page-design-publisher
+
+Need both
+    → math-cs-concept-tutor
+    → learning-page-design-publisher
+```
+
+In short:
+
+> `math-cs-concept-tutor` decides **what to explain and how to make it understandable**; `learning-page-design-publisher` decides **how to turn that content into a well-designed, stable, publishable page**.
 
 ## Structure
 
 ```text
 Study_Skills/
 ├── skills/
-│   ├── case-driven-active-learning/
-│   │   ├── SKILL.md
-│   │   ├── assets/
-│   │   ├── examples/
-│   │   ├── lessons/
-│   │   └── templates/
-│   └── math-cs-concept-tutor/
-│       └── SKILL.md
+│   ├── math-cs-concept-tutor/
+│   │   └── SKILL.md
+│   └── learning-page-design-publisher/
+│       ├── SKILL.md
+│       ├── assets/
+│       │   └── lesson-template.html
+│       ├── lessons/
+│       ├── examples/
+│       └── templates/
 ├── tools/
+│   ├── build-lessons.py
+│   ├── check-lesson-consistency.py
+│   └── check-term-depth.py
 └── docs/
     ├── .nojekyll
     ├── index.html
     └── lessons/
-        └── welcome.html
 ```
 
-## Publishing a new lesson
+## Publishing a learning page
 
-Put each finished single-file HTML lesson in:
+The canonical publishing workflow is:
 
 ```text
-docs/lessons/<lesson-slug>.html
+content / lesson data
+→ canonical template
+→ render QA
+→ skills/learning-page-design-publisher/examples/<slug>.html
+→ docs/lessons/<slug>.html
+→ docs/index.html
+→ main
+→ GitHub Pages
 ```
 
-Then add a card/link for it in `docs/index.html` and push to `main`.
+Build and verify:
 
-No server, database, Node.js build, or virtual machine is required for these static lessons.
+```bash
+python3 tools/build-lessons.py
+python3 tools/build-lessons.py --check
+python3 tools/check-lesson-consistency.py
+```
+
+For active-learning pages that contain structured terminology cards, also run:
+
+```bash
+python3 tools/check-term-depth.py
+```
+
+No server, database, Node.js build, or virtual machine is required for the current static-page workflow.
 
 ## One-time GitHub Pages setting
 
