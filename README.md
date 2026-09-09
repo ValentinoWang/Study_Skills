@@ -10,15 +10,56 @@ Expected site URL after Pages is enabled:
 
 - https://valentinowang.github.io/Study_Skills/
 
+## Available skills
+
+### `case-driven-active-learning`
+
+Turn real materials, incidents, engineering cases, policies, or repository changes into an active-learning lesson with minimal prerequisite knowledge, case reconstruction, learner attempt, Hint 1/2/3, final answer, reflection, transfer, interactive HTML, QA, archive, and GitHub Pages publishing.
+
+Path:
+
+```text
+skills/case-driven-active-learning/SKILL.md
+```
+
+### `math-cs-concept-tutor`
+
+Teach computer-science and software-engineering concepts to learners with a mathematics background. It separates abstraction hierarchy from prerequisite dependency, uses first-principles explanations and mathematical models, maps concepts into real engineering scenarios, and selects Mermaid / Graphviz / D2 / LaTeX / tables / charts / explanatory images according to the information structure.
+
+Path:
+
+```text
+skills/math-cs-concept-tutor/SKILL.md
+```
+
+The two skills are complementary:
+
+```text
+concept / mechanism understanding
+    → math-cs-concept-tutor
+
+real material → complete interactive case lesson
+    → case-driven-active-learning
+
+need both
+    → math-cs-concept-tutor
+    → case-driven-active-learning
+```
+
 ## Structure
 
 ```text
 Study_Skills/
 ├── skills/
-│   └── case-driven-active-learning/
-│       ├── SKILL.md
-│       ├── assets/
-│       └── templates/
+│   ├── case-driven-active-learning/
+│   │   ├── SKILL.md
+│   │   ├── assets/
+│   │   ├── examples/
+│   │   ├── lessons/
+│   │   └── templates/
+│   └── math-cs-concept-tutor/
+│       └── SKILL.md
+├── tools/
 └── docs/
     ├── .nojekyll
     ├── index.html
