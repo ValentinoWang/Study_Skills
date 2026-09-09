@@ -1,3 +1,0 @@
-# Custom repository Actions are currently unavailable before any step starts.
-# Lesson Pages are therefore rebuilt by GitHub Pages/Jekyll from docs/_data + docs/_layouts.
-# Keep automated Python builders/checkers for local/agent execution; do not register a failing workflow here.
