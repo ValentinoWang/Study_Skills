@@ -7,9 +7,10 @@ PAGE_SKILL=ROOT/"skills/learning-page-design-publisher"
 LESSON_DIR=PAGE_SKILL/"lessons"; REGISTRY=PAGE_SKILL/"term-overrides.yml"; LAYOUT=ROOT/"docs/_layouts/lesson.html"; ENTRY_DIR=ROOT/"docs/lessons"
 REQUIRED={
 "frontend-fast-feedback-pipeline-20260910":["Runtime","Vite Development Server","Hot Module Replacement","Hot Reload","Incremental Compilation","Mock API","API Proxy","Target Runtime","Production Build","Docker Build","End-to-End Testing","Deployment Readback"],
-"software-delivery-lifecycle-ai-coding-20260910":["AI Agent","Software Delivery Lifecycle","Feedback Loop","Hot Module Replacement","Smoke Test","Quality Assurance","End-to-End Testing","Acceptance","User Acceptance Testing","Continuous Integration","Continuous Delivery","Artifact","Observability"],
+"software-delivery-lifecycle-ai-coding-20260910":["AI Agent","Software Delivery Lifecycle","Feedback Loop","Hot Module Replacement","Smoke Test","Quality Assurance","End-to-End Testing","Release Candidate","Acceptance","User Acceptance Testing","Continuous Integration","Continuous Delivery","Artifact","Observability","Rollback"],
 "git-three-state-divergence-20260831":["Commit / SHA","Blob Object ID","Branch","HEAD","git fetch","origin/main","git checkout","Working Tree","Git worktree","ahead / behind","Fast-forward Merge","Merge Conflict"],
-"tencent-cloud-dns-icp-mainland-origin-20260831":["Domain Name System","Application Programming Interface","Cloud Virtual Machine","Domain Real-name Verification","Internet Content Provider","Transport Layer Security","Reverse Proxy","Cross-Origin Resource Sharing"],
+"tencent-cloud-dns-icp-mainland-origin-20260831":["Domain Name System","DNS Resource Records","Transmission Control Protocol","Transport Layer Security","Server Name Indication","HTTP Host / Reverse Proxy","Application Programming Interface","Cloud Virtual Machine","Domain Real-name Verification","Internet Content Provider","Origin / Same-Origin Policy","Cross-Origin Resource Sharing","Health Check / Observability"],
+"sub2api-hong-kong-ingress-network-path-20260910":["Network Path","Ingress / Egress","Forward Proxy","Reverse Proxy","Origin Server","Round-Trip Time","Time to First Byte","TLS Termination","Server-Sent Events","WebSocket","Proxy Buffering","WireGuard Tunnel","System Proxy","TUN Interface"],
 }
 def registry_sections(text:str)->dict[str,str]:
  m=list(re.finditer(r"(?m)^([a-z0-9][a-z0-9-]+):\n",text)); out={}
