@@ -1,72 +1,76 @@
 frontend-fast-feedback-pipeline-20260910:
-  checklist: "我能先用自己的话解释 Runtime、Vite Dev Server、HMR、Hot Reload、增量编译、Mock、API Proxy、目标 Runtime、Production Build、Docker Build、E2E 和部署读回分别解决什么问题。"
+  checklist: "我能解释 Runtime、Vite Development Server、HMR、Hot Reload、Incremental Compilation、Mock API、API Proxy、Target Runtime、Production Build、Docker Build、E2E 与 Deployment Readback 分别证明什么。"
   html: |
-    <p><strong>先认词：</strong>这一课后面会连续用到一组开发与发布术语。先把下面这些词认清，再看“开发态应该怎么选”的综合判断。</p>
+    <p><strong>先认词：</strong>这一课的重点是把开发反馈和发布证明分层。先认清下面这些词，再讨论“什么时候该跑重任务”。</p>
     <div class="grid">
-      <details><summary>Development Feedback Loop · 开发反馈循环<span class="term-gloss">改完代码以后，从修改到看见结果、判断对错的整个反馈回路。</span></summary><div class="body"><dl><dt>直觉</dt><dd>你改完代码以后，要多久才能知道“这次改动对不对”。</dd><dt>当前案例</dt><dd>目标不是把所有编译都消灭，而是减少与当前改动无关的等待。</dd></dl></div></details>
-      <details><summary>Runtime · 运行时<span class="term-gloss">程序已经启动后，真正执行代码、维护状态并调用平台能力的环境。</span></summary><div class="body"><dl><dt>直觉</dt><dd>源码像剧本，Runtime 是演员真正开始演戏的舞台。</dd><dt>严格一点</dt><dd>浏览器、Flutter Debug Runtime、微信小程序运行环境都属于 Runtime；它不是源码，也不是发布包本身。</dd><dt>当前案例</dt><dd>开发态优先复用已经启动的 Runtime，避免每改一点都从头启动整套应用。</dd></dl></div></details>
-      <details><summary>Vite Development Server · Vite 开发服务器<span class="term-gloss">专门服务开发态前端、追踪源码变化并把更新快速送到浏览器的本地服务器。</span></summary><div class="body"><dl><dt>直觉</dt><dd>它像前端开发时一直开着的“实时预览站”。</dd><dt>边界</dt><dd>Vite 开发服务器和面向上线的 Production Build 是两条不同路径。</dd></dl></div></details>
-      <details><summary>Hot Module Replacement (HMR) · 热模块替换<span class="term-gloss">应用不整体重启，只替换发生变化的前端模块。</span></summary><div class="body"><dl><dt>直觉</dt><dd>只换坏掉的一块零件，不把整台机器关机重装。</dd><dt>严格一点</dt><dd>开发服务器追踪模块依赖，把变化模块推送到正在运行的页面；是否保留状态取决于框架和模块边界。</dd><dt>边界</dt><dd>HMR 只证明开发态快速反馈，不证明生产构建、真实后端或目标平台已经正确。</dd></dl></div></details>
-      <details><summary>Hot Reload · 热重载<span class="term-gloss">把变化后的代码注入正在运行的调试应用，并尽量保留当前页面与状态。</span></summary><div class="body"><dl><dt>直觉</dt><dd>应用继续跑着，把新代码塞进去后重新计算受影响界面。</dd><dt>当前案例</dt><dd>Flutter Hot Reload 常用于 UI 与 Dart 逻辑的日常反馈。</dd><dt>边界</dt><dd>它和 Web HMR 目标相似，但实现机制不同；某些原生或初始化变化仍需重启。</dd></dl></div></details>
-      <details><summary>Incremental Compilation · 增量编译<span class="term-gloss">只重新处理本次变化及其受影响依赖，而不是每次全量重建。</span></summary><div class="body"><dl><dt>直觉</dt><dd>只重做改动影响到的章节，不重新印整本书。</dd><dt>当前案例</dt><dd>uni-app、Flutter、小程序开发态即使仍有编译/转换，只要处理范围是增量的，仍属于快路径。</dd></dl></div></details>
-      <details><summary>Mock API · 模拟接口<span class="term-gloss">用可控的假响应代替真实后端，让前端稳定复现成功、空态和错误态。</span></summary><div class="body"><dl><dt>直觉</dt><dd>后端暂时不参与，先安排一个会按剧本回答的“假后端”。</dd><dt>边界</dt><dd>Mock 能验证前端逻辑，但不能算真实接口联调或真实后端验收。</dd></dl></div></details>
-      <details><summary>API Proxy · 接口代理<span class="term-gloss">开发服务器把前端的 /api 请求转发到本地、测试或受控远端后端。</span></summary><div class="body"><dl><dt>直觉</dt><dd>浏览器只找本地前台，本地前台再替你把请求送到真正后端。</dd><dt>当前案例</dt><dd>它让 Vite/H5 不必重建生产包就能联调真实 API。</dd></dl></div></details>
-      <details><summary>Target Runtime · 目标平台运行时<span class="term-gloss">真正具有微信、Android、iOS 等平台生命周期、权限和原生 API 的运行环境。</span></summary><div class="body"><dl><dt>直觉</dt><dd>Chrome 里看着对，不代表微信或手机里一定对。</dd><dt>当前案例</dt><dd>wx.login、支付、相机、蓝牙、原生插件等进入改动范围时，就必须升级到目标平台验证。</dd></dl></div></details>
-      <details><summary>Production Build · 生产构建<span class="term-gloss">生成准备正式交付给用户的发布产物，而不是开发者快速试错的运行态。</span></summary><div class="body"><dl><dt>直觉</dt><dd>开发预览是草稿，Production Build 是准备交付的正式成品。</dd><dt>边界</dt><dd>普通 UI 小改不必每次跑，但候选/发布节点必须证明它能成功产生。</dd></dl></div></details>
-      <details><summary>Docker Build · 容器镜像构建<span class="term-gloss">按 Dockerfile 把程序、依赖和运行环境组装成可部署镜像。</span></summary><div class="body"><dl><dt>直觉</dt><dd>把程序装进标准运输箱，服务器拿到同一套环境。</dd><dt>边界</dt><dd>它适合交付链，不是普通前端文案或样式预览的默认前置。</dd></dl></div></details>
-      <details><summary>End-to-End Testing (E2E) · 端到端测试<span class="term-gloss">从真实入口一路跨过前端、接口、鉴权、后端和数据，验证完整用户链路。</span></summary><div class="body"><dl><dt>直觉</dt><dd>不是检查一个零件，而是让整辆车真正从起点开到终点。</dd><dt>边界</dt><dd>E2E 覆盖广但成本高；日常只跑受影响链路，合并/发布前再跑必要的完整集合。</dd></dl></div></details>
-      <details><summary>Deployment Readback · 部署读回（readback）<span class="term-gloss">发布后从真正线上环境重新读取版本、页面、接口或健康状态，确认实际部署结果。</span></summary><div class="body"><dl><dt>直觉</dt><dd>不只相信“部署命令说成功”，而是回到线上再看一眼“现在到底跑的是什么”。</dd><dt>当前案例</dt><dd>可以读取线上 commit/version、请求真实 URL 或 /health，证明刚验收的候选确实已经在线。</dd><dt>边界</dt><dd>readback 证明上线瞬间的实际状态，长期风险仍需监控与告警。</dd></dl></div></details>
+      <details><summary>Runtime · 运行时<span class="term-gloss">程序真正执行代码、维护状态并调用平台能力的环境。</span></summary><div class="body"><dl><dt>直觉</dt><dd>源码像剧本，Runtime 是真正演出的舞台。</dd><dt>边界</dt><dd>浏览器、Flutter Debug Runtime、微信小程序运行环境都属于 Runtime；它不是发布包。</dd></dl></div></details>
+      <details><summary>Vite Development Server · Vite 开发服务器<span class="term-gloss">专门服务开发态前端并把源码变化快速送到浏览器的服务器。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>React/Vue/uni-app H5 日常预览优先复用 dev server，而不是每次做 production build。</dd></dl></div></details>
+      <details><summary>Hot Module Replacement (HMR) · 热模块替换<span class="term-gloss">应用不整体重启，只替换发生变化的前端模块。</span></summary><div class="body"><dl><dt>边界</dt><dd>HMR 证明开发态反馈快，不证明生产构建和目标平台已经正确。</dd></dl></div></details>
+      <details><summary>Hot Reload · 热重载<span class="term-gloss">把新代码注入正在运行的调试应用，并尽量保留页面状态。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>Flutter 常用 Hot Reload 做 UI 与 Dart 逻辑的快速反馈。</dd></dl></div></details>
+      <details><summary>Incremental Compilation · 增量编译<span class="term-gloss">只重新处理本次变化及其受影响依赖，而不是全量重建。</span></summary><div class="body"><dl><dt>直觉</dt><dd>只重印改过的章节，不重新印整本书。</dd></dl></div></details>
+      <details><summary>Mock API · 模拟接口<span class="term-gloss">用可控假响应代替真实后端，稳定复现成功、空态与错误态。</span></summary><div class="body"><dl><dt>边界</dt><dd>Mock 能验证前端逻辑，但不能冒充真实后端联调。</dd></dl></div></details>
+      <details><summary>API Proxy · 接口代理<span class="term-gloss">开发服务器把 /api 请求转发到本地、测试或受控远端后端。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>它让本地前端不用重建生产包就能连接真实 API。</dd></dl></div></details>
+      <details><summary>Target Runtime · 目标平台运行时<span class="term-gloss">真正具有微信、Android、iOS 等平台生命周期、权限与原生 API 的环境。</span></summary><div class="body"><dl><dt>边界</dt><dd>Chrome 正常不能自动推出微信或手机原生能力正常。</dd></dl></div></details>
+      <details><summary>Production Build · 生产构建<span class="term-gloss">生成准备正式交付给用户的优化发布产物。</span></summary><div class="body"><dl><dt>边界</dt><dd>普通 UI 小改不必每次运行；候选或发布节点必须证明它能成功生成。</dd></dl></div></details>
+      <details><summary>Docker Build · 容器镜像构建<span class="term-gloss">按 Dockerfile 把程序、依赖和运行环境组装成可部署镜像。</span></summary><div class="body"><dl><dt>边界</dt><dd>它属于交付与环境一致性层，不是普通前端预览默认前置。</dd></dl></div></details>
+      <details><summary>End-to-End Testing (E2E) · 端到端测试<span class="term-gloss">从真实入口跨过多个组件验证完整用户链路。</span></summary><div class="body"><dl><dt>边界</dt><dd>E2E 成本高，日常优先跑受影响链路，合并/发布再扩大范围。</dd></dl></div></details>
+      <details><summary>Deployment Readback · 部署读回<span class="term-gloss">发布后从真实线上环境重新读取版本、页面、接口或健康状态。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>它证明“刚验收的候选确实在线”，而不是只相信部署命令返回成功。</dd></dl></div></details>
     </div>
 
 software-delivery-lifecycle-ai-coding-20260910:
-  checklist: "我能解释 AI Agent、反馈循环、HMR、冒烟测试、QA、E2E、Acceptance、UAT、CI/CD、Artifact、Observability 与 Rollback 在交付链里的位置。"
+  checklist: "我能解释 AI Agent、Software Delivery Lifecycle、Feedback Loop、HMR、Smoke Test、QA、E2E、Acceptance、UAT、CI/CD、Artifact、Observability 与 Rollback 在交付链中的位置。"
   html: |
-    <p><strong>先认词：</strong>软件交付里很多词长得像“测试/发布”，但它们证明的事情不同。先认清角色，再看整条生命周期。</p>
+    <p><strong>先认词：</strong>软件交付里很多词都像“测试/发布”，但它们证明的事情不同。先认清角色，再看整条生命周期。</p>
     <div class="grid">
-      <details><summary>AI Agent · 人工智能代理<span class="term-gloss">能围绕目标连续调用工具、修改文件、运行检查并整理证据的自动执行者。</span></summary><div class="body"><dl><dt>直觉</dt><dd>不是只回答一句话，而是能把一串工程动作连续做完。</dd><dt>边界</dt><dd>Agent 的“我测过了”不是独立证据；关键门禁仍应可复现、可审计。</dd></dl></div></details>
-      <details><summary>Software Delivery Lifecycle · 软件交付生命周期<span class="term-gloss">一次改动从需求、实现、验证、验收到发布、运行反馈与恢复的完整道路。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>所有“什么时候构建、谁来测、谁来接受、上线后看什么”都放回这条链判断。</dd></dl></div></details>
+      <details><summary>AI Agent · 人工智能代理<span class="term-gloss">能围绕目标连续调用工具、修改文件、运行检查并整理证据的自动执行者。</span></summary><div class="body"><dl><dt>边界</dt><dd>Agent 自述“我测过了”不是独立证据，关键门禁仍应可复现。</dd></dl></div></details>
+      <details><summary>Software Delivery Lifecycle · 软件交付生命周期<span class="term-gloss">一次改动从需求、实现、验证、验收到发布、运行反馈和恢复的完整道路。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>什么时候构建、谁来测、谁来接受、上线后看什么都放回这条链判断。</dd></dl></div></details>
       <details><summary>Feedback Loop · 开发反馈循环<span class="term-gloss">改完东西后，多快得到“对/不对”的反馈。</span></summary><div class="body"><dl><dt>边界</dt><dd>快反馈解决开发速度，不等于已经形成可发布候选。</dd></dl></div></details>
       <details><summary>Hot Module Replacement (HMR) · 热模块替换<span class="term-gloss">开发页面运行中只替换变化模块，用于秒级看到前端改动。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>它属于日常反馈层，不属于生产发布证明。</dd></dl></div></details>
-      <details><summary>Smoke Test · 冒烟测试<span class="term-gloss">先跑少量最关键检查，确认系统基本活着、主链路没有立刻坏掉。</span></summary><div class="body"><dl><dt>边界</dt><dd>冒烟通过只是最低健康信号，不等于完整回归通过。</dd></dl></div></details>
-      <details><summary>Quality Assurance / Verification (QA) · 质量保证 / 技术验证<span class="term-gloss">用测试和检查证据证明预先定义的技术条件成立。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>AI/流水线可承担绝大多数可重复 QA。</dd><dt>边界</dt><dd>QA 通过不自动等价于业务负责人已接受版本。</dd></dl></div></details>
-      <details><summary>End-to-End Testing (E2E) · 端到端测试<span class="term-gloss">从用户入口跨多个组件验证完整业务链路。</span></summary><div class="body"><dl><dt>边界</dt><dd>成本比单元/集成测试高，应放在真正需要跨组件证明的节点。</dd></dl></div></details>
-      <details><summary>Acceptance · 验收接受<span class="term-gloss">有权主体基于验收标准和证据，对一个具体候选作接受或拒绝决定。</span></summary><div class="body"><dl><dt>边界</dt><dd>这是治理与授权动作，不等于再人工点击一遍所有页面。</dd></dl></div></details>
-      <details><summary>User Acceptance Testing (UAT) · 用户验收测试<span class="term-gloss">由业务/用户视角验证软件是否满足真实使用和验收标准。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>高风险业务语义、主观体验和授权边界适合保留人的判断。</dd></dl></div></details>
+      <details><summary>Smoke Test · 冒烟测试<span class="term-gloss">先跑少量最关键检查，确认系统基本活着且主链路没有立刻坏掉。</span></summary><div class="body"><dl><dt>边界</dt><dd>冒烟通过只是最低健康信号，不等于完整回归通过。</dd></dl></div></details>
+      <details><summary>Quality Assurance / Verification (QA) · 质量保证 / 技术验证<span class="term-gloss">用测试和检查证据证明预先定义的技术条件成立。</span></summary><div class="body"><dl><dt>边界</dt><dd>QA 通过不自动等价于业务负责人已经接受版本。</dd></dl></div></details>
+      <details><summary>End-to-End Testing (E2E) · 端到端测试<span class="term-gloss">从用户入口跨多个组件验证完整业务链路。</span></summary><div class="body"><dl><dt>边界</dt><dd>它比单元/集成测试成本高，应在真正需要跨组件证明时运行。</dd></dl></div></details>
+      <details><summary>Acceptance · 验收接受<span class="term-gloss">有权主体基于验收标准与证据，对具体候选作接受或拒绝决定。</span></summary><div class="body"><dl><dt>边界</dt><dd>这是治理与授权动作，不等于人工重复点击所有页面。</dd></dl></div></details>
+      <details><summary>User Acceptance Testing (UAT) · 用户验收测试<span class="term-gloss">由业务或用户视角验证软件是否满足真实使用与验收标准。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>高风险业务语义、主观体验与授权边界适合保留人的判断。</dd></dl></div></details>
       <details><summary>Continuous Integration (CI) · 持续集成<span class="term-gloss">代码变化进入统一流水线后自动编译、测试和检查，尽早暴露问题。</span></summary><div class="body"><dl><dt>边界</dt><dd>CI 主要证明候选经得起统一检查，不等于已经部署生产。</dd></dl></div></details>
-      <details><summary>Continuous Delivery / Deployment (CD) · 持续交付 / 持续部署<span class="term-gloss">让软件持续处于可发布状态，或进一步把通过门禁的版本自动部署。</span></summary><div class="body"><dl><dt>边界</dt><dd>CD 不意味着所有项目都必须无人值守上线；高风险场景可以保留人工门。</dd></dl></div></details>
+      <details><summary>Continuous Delivery / Deployment (CD) · 持续交付 / 持续部署<span class="term-gloss">让软件持续处于可发布状态，或进一步把通过门禁的版本自动部署。</span></summary><div class="body"><dl><dt>边界</dt><dd>CD 不意味着高风险项目必须无人值守上线。</dd></dl></div></details>
       <details><summary>Artifact · 构建产物<span class="term-gloss">从确定提交构建出的、准备发布的不可变产物，如镜像、静态包或二进制。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>验收应绑定具体 commit + artifact，避免验收 A、部署时又重建成 B。</dd></dl></div></details>
-      <details><summary>Observability / Rollback · 可观测性 / 回滚<span class="term-gloss">上线后用日志、指标、追踪和业务信号判断健康；异常时快速恢复到已知安全版本。</span></summary><div class="body"><dl><dt>边界</dt><dd>deploy 返回成功不是交付终点，真实运行证据和恢复路径仍是闭环的一部分。</dd></dl></div></details>
+      <details><summary>Observability / Rollback · 可观测性 / 回滚<span class="term-gloss">上线后用日志、指标和业务信号判断健康；异常时恢复到已知安全版本。</span></summary><div class="body"><dl><dt>边界</dt><dd>deploy 返回成功不是交付终点，真实运行证据和恢复路径仍是闭环的一部分。</dd></dl></div></details>
     </div>
 
 git-three-state-divergence-20260831:
-  checklist: "我能区分 Commit/SHA、Branch、HEAD、git fetch、origin/main、git checkout、Working Tree、Git worktree、ahead/behind、Fast-forward 和 Merge Conflict。"
+  checklist: "我能区分 Commit/SHA、Blob Object ID、Branch、HEAD、git fetch、origin/main、git checkout、Working Tree、Git worktree、ahead/behind、Fast-forward 与 Merge Conflict，并理解 blob 指纹只证明字节身份。"
   html: |
-    <p><strong>先认词：</strong>这一课最容易卡住的不是命令，而是把“本地知道远端在哪里”和“当前目录真正检出了什么”混成一件事。</p>
+    <p><strong>先认词：</strong>这一课最容易卡住的不是命令，而是把对象身份、引用位置、工作目录状态和真实运行版本混成“代码版本”。</p>
     <div class="grid">
-      <details><summary>Commit / SHA · 提交 / 提交哈希<span class="term-gloss">Commit 是封存的一版历史；SHA 是定位该提交的哈希标识。</span></summary><div class="body"><dl><dt>直觉</dt><dd>Commit 像存档点，SHA 像存档点的身份证号。</dd></dl></div></details>
+      <details><summary>Commit / SHA · 提交 / 提交哈希<span class="term-gloss">Commit 是封存的一版历史；它由 Git 对象 ID 标识，传统 SHA-1 仓库常简称为 SHA。</span></summary><div class="body"><dl><dt>直觉</dt><dd>Commit 像存档点，对象 ID 像这个存档点的内容寻址标识。</dd><dt>边界</dt><dd>现代 Git 也支持 SHA-256 对象格式，所以“SHA”是常见口语，严格概念是 Object ID。</dd></dl></div></details>
+      <details><summary>Blob Object ID (OID) · 内容寻址指纹<span class="term-gloss">Git 根据文件字节内容生成 blob 对象 ID；它证明内容身份，不证明页面或业务正确。</span></summary><div class="body"><dl><dt>直觉</dt><dd>blob OID 可以理解成“这段精确文件字节在 Git 对象库里的身份证”。内容一模一样时，不同路径可以复用同一个 blob。</dd><dt>严格定义</dt><dd>对文件字节 x，可抽象为 <code>OID_blob = H("blob " || len(x) || NUL || x)</code>。传统 Git 对象格式使用 SHA-1，Git 也支持 SHA-256 对象格式；文件名和路径不在 blob 中，而由 tree 把 mode、name 与 blob OID 关联。</dd><dt>怎么观察</dt><dd><pre><code>git hash-object path/to/file
+git rev-parse HEAD:path/to/file
+git cat-file -t &lt;OID&gt;
+git cat-file -p &lt;OID&gt;
+git ls-tree HEAD path/to/file</code></pre>前两条可以计算/读取 blob OID，<code>cat-file</code> 查看对象类型或内容，<code>ls-tree</code> 则能看到路径名如何由 tree 指向 blob。</dd><dt>边界</dt><dd>相同 blob OID 能证明两份对象的字节身份一致，却不能证明这些字节满足业务语义，也不能证明浏览器渲染正确。应区分 Artifact Identity、Semantic Correctness 与 Rendered Correctness。</dd><dt>当前案例</dt><dd>之前 <code>docs/lessons</code> 与 <code>examples</code> 可以拥有同一个 HTML blob OID，但两边包含的是同一个会破坏 MathML 的 CSS，因此它们是“一致地错误”。这正说明 blob/hash consistency 只能作为身份门禁，不能替代 Chromium 等真实 Runtime 的渲染 QA。</dd></dl></div></details>
       <details><summary>Branch · 分支<span class="term-gloss">指向某个提交、会随着新提交向前移动的引用。</span></summary><div class="body"><dl><dt>直觉</dt><dd>它像贴在提交历史上的可移动书签。</dd></dl></div></details>
-      <details><summary>HEAD · 当前检出位置<span class="term-gloss">表示当前 Git 工作目录“我现在站在哪个分支/提交上”。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>106 的 HEAD 在 c5e35ae，所以服务器工作目录实际不是 GitHub main。</dd></dl></div></details>
-      <details><summary>git fetch · 获取远端信息<span class="term-gloss">下载远端新提交并更新远程跟踪引用，但通常不改变当前 Working Tree。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>106 fetch 后可以知道 origin/main 的最新位置，但 HEAD 不会自动跟过去。</dd></dl></div></details>
-      <details><summary>origin/main · 远程跟踪引用<span class="term-gloss">本地记录的“最近一次看到远端 main 在哪里”的指针。</span></summary><div class="body"><dl><dt>边界</dt><dd>它是一份本地认知，不是当前 checkout。</dd></dl></div></details>
-      <details><summary>git checkout · 检出 / 切换<span class="term-gloss">让某个工作目录真正摊开指定分支或提交对应的文件。</span></summary><div class="body"><dl><dt>边界</dt><dd>知道 origin/main 在哪里与把当前工作目录 checkout 到那里是两回事。</dd></dl></div></details>
-      <details><summary>Working Tree · 工作树<span class="term-gloss">当前工作目录里实际摊开的文件，以及相对 HEAD 尚未提交的变化。</span></summary><div class="body"><dl><dt>边界</dt><dd>clean 只表示没有未提交变化，不表示 HEAD 是最新版。</dd></dl></div></details>
-      <details><summary>Git worktree · Git 额外工作目录<span class="term-gloss">让同一个仓库同时拥有多个独立 checkout 工作目录，用于并行处理不同分支。</span></summary><div class="body"><dl><dt>边界</dt><dd>Git worktree 是机制名；Working Tree 是某个 checkout 当前摊开的文件状态，二者不要混叫。</dd></dl></div></details>
-      <details><summary>ahead / behind · 领先 / 落后<span class="term-gloss">从共同祖先出发，两条历史各自多了多少独有提交。</span></summary><div class="body"><dl><dt>边界</dt><dd>它永远是成对比较关系，不是一个分支的绝对属性。</dd></dl></div></details>
-      <details><summary>Fast-forward Merge · 快进合并<span class="term-gloss">目标分支没有独立分叉时，只移动指针就能完成合并。</span></summary><div class="body"><dl><dt>边界</dt><dd>两边都产生独有提交后，就不能只靠快进，通常需要真实 merge/rebase 处理历史。</dd></dl></div></details>
-      <details><summary>Merge Conflict · 合并冲突<span class="term-gloss">两边都修改了 Git 无法自动决定如何合并的内容，需要人为或规则判断语义。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>前端分支与最新 main 试算出现 48 个文件冲突，因此不能机械覆盖。</dd></dl></div></details>
+      <details><summary>HEAD · 当前检出位置<span class="term-gloss">表示当前 Git 工作目录“我现在站在哪个分支或提交上”。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>服务器 HEAD 停在旧提交时，fetch 最新 origin/main 也不会自动切换工作目录。</dd></dl></div></details>
+      <details><summary>git fetch · 获取远端信息<span class="term-gloss">下载远端新对象并更新远程跟踪引用，但通常不改变当前 Working Tree。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>fetch 后本地可以知道 origin/main 最新位置，但 HEAD 不会自动跟过去。</dd></dl></div></details>
+      <details><summary>origin/main · 远程跟踪引用<span class="term-gloss">本地记录的“最近一次看到远端 main 在哪里”的指针。</span></summary><div class="body"><dl><dt>边界</dt><dd>它是一份本地远端认知，不是当前 checkout，也不是远端服务器本身。</dd></dl></div></details>
+      <details><summary>git checkout · 检出 / 切换<span class="term-gloss">让某个工作目录真正摊开指定分支或提交对应的文件。</span></summary><div class="body"><dl><dt>边界</dt><dd>知道 origin/main 在哪里，与把当前工作目录 checkout 到那里是两回事。</dd></dl></div></details>
+      <details><summary>Working Tree · 工作树<span class="term-gloss">当前工作目录实际摊开的文件，以及相对索引/HEAD 尚未提交的变化。</span></summary><div class="body"><dl><dt>边界</dt><dd>clean 只表示没有未提交变化，不表示 HEAD 是最新版。</dd></dl></div></details>
+      <details><summary>Git worktree · Git 额外工作目录<span class="term-gloss">让同一个对象库同时拥有多个独立 checkout 工作目录。</span></summary><div class="body"><dl><dt>边界</dt><dd>Git worktree 是机制名；Working Tree 是某个 checkout 当前摊开的文件状态。</dd></dl></div></details>
+      <details><summary>ahead / behind · 领先 / 落后<span class="term-gloss">比较两个 refs 的可达提交集合，统计双方各自独有的提交数量。</span></summary><div class="body"><dl><dt>严格定义</dt><dd>它是成对比较关系，不是一个分支的绝对属性；本质上接近 Reach(A) 与 Reach(B) 的集合差计数。</dd></dl></div></details>
+      <details><summary>Fast-forward Merge · 快进合并<span class="term-gloss">目标历史包含当前历史时，只移动引用就能完成合并。</span></summary><div class="body"><dl><dt>边界</dt><dd>两边都产生独有提交后，就不能只靠快进。</dd></dl></div></details>
+      <details><summary>Merge Conflict · 合并冲突<span class="term-gloss">双方修改无法被 Git 自动组合时，需要人或规则判断最终语义。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>冲突数量说明自动合并受阻，不代表某一边天然“错”。</dd></dl></div></details>
     </div>
 
 tencent-cloud-dns-icp-mainland-origin-20260831:
-  checklist: "我能区分 DNS、API、CVM、域名实名认证、ICP备案/接入备案、TLS/HTTPS、SNI、反向代理和 CORS 各自解决哪一层问题。"
+  checklist: "我能区分 DNS、API、CVM、域名实名认证、ICP 备案/接入备案、TLS/HTTPS、SNI、反向代理与 CORS 各自解决哪一层问题。"
   html: |
-    <p><strong>先认词：</strong>网页“打不开”可能发生在很多层。先把每层的名字认清，后面才能沿证据逐层排除。</p>
+    <p><strong>先认词：</strong>网页“打不开”可能发生在很多层。先把每层名字认清，后面才能沿证据逐层排除。</p>
     <div class="grid">
-      <details><summary>Domain Name System (DNS) · 域名系统 / DNS 解析<span class="term-gloss">把域名映射为 IP 地址或别名；只回答“去哪里找”。</span></summary><div class="body"><dl><dt>边界</dt><dd>DNS 成功不证明 TLS、备案、应用或 CORS 成功。</dd></dl></div></details>
-      <details><summary>Application Programming Interface (API) · 应用程序接口<span class="term-gloss">前端或其他程序用固定请求方式向后端能力取数据或触发操作。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>api.xxx.com 是浏览器最终要访问的后端入口。</dd></dl></div></details>
-      <details><summary>Cloud Virtual Machine (CVM) · 云服务器<span class="term-gloss">云厂商提供的、可远程运行系统和服务进程的虚拟服务器。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>案例中的 106 是腾讯云中国大陆 CVM，其地域会影响备案/接入要求。</dd></dl></div></details>
+      <details><summary>Domain Name System (DNS) · 域名系统 / DNS 解析<span class="term-gloss">把域名映射为 IP 地址或别名，只回答“去哪里找”。</span></summary><div class="body"><dl><dt>边界</dt><dd>DNS 成功不证明 TLS、备案、应用或 CORS 成功。</dd></dl></div></details>
+      <details><summary>Application Programming Interface (API) · 应用程序接口<span class="term-gloss">前端或其他程序用固定请求方式向后端能力取数据或触发操作。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>API 域名是浏览器最终要访问的后端入口。</dd></dl></div></details>
+      <details><summary>Cloud Virtual Machine (CVM) · 云服务器<span class="term-gloss">云厂商提供的、可远程运行系统和服务进程的虚拟服务器。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>服务器地域会影响备案与接入要求。</dd></dl></div></details>
       <details><summary>Domain Real-name Verification · 域名实名认证<span class="term-gloss">证明域名注册主体是谁，不等于网站已经完成 ICP 备案。</span></summary><div class="body"><dl><dt>边界</dt><dd>身份证明和互联网信息服务备案是不同层次。</dd></dl></div></details>
-      <details><summary>Internet Content Provider (ICP) Filing / Access Filing · ICP 备案 / 接入备案<span class="term-gloss">中国境内互联网信息服务的备案，以及网站实际使用哪家接入商的关联信息。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>已有备案换到腾讯云时，要确认是否完成腾讯云接入备案，而不是把“实名认证”当成备案。</dd></dl></div></details>
-      <details><summary>Transport Layer Security (TLS) / HTTPS · 传输层安全 / 加密 HTTP<span class="term-gloss">通过证书和加密握手建立安全连接，主要回答“能不能安全连上”。</span></summary><div class="body"><dl><dt>严格一点</dt><dd>TLS 还涉及证书链、443 端口和服务器名称指示（Server Name Indication, SNI）等。</dd><dt>边界</dt><dd>TLS 成功不证明应用内容或业务逻辑正确。</dd></dl></div></details>
-      <details><summary>Reverse Proxy · 反向代理（如 Nginx）<span class="term-gloss">先接住外部请求，再按规则把它转发给真正后端应用。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>DNS、备案、TLS 正常但 /health 异常时，需要继续查反向代理、路由和应用进程。</dd></dl></div></details>
-      <details><summary>Cross-Origin Resource Sharing (CORS) · 跨源资源共享<span class="term-gloss">浏览器根据服务端响应头决定页面脚本能否读取跨源响应。</span></summary><div class="body"><dl><dt>边界</dt><dd>CORS 报错常像“请求失败”，但 curl 直接访问 API 可能完全正常。</dd></dl></div></details>
+      <details><summary>Internet Content Provider (ICP) Filing / Access Filing · ICP 备案 / 接入备案<span class="term-gloss">中国境内互联网信息服务的备案，以及实际接入商的关联信息。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>已有备案换到新大陆接入商时，应确认接入备案，而不是把实名认证当成备案。</dd></dl></div></details>
+      <details><summary>Transport Layer Security (TLS) / HTTPS · 传输层安全 / 加密 HTTP<span class="term-gloss">通过证书和加密握手建立安全连接，主要回答“能不能安全连上”。</span></summary><div class="body"><dl><dt>严格一点</dt><dd>TLS 还涉及证书链、443 端口和 Server Name Indication (SNI)。</dd><dt>边界</dt><dd>TLS 成功不证明应用内容或业务逻辑正确。</dd></dl></div></details>
+      <details><summary>Reverse Proxy · 反向代理（如 Nginx）<span class="term-gloss">先接住外部请求，再按规则把它转发给真正后端应用。</span></summary><div class="body"><dl><dt>当前案例</dt><dd>DNS、TLS 正常但 /health 异常时，需要继续查反向代理、路由和应用进程。</dd></dl></div></details>
+      <details><summary>Cross-Origin Resource Sharing (CORS) · 跨源资源共享<span class="term-gloss">浏览器根据服务端响应头决定页面脚本能否读取跨源响应。</span></summary><div class="body"><dl><dt>边界</dt><dd>CORS 报错常像请求失败，但 curl 直接访问 API 可能完全正常。</dd></dl></div></details>
     </div>
