@@ -1,4 +1,158 @@
----
-layout: lesson
-lesson: tencent-cloud-dns-icp-mainland-origin-20260831
----
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="系统学习域名打不开的完整诊断链：DNS、A/AAAA/CNAME、TCP 端口、TLS/SNI、HTTP 反向代理、应用、CORS，以及腾讯云中国大陆 ICP/接入备案边界。"><title>DNS 已经解析成功，为什么域名还是打不开？｜Study Skills</title><style>
+:root{--bg:#f4f5f8;--s:#fff;--soft:#f8f9fc;--ink:#1d2433;--text:#303849;--muted:#657084;--line:#dfe3ea;--a:#4f46e5;--as:#eef2ff;--hint:#fff8df;--ok:#eef8f2;--risk:#fff2f0;--warn-ink:#9b6900;--risk-ink:#a33129;--ok-ink:#176348;--r:16px;--sans:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;--mono:"SFMono-Regular",Consolas,monospace}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.7 var(--sans)}a{color:var(--a)}.shell{width:min(1120px,calc(100% - 48px));margin:auto}.hero{padding:52px 0 28px}h1,h2,h3{color:var(--ink);line-height:1.28}h1{margin:0 0 12px;font-size:clamp(2rem,4.5vw,3.3rem)}h2{margin:0 0 12px}.eyebrow,.k{color:var(--a);font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.lede{max-width:860px}.pills,.progress-items,.flow{display:flex;gap:8px;flex-wrap:wrap}.pill,.node{padding:5px 10px;border:1px solid #d8dcf7;border-radius:999px;background:#fff;color:#39348d;font-size:.84rem}.pill-date{border-color:var(--line);background:var(--soft);color:var(--muted)}.pill-date time{margin-left:6px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}.page{padding-bottom:60px}.progress{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px}.track{height:8px;background:#e9ebf1;border-radius:9px;overflow:hidden}.fill{height:100%;width:0;background:var(--a)}.layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:22px}.toc{position:sticky;top:16px;align-self:start;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.toc a{display:block;padding:6px;text-decoration:none;color:var(--muted)}main{min-width:0;display:grid;gap:16px}.sec{min-width:0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px}.call{padding:14px 16px;border-left:4px solid var(--a);background:var(--as);border-radius:0 10px 10px 0}.warn{background:var(--hint);border-left-color:var(--warn-ink)}.danger{background:var(--risk);border-left-color:var(--risk-ink)}.success{background:var(--ok);border-left-color:var(--ok-ink)}.term-gate{margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.mini{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--soft)}details{border:1px solid var(--line);border-radius:12px;background:var(--soft);margin:8px 0;overflow:hidden}summary{padding:13px 15px;cursor:pointer;color:var(--ink);font-weight:700}.body{padding:0 15px 14px}.body dt{font-weight:700;color:var(--ink);margin-top:9px}.body dd{margin:2px 0}.term-gloss{display:block;margin-top:4px;color:var(--muted);font-size:.9rem;font-weight:400;line-height:1.5}.table{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin-top:12px}table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f1f3f7}.q{padding:15px;border:1px solid #d7daf7;border-radius:12px;background:var(--soft);margin:12px 0}.num{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:7px;background:var(--a);color:#fff;font-weight:700;margin-right:7px}textarea{width:100%;min-height:170px;padding:12px;border:1px solid #cbd1dd;border-radius:10px;font:inherit}.btn{padding:9px 13px;border:0;border-radius:9px;background:var(--a);color:#fff;font-weight:700;cursor:pointer;margin-top:9px}.btn.alt{background:#fff;color:var(--a);border:1px solid #cfd1f2}.hint{margin-top:10px;padding:14px;border:1px solid #ead89d;border-radius:12px;background:var(--hint)}.answer{border-color:#b8ddca;background:var(--ok)}.check{display:flex;gap:8px;width:100%;margin-top:18px;padding:12px;border:1px solid #d8dcf7;border-radius:10px;background:#fafaff}.check input{margin-top:.35em;accent-color:var(--a)}pre,code{font-family:var(--mono)}code{background:#eef0f4;padding:.1em .3em;border-radius:4px}pre{max-width:100%;overflow-x:auto;background:#151a24;color:#f6f7f9;padding:14px;border-radius:10px}pre code{background:transparent;color:inherit;padding:0;border-radius:0}.mini.fact{border-top:3px solid var(--a)}.mini.infer{border-top:3px solid var(--ok-ink)}.mini.unknown{border-top:3px solid var(--warn-ink)}.mini.risk{border-top:3px solid var(--risk-ink)}.state-line{display:grid;grid-template-columns:minmax(120px,max-content) minmax(0,1fr);gap:6px 16px;padding:10px 0;border-bottom:1px dashed var(--line)}.state-line:last-child{border-bottom:0}.state-label{color:var(--ink);font-weight:700}.mono{font-family:var(--mono);font-size:.94em}.diagram{min-width:0;margin-top:14px;padding:14px 12px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--s)}.diagram-scroll{width:100%;overflow-x:auto}.diagram-scroll svg{display:block;min-width:680px;width:100%;height:auto}.dg-tag{font-family:var(--sans);font-size:12.5px}.dg-sha{font-family:var(--mono);font-size:11.5px}.dg-edge{font-family:var(--sans);font-size:11.5px;font-weight:700}.diagram figcaption{margin-top:9px;color:var(--muted);font-size:.86rem}.mobile{display:none}[hidden]{display:none!important}.footer{text-align:center;color:var(--muted);padding:24px 0}@media(max-width:820px){.shell{width:min(calc(100% - 24px),1120px)}.layout{grid-template-columns:1fr}.toc{display:none}.mobile{display:block;margin-bottom:14px}.sec{padding:20px}.grid{grid-template-columns:1fr}.progress{grid-template-columns:1fr}}@page{size:A4;margin:17mm}@media print{body{background:#fff}.progress,.toc,.mobile,.btn{display:none!important}.layout,main{display:block}.sec{border:0;padding:0;margin-bottom:7mm}.hint,.mini,.call,.check{break-inside:avoid;background:#fff!important}pre{background:#f3f3f3!important;color:#111!important;border:1px solid #999;white-space:pre-wrap}pre code{background:transparent!important;color:#111!important}.diagram-scroll svg{min-width:0}.diagram{break-inside:avoid}}
+</style></head><body data-lesson-id="tencent-cloud-dns-icp-mainland-origin-20260831"><header class="hero"><div class="shell"><div class="eyebrow">Study Skills · Learn</div><h1>DNS 已经解析成功，为什么域名还是打不开？</h1><p class="lede">从 GitHub Pages + 腾讯云中国大陆 API 的真实案例出发，把“打不开”拆成 DNS、TCP、TLS、HTTP、应用、浏览器与接入合规七个可独立验证的层。</p><div class="pills"><span class="pill">Cloud / DNS / TLS / HTTP / ICP</span><span class="pill">/learn · system</span><span class="pill">45–60 分钟</span><span class="pill">中等 → 深入</span><span class="pill pill-date">学习日期<time datetime="2026-08-31">2026-08-31</time></span></div></div></header><div class="shell page"><section class="progress"><div><div style="display:flex;justify-content:space-between;font-weight:700"><span>学习进度</span><span id="pl">0 / 5</span></div><div class="track"><div class="fill" id="pf"></div></div><div class="progress-items"><label><input type="checkbox" data-progress="terms">认识术语</label><label><input type="checkbox" data-progress="orient">看懂材料</label><label><input type="checkbox" data-progress="case">还原案例</label><label><input type="checkbox" data-progress="attempt">完成作答</label><label><input type="checkbox" data-progress="answer">查看答案</label></div></div><button class="btn alt" id="reset">重置</button></section><details class="mobile"><summary>本页目录</summary><div class="body"><a href="#terms">先认词</a> · <a href="#orient">先看懂</a> · <a href="#case">案例</a> · <a href="#exercise">训练</a> · <a href="#hints">提示与答案</a></div></details><div class="layout"><nav class="toc"><strong>目录</strong><a href="#terms">01 · 先认核心术语</a><a href="#orient">02 · 这段材料在说什么</a><a href="#map">03 · 知识地图</a><a href="#case">04 · 案例还原</a><a href="#mapping">05 · 概念映射</a><a href="#exercise">06 · 训练题</a><a href="#hints">07 · 提示与答案</a></nav><main><section class="sec" id="terms"><div class="k">Primer</div><h2>① 先把后文会反复出现的词认清楚</h2><div class="call term-gate"><strong>先认词：</strong>先读每张卡片标题下的一句话直觉；需要严格定义、边界或案例作用时再展开。后文不会默认你已经认识这些工程缩写。</div><style data-lesson-extra>math[display="block"]{display:block;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:.35rem 0}.sec{overflow-wrap:anywhere}@media(max-width:820px){math[display="block"]{font-size:.95em}}</style><details><summary>递归解析器、权威 DNS 与缓存</summary><div class="body"><dl><dt>直觉</dt><dd>浏览器问“这个名字对应哪个地址”，真正回答过程通常要经过本机缓存、递归解析器和权威 DNS；你改控制台记录，不代表所有客户端立刻看到新答案。</dd><dt>严格定义</dt><dd>DNS 查询是一条分层名称解析链。递归解析器负责替客户端追问；权威 DNS 对某个区域给出最终记录；TTL 决定中间缓存可复用答案多久。A/AAAA/CNAME 只是资源记录类型，DNS 本身不检查 Web 服务是否存活。</dd><dt>比喻</dt><dd>像查地址：权威 DNS 是档案馆，递归解析器是代办员，TTL 是代办员手里这份地址还能用多久。</dd><dt>边界</dt><dd>“DNS 已生效”必须说清楚是在哪个解析器、哪个网络、哪个时间点看到什么答案。单次 <code>ping</code> 或浏览器缓存不能代表全球解析状态。</dd><dt>本案作用</dt><dd>先用 <code>dig</code> 明确权威答案和公共递归解析器答案，再继续排查；如果这里都不一致，后面的 TLS、HTTP 分析还没有意义。</dd></dl></div></details><details><summary>A / AAAA / CNAME / TTL</summary><div class="body"><dl><dt>直觉</dt><dd>A 把名字指到 IPv4，AAAA 指到 IPv6，CNAME 把一个名字别名到另一个名字；TTL 控制缓存寿命。</dd><dt>严格定义</dt><dd>资源记录描述“名称如何映射”。A/AAAA 的值是地址；CNAME 的值是另一个域名，解析器还要继续解析。TTL 是缓存建议时间，不是“修改后一定几秒全球生效”的倒计时。</dd><dt>比喻</dt><dd>像地图上的导航地址：地址写对不代表大楼开门，也不代表你有进入权限。</dd><dt>边界</dt><dd>记录正确只说明命名层成立，不说明目标端口开放、TLS 证书正确、应用进程存在，也不说明中国大陆接入规则已满足。</dd><dt>本案作用</dt><dd>若 <code>api.example.com</code> 同时有旧 A 记录和新 CNAME，或 AAAA 指向错误 IPv6，用户可能出现“有人能开、有人不能开”的分裂症状。</dd></dl></div></details><details><summary>IP、端口与 TCP 连接</summary><div class="body"><dl><dt>直觉</dt><dd>DNS 给出“去哪台机器”，端口决定“找机器上的哪个服务”；真正开始说 HTTP 之前，客户端要先能建立传输连接。</dd><dt>严格定义</dt><dd>对 HTTPS 常见流程是：解析出 IP → 向 TCP 443 建立连接 → 进行 TLS 握手 → 才发送 HTTP 请求。连接超时、拒绝连接和 TLS 错误属于不同层。</dd><dt>比喻</dt><dd>像到园区：IP 是园区地址，端口是具体楼门。你能到园区门口，不等于 443 号门一定开放。</dd><dt>边界</dt><dd>能 <code>ping</code> 只证明 ICMP 路径可能可达；很多服务器禁 ICMP，但 TCP 443 正常，反之也可能 ping 通而 443 被安全组或防火墙拦截。</dd><dt>本案作用</dt><dd>用 <code>nc -vz host 443</code>、<code>curl -v</code> 或连接阶段日志区分“网络/端口不通”和“上层服务错误”。</dd></dl></div></details><details><summary>TLS、证书、SNI</summary><div class="body"><dl><dt>直觉</dt><dd>HTTPS 不是“有证书就行”。客户端连接 443 后，还要告诉服务器自己要访问哪个域名，服务器据此选择证书和站点。</dd><dt>严格定义</dt><dd>TLS 握手校验证书链、有效期、域名匹配等。SNI 在握手阶段携带目标主机名，使一个 IP 可以承载多个 HTTPS 虚拟站点。握手成功后才进入加密的 HTTP。</dd><dt>比喻</dt><dd>像酒店前台：你先报预订姓名（SNI），前台才知道拿哪一把房卡和哪份登记信息给你。</dd><dt>边界</dt><dd>直接访问 IP 与通过域名访问可能得到不同证书或不同站点；<code>curl https://IP</code> 不能等价替代域名请求。证书正确也不证明应用返回正确业务数据。</dd><dt>本案作用</dt><dd>如果 DNS 已指向正确 IP，但浏览器提示证书域名不匹配，应把问题定位在 TLS/SNI/反代配置，而不是继续改 DNS。</dd></dl></div></details><details><summary>HTTP Host、反向代理与虚拟主机</summary><div class="body"><dl><dt>直觉</dt><dd>同一台服务器可以托管很多域名，Nginx/Caddy 会根据 Host 把请求分给不同站点或后端。</dd><dt>严格定义</dt><dd>HTTP/1.1 的 Host 与 HTTP/2、HTTP/3 中的 :authority 表示客户端请求的主机名。反向代理根据主机、路径、Header 等规则把请求转发到内部服务，同时可能终止 TLS。</dd><dt>比喻</dt><dd>像大楼总前台：所有人先到一个入口，再按公司名和楼层把访客分流。</dd><dt>边界</dt><dd>“服务器进程活着”不等于该域名路由命中正确；默认站点、错误 server_name、错误 upstream 都会产生 404、502 或返回别人的页面。</dd><dt>本案作用</dt><dd>用 <code>curl -H 'Host: ...'</code>、反向代理访问日志和 upstream health 区分“域名命中了错误虚拟主机”和“应用本身挂了”。</dd></dl></div></details><details><summary>中国大陆 ICP 备案与接入备案</summary><div class="body"><dl><dt>直觉</dt><dd>域名注册、实名认证、DNS 和 ICP 备案是不同问题；使用中国大陆服务器对公众提供网站/APP 服务时，备案与接入关系会影响能否正常开放。</dd><dt>严格定义</dt><dd>腾讯云 2026 年文档明确：若网站/APP 托管在腾讯云中国大陆地区云服务器，首次开通前需完成相应 ICP 备案；如果已经在其他接入商取得备案号、现改由腾讯云中国大陆资源托管，则需要在腾讯云做接入备案。多个接入商可以同时存在。</dd><dt>比喻</dt><dd>像地址簿与营业登记：DNS 告诉别人店在哪，备案/接入回答这家店在这个场地是否完成相应登记。</dd><dt>边界</dt><dd>这部分是合规和云平台接入层，不是 DNS 协议的一部分。具体省份、主体和业务类型规则可能不同，工程诊断应以当前工信部与接入商文档为准，不能把技术绕路当作合规结论。</dd><dt>本案作用</dt><dd>案例里即使 A 记录正确，若域名直接落到腾讯云中国大陆服务器而对应接入关系未满足，仍可能出现备案拦截；因此“解析成功”不能推出“可公开提供服务”。</dd></dl></div></details><details><summary>Origin、同源策略与 CORS</summary><div class="body"><dl><dt>直觉</dt><dd>浏览器不仅关心服务器有没有回包，还关心“这个页面有没有资格读取另一个源的响应”。</dd><dt>严格定义</dt><dd>Web Origin 通常由 scheme、host、port 三元组定义。浏览器同源策略限制跨源脚本读取；CORS 通过服务端响应头声明允许的来源、方法和 Header。复杂请求可能先发 OPTIONS 预检。</dd><dt>比喻</dt><dd>像浏览器内部的收发室：包裹已经送到公司，但收发室还会检查这个页面是否在可领取名单上。</dd><dt>边界</dt><dd>CORS 不是服务器之间的网络防火墙。命令行 <code>curl</code> 不受浏览器同源策略约束，所以“curl 成功、网页失败”是很典型的 CORS 信号。</dd><dt>本案作用</dt><dd>GitHub Pages 前端调用独立 API 域名时，网络和 API 都健康后仍需检查 <code>Access-Control-Allow-Origin</code> 等响应头。</dd></dl></div></details><details><summary>健康检查与可观测性</summary><div class="body"><dl><dt>直觉</dt><dd>排错不要靠“我觉得服务应该在跑”，要让每一层都能给出可重复证据。</dd><dt>严格定义</dt><dd>健康检查是专门暴露进程/依赖可用状态的端点；访问日志、错误日志、指标和请求 ID 用来回答请求有没有到、在哪一层失败、失败是否可重复。</dd><dt>比喻</dt><dd>像实验中的观测量：没有仪表时你只能猜；有分层观测，故障定位就从故事变成证据。</dd><dt>边界</dt><dd><code>/health</code> 200 只证明被健康检查覆盖的部分，不等价于登录、支付、数据库写入等业务路径全部正常；健康检查应简单且明确依赖边界。</dd><dt>本案作用</dt><dd>在域名问题中，先用本机回环、服务器公网 IP、域名三种路径逐级测，能迅速判断失败发生在应用内部、反代、TLS 还是更外层。</dd></dl></div></details><label class="check"><input type="checkbox" data-progress="terms"><span>我已经能区分 DNS 记录、TCP 端口、TLS/SNI、HTTP Host、反向代理、CORS 与 ICP/接入备案。</span></label></section><section class="sec" id="orient"><div class="k">Orient</div><h2>② 这段材料到底在说什么</h2>
+<p><strong>核心问题不是“域名为什么打不开”，而是：一个浏览器请求从名称解析到页面拿到数据，要穿过多少个彼此独立的门？</strong></p>
+<div class="call"><strong>一条完整 HTTPS 请求链：</strong>DNS 名称解析 → IP 路由与 TCP 端口 → TLS/SNI → HTTP 虚拟主机/反向代理 → 应用进程与依赖 → 浏览器同源/CORS；当 origin 使用中国大陆云资源公开提供网站/APP 服务时，还要满足相应 ICP 备案与接入要求。</div>
+<p>工程上最常见的误诊，是看到最终症状都叫“打不开”，于是把所有原因都归到 DNS。实际上同一个表象可以由完全不同的层产生：DNS 可能返回旧地址；443 可能被安全组拦截；TLS 可能拿错证书；Nginx 可能命中默认站点；上游应用可能 502；浏览器也可能已经拿到 200 响应，却因为 CORS 不把数据交给 JavaScript。</p>
+<div class="grid">
+  <div class="mini fact"><h3>事实层</h3><p>每一层都应该有独立证据。DNS 看解析答案，TCP 看连接，TLS 看握手与证书，HTTP 看状态码和 Host，应用看日志与健康检查，CORS 看浏览器控制台与响应头。</p></div>
+  <div class="mini infer"><h3>推理层</h3><p>如果第 k 层的必要条件没有成立，就没有必要先讨论更高层。例如 443 端口根本连不上时，先改 CORS 没有任何意义。</p></div>
+  <div class="mini risk"><h3>高频风险</h3><p>用“能 ping 通”证明 HTTPS 正常；用“dig 有 IP”证明网站可访问；用“证书申请成功”证明 TLS 配置正确；用“curl 成功”证明浏览器跨域一定成功。</p></div>
+</div>
+<h3>为什么要按层排查</h3>
+<p>把请求过程写成串联系统，可以近似认为成功事件需要每一层都成功：</p>
+<p><math display="block"><mi>P</mi><mo>(</mo><mi>success</mi><mo>)</mo><mo>=</mo><munderover><mo>∏</mo><mi>i</mi><mn>1</mn></munderover><msub><mi>P</mi><mi>i</mi></msub></math></p>
+<p>这里不是为了精确算概率，而是建立一个工程直觉：<strong>串联系统里任何一层失败，最终用户都只会看到“失败”。</strong>因此排错要按依赖顺序找第一个不成立的必要条件，而不是同时改五处配置。</p>
+<h3>本案例的特殊之处</h3>
+<p>前端放在 GitHub Pages，而 API 想落到腾讯云中国大陆服务器。这意味着前端静态页面是否能打开，与 API 域名是否能在大陆 origin 上公开提供服务是两条不同路径。前端 200 不证明 API 正常；API 命令行可访问也不证明浏览器 CORS 正常；DNS 正确更不自动解决大陆接入备案问题。</p>
+<div class="call warn"><strong>合规边界：</strong>本文只讲工程诊断与当前腾讯云公开文档所描述的接入要求，不把代理、转发或跨境部署当成“绕过备案”的建议。涉及真实生产业务时，应按照实际服务地域、主体和业务类型核对工信部及接入商最新要求。</div>
+<p>当前参考：<a href="https://cloud.tencent.com/document/product/243/39038">腾讯云：如何快速备案您的网站或 APP</a> · <a href="https://cloud.tencent.com/document/product/243/37403">腾讯云：接入备案</a> · <a href="https://cloud.tencent.com/document/product/243/20220">腾讯云：网站/APP 阻断相关</a>。</p>
+<label class="check"><input type="checkbox" data-progress="orient"><span>我已经能把“域名打不开”拆成多个独立层，并知道 DNS 成功只证明名称解析的一部分。</span></label></section><section class="sec" id="map"><div class="k">Connect</div><h2>③ 概念关系与最小知识闭包</h2>
+<div class="flow">
+<span class="node">浏览器输入 URL</span>→
+<span class="node">DNS</span>→
+<span class="node">IP / TCP:443</span>→
+<span class="node">TLS + SNI</span>→
+<span class="node">HTTP Host</span>→
+<span class="node">Nginx / Caddy</span>→
+<span class="node">App / DB</span>→
+<span class="node">CORS / JS</span>
+</div>
+<div class="call" style="margin-top:14px"><strong>学习依赖：</strong>先理解“名字 → 地址”，再理解“地址 → 连接”，再理解“加密连接 → HTTP 请求”，最后才讨论浏览器安全策略。ICP备案/接入备案不是网络协议层，而是与中国大陆互联网服务接入场景并行的合规准入条件。</div>
+
+<h3>最小知识闭包 1：DNS 到底证明了什么？</h3>
+<p>当 <code>dig +short api.example.com</code> 返回预期 IP，你最多可以说：“我询问的这个解析器此刻给出了这个地址。”如果要更严格，可以分别看本地默认解析器、公共解析器和权威 DNS：</p>
+<pre><code>dig api.example.com
+dig @1.1.1.1 api.example.com
+dig @8.8.8.8 api.example.com
+dig +trace api.example.com</code></pre>
+<p>如果权威 DNS 已更新、公共递归仍返回旧值，常见解释是缓存尚未过 TTL；如果一部分网络走 AAAA 而 IPv6 目标没有配置好，则可能出现“手机流量打不开、公司网络能打开”这类分裂现象。因此 DNS 诊断要记录<strong>查询对象、记录类型、回答地址、TTL 和时间</strong>。</p>
+
+<h3>最小知识闭包 2：为什么 ping 不是网站验收？</h3>
+<p><code>ping</code> 使用 ICMP Echo，而 HTTPS 常用 TCP 443。安全组可以允许 ICMP 却拒绝 443，也可以禁止 ICMP 而 HTTPS 完全正常。因此正确问题不是“机器活不活”，而是“从用户网络到目标 IP 的目标端口能不能建立连接”。</p>
+<pre><code>nc -vz api.example.com 443
+curl -v --connect-timeout 5 https://api.example.com/health</code></pre>
+<p>连接超时通常把注意力放在路由、安全组、防火墙和监听地址；立即 connection refused 更像目标可达但端口没有服务；已经进入 TLS 错误，则说明 TCP 层大概率已通过。</p>
+
+<h3>最小知识闭包 3：为什么域名访问和 IP 访问不是一回事？</h3>
+<p>现代 HTTPS 虚拟主机通常同时依赖 TLS 的 SNI 与 HTTP Host。也就是说，服务器不仅看“你连到哪个 IP”，还看“你说你要访问哪个名字”。这也是为什么下面两条命令语义不同：</p>
+<pre><code>curl -vk https://203.0.113.10/
+curl -vk --resolve api.example.com:443:203.0.113.10   https://api.example.com/health</code></pre>
+<p>第二条既强制连接指定 IP，又保留 <code>api.example.com</code> 作为 TLS SNI 与 HTTP 主机名，非常适合排除 DNS 之后单独验证某台 origin 的证书、虚拟主机与应用。</p>
+
+<h3>最小知识闭包 4：HTTP 状态码也在告诉你“失败在哪”</h3>
+<div class="table"><table><tr><th>现象</th><th>更可能的层</th><th>先看什么</th></tr><tr><td>DNS NXDOMAIN / SERVFAIL</td><td>DNS</td><td>权威记录、DNSSEC、递归解析器、域名状态</td></tr><tr><td>连接超时</td><td>网络 / 安全组 / 防火墙</td><td>目标 IP、443 入站、监听地址、路由</td></tr><tr><td>TLS certificate mismatch</td><td>TLS / SNI</td><td>证书 SAN、server_name、SNI 路由</td></tr><tr><td>HTTP 404 且是默认页</td><td>虚拟主机 / 路由</td><td>Host、Nginx/Caddy server block</td></tr><tr><td>HTTP 502 / 503</td><td>反代 / 上游应用</td><td>upstream 地址、进程、容器、健康检查</td></tr><tr><td>curl 200，浏览器 CORS 报错</td><td>浏览器同源/CORS</td><td>OPTIONS、Allow-Origin、凭证策略</td></tr><tr><td>腾讯云备案拦截页</td><td>大陆接入/备案</td><td>工信部备案状态、腾讯云接入备案状态</td></tr></table></div>
+<h3>最小知识闭包 5：把故障定位成“最早失败的边”</h3>
+<p>可以把系统抽象为有向图：节点是 DNS、TCP、TLS、HTTP、App、Browser，边代表“前一层成立才能进入后一层”。排错的目标不是找到所有异常，而是找到从用户到业务结果路径上<strong>第一条不能被证据证明的边</strong>。这会显著减少同时改配置造成的新变量。</p>
+<div class="call success"><strong>可迁移原则：</strong>任何“域名打不开”的问题，都先写出请求链，再为每个节点绑定一个最小观测命令。你得到的不是某次案例答案，而是一套以后换 Nginx、Caddy、CDN、Kubernetes Ingress 仍然能用的诊断方法。</div>
+
+<h3>最小知识闭包 6：同一个问题为什么要“外部测一次、内部测一次”</h3>
+<p>只从用户浏览器外部测试，你能知道最终链路失败，却不容易知道哪一段失败；只在服务器内部测试，你又可能得到“本机全绿、用户仍打不开”的假安全感。最有效的方法是从两端向中间夹逼：外部测试域名与公网 443，内部测试回环应用与本机反代，然后比较两侧最后成功的位置。</p>
+<p>例如内部 <code>127.0.0.1:8080/health</code> 成功、本机 443 成功、外部 443 超时，搜索空间基本收缩到主机防火墙、安全组、路由或云平台入口；反之，外部已经收到 502，说明 DNS/TCP/TLS 往往已经走过一大段，应该把精力放在反代到 upstream 的路径。</p>
+
+<h3>最小知识闭包 7：缓存会制造“同一时刻不同用户看到不同世界”</h3>
+<p>DNS 有递归缓存，CDN 有边缘缓存，浏览器也有 DNS/HTTP/TLS 会话相关缓存。一个配置刚修改后，不同观察者可能因为缓存层不同而看到不同结果。这不是“玄学传播”，而是系统中多个带状态缓存节点的正常结果。</p>
+<p>所以排错记录应该至少包含时间、客户端网络、解析器、记录类型和响应。只有把观测条件固定住，才有资格比较两次结果。数学上，这相当于承认观测值不是简单的 <code>f(config)</code>，而是 <code>f(config, cache_state, observer, time)</code>。</p>
+
+<h3>最小知识闭包 8：不要把“成功返回 HTTP”与“业务成功”混为一谈</h3>
+<p>HTTP 200 只是应用层协议结果的一部分。一个健康检查可能 200，但登录接口因为数据库迁移缺失返回 500；一个 API 可能 200 返回错误业务码；一个 CDN 也可能把旧的 200 缓存继续发给用户。因此发布验收要把“网络可达”“协议正确”“业务行为正确”分成不同 AC。</p>
+</section><section class="sec" id="case"><div class="k">Reconstruct</div><h2>④ 把真实案例重新还原</h2>
+<h3>案例拓扑</h3>
+<pre><code>用户浏览器
+  ├─ https://www.example.com
+  │      └─ GitHub Pages（静态前端）
+  │
+  └─ https://api.example.com
+         └─ DNSPod
+              └─ 腾讯云中国大陆 CVM
+                    └─ Caddy / Nginx :443
+                          └─ API :8080
+                                └─ PostgreSQL / Redis</code></pre>
+<p>现在出现现象：“<code>www.example.com</code> 能打开，<code>api.example.com</code> 看起来也已经解析到服务器，但网页调用 API 失败。”如果只说“DNS 有问题”，信息量几乎为零。正确做法是把事实、推断、未知拆开。</p>
+<div class="grid">
+  <div class="mini fact"><h3>已知事实</h3><p>静态前端由 GitHub Pages 提供；API 域名由 DNSPod 管理；目标后端计划部署在腾讯云中国大陆服务器。网页前端和 API origin 因而是两个不同的服务边界。</p></div>
+  <div class="mini infer"><h3>可做推断</h3><p>如果公共递归解析器已经返回预期 CVM IP，只能排除一部分 DNS 配置错误；仍需继续确认 443、TLS、Host、反代、应用、CORS 与大陆接入备案状态。</p></div>
+  <div class="mini unknown"><h3>关键未知</h3><p>是否有 AAAA；443 是否监听；证书是否覆盖 API 域名；反代 upstream 是否健康；浏览器实际拿到什么响应；该域名的 ICP/腾讯云接入状态如何。</p></div>
+  <div class="mini risk"><h3>错误操作风险</h3><p>同时改 DNS、证书、Caddy、应用配置和 CORS，会让变量爆炸；用香港代理“先绕一下”也不能替代对真实生产架构的合规判断。</p></div>
+</div>
+
+<h3>诊断路径 A：先证明名称层</h3>
+<pre><code>dig +short A api.example.com
+dig +short AAAA api.example.com
+dig @1.1.1.1 api.example.com
+dig @8.8.8.8 api.example.com</code></pre>
+<p>记录结果，而不是只看“有输出”。你要知道 A/AAAA 分别是什么、是否存在意外旧记录、不同递归解析器是否一致。如果这里错，先修 DNS；如果这里对，就把 DNS 暂时从嫌疑列表中移出。</p>
+
+<h3>诊断路径 B：跳过 DNS，单测 origin</h3>
+<pre><code>curl -vk --resolve api.example.com:443:203.0.113.10   https://api.example.com/health</code></pre>
+<p>这条命令非常关键，因为它把“连接哪个 IP”固定住，同时保留正确域名用于 SNI 和 Host。若这条失败，问题在 DNS 之后、浏览器之前；若它成功，而普通域名请求失败，再回头对比 DNS/网络路径。</p>
+
+<h3>诊断路径 C：从服务器内部向外证明</h3>
+<pre><code># 应用本身
+curl -sS http://127.0.0.1:8080/health
+
+# 反向代理是否能到应用
+curl -vk https://127.0.0.1/health -H 'Host: api.example.com'
+
+# 监听与进程
+ss -lntp
+docker ps            # 仅当你的运行方式确实是 Docker
+systemctl status caddy</code></pre>
+<p>如果本机 8080 正常、443 反代失败，就不要去改数据库；如果本机 443 正常、外部连不上，就把注意力放到安全组、防火墙和平台层。</p>
+
+<h3>诊断路径 D：最后检查浏览器</h3>
+<p>浏览器 Network 面板至少记录：请求 URL、方法、是否触发 OPTIONS、HTTP 状态、Response Headers、Console 报错。如果命令行 API 正常而浏览器提示 CORS，那么请求可能已经到达并成功返回，只是浏览器不允许页面脚本读取。</p>
+<div class="call"><strong>这个案例真正训练的是：</strong>每次只跨一层证明。不要把“最终页面失败”当成一个单一变量问题。</div>
+<label class="check"><input type="checkbox" data-progress="case"><span>我已经能按照证据顺序定位故障，而不是同时修改 DNS、证书、反代和后端。</span></label></section><section class="sec" id="mapping"><div class="k">Map</div><h2>⑤ 概念如何映射到现实</h2><div class="table"><table><tr><th>阶段</th><th>要回答的问题</th><th>最小证据</th><th>通过后再看什么</th></tr><tr><td>1. 域名状态 / DNS</td><td>这个名字此刻解析到哪里？A/AAAA 是否一致？</td><td><code>dig</code>、权威 DNS、TTL</td><td>IP/端口</td></tr><tr><td>2. IP / TCP</td><td>目标网络路径和 443 能建立连接吗？</td><td><code>nc</code>、<code>curl -v</code> 连接阶段</td><td>TLS</td></tr><tr><td>3. TLS / SNI</td><td>证书是否可信且匹配这个域名？虚拟主机选择是否正确？</td><td><code>curl -vk</code>、证书 SAN、SNI</td><td>HTTP</td></tr><tr><td>4. HTTP / 反代</td><td>Host 是否命中正确站点？upstream 是否健康？</td><td>状态码、Server/代理日志</td><td>应用</td></tr><tr><td>5. 应用 / 依赖</td><td>API 路由、数据库、Redis 等业务依赖是否正常？</td><td><code>/health</code>、应用日志、request id</td><td>浏览器</td></tr><tr><td>6. Browser / CORS</td><td>页面脚本是否有权读取跨源响应？</td><td>DevTools、OPTIONS、CORS headers</td><td>业务验收</td></tr><tr><td>并行：大陆接入合规</td><td>真实 origin 使用中国大陆云资源时，ICP备案/接入状态是否满足当前要求？</td><td>工信部/腾讯云当前备案状态</td><td>上线/切流</td></tr></table></div>
+<h3>三种常见上线架构怎么判断</h3>
+<div class="table"><table><tr><th>架构</th><th>优点</th><th>代价 / 边界</th><th>适用</th></tr><tr><td>GitHub Pages + 非中国大陆 API origin</td><td>静态前端简单，API 可独立部署；不把大陆 origin 作为公开入口</td><td>跨境网络时延、数据合规、供应商和地域都要按真实业务评估</td><td>原型、早期演示、对大陆低延迟要求不高</td></tr><tr><td>GitHub Pages + 腾讯云中国大陆 API origin</td><td>大陆 API 网络条件更可控</td><td>需要按实际场景完成 ICP/接入要求；还要独立处理 CORS、TLS</td><td>准备长期在大陆提供服务</td></tr><tr><td>统一域名 + CDN/网关 + 多 origin</td><td>可以做缓存、WAF、流量治理、灰度和多地域</td><td>系统层次更多，诊断必须明确 CDN、边缘、回源各层</td><td>规模化生产系统</td></tr></table></div>
+<div class="call warn"><strong>不要把架构层和协议层混淆：</strong>加 CDN、香港网关或反向代理会改变请求路径，但不会让 DNS、TLS、HTTP、应用或合规责任自动消失。新的中间层只会增加新的可观察节点。</div>
+</section><section class="sec" id="exercise"><div class="k">Attempt</div><h2>⑥ 现在把它当成一道题</h2><div class="q"><span class="num">1</span>你执行 <code>dig +short api.example.com</code> 得到正确 IP，但 <code>curl -v https://api.example.com</code> 在 Connecting 阶段超时。你会把 DNS 从嫌疑列表中降到什么程度？下一条最有信息量的检查是什么？</div><div class="q"><span class="num">2</span>浏览器报“证书与域名不匹配”，但访问服务器 IP 能看到一个 HTTPS 页面。为什么这不能证明 API 域名配置正确？请用 SNI 与虚拟主机解释。</div><div class="q"><span class="num">3</span><code>curl https://api.example.com/health</code> 返回 200，但 GitHub Pages 中的 JavaScript 调用失败并出现 CORS 错误。网络、TLS、应用三层分别能推出什么，不能推出什么？</div><div class="q"><span class="num">4</span>域名已在另一云厂商备案并正常使用，现在把 API origin 切到腾讯云中国大陆服务器。根据腾讯云当前公开文档，为什么“已有备案号”仍不必然等于“可直接在腾讯云开展服务”？</div><div class="q"><span class="num">5</span>如果某用户走 IPv6 网络打不开、IPv4 用户正常，你会优先检查哪类 DNS 记录？为什么只查 A 记录会漏掉问题？</div><div class="q"><span class="num">6</span>请为一个“网站打不开”故障写出你自己的六层证据链，要求每层只有一个主要问题和一个最小检查命令。</div><div class="q"><span class="num">7</span>迁移到 CDN 后，用户收到 502。请说明 CDN 的加入为什么没有推翻本文模型，而只是把 HTTP/反代路径进一步细分。</div><label><strong>你的作答</strong></label><textarea id="draft" placeholder="先写自己的判断，再看提示。"></textarea><button class="btn" id="copy">复制作答</button><p id="status"></p><label class="check"><input type="checkbox" data-progress="attempt"><span>我已经完成自己的第一版作答，再进入提示。</span></label></section><section class="sec" id="hints"><div class="k">Hint → Answer</div><h2>⑦ 分级提示，最后就是实际答案</h2><div class="hint" id="h1"><h3>Hint 1 · 方向</h3><p>先画出请求链，并问：当前证据能证明请求已经走到哪一层？优先找“最早还没有被证明成功”的那一层。</p><button class="btn alt" data-reveal="h2">看 Hint 2</button></div><div class="hint" id="h2" hidden><h3>Hint 2 · 结构</h3><p>DNS 正确后，用 <code>--resolve</code> 把 DNS 从变量中移走；命令行成功而浏览器失败时，才重点看 CORS。ICP备案/接入状态作为中国大陆 origin 的并行部署准入条件核对。</p><button class="btn alt" data-reveal="h3">看 Hint 3</button></div><div class="hint" id="h3" hidden><h3>Hint 3 · 接近答案</h3><p>建议顺序：A/AAAA → TCP 443 → TLS/SNI → HTTP Host/反代 → App/依赖 → Browser/CORS；每层只绑定一个最小证据，确认通过后再上移。</p><button class="btn" data-reveal="final-answer">查看实际答案</button></div><div class="hint answer" id="final-answer" hidden><h3>答案 · 实际答案</h3>
+<p><strong>参考解法不是一串“万能命令”，而是一棵按依赖顺序收缩搜索空间的诊断树。</strong></p>
+
+<h3>第一步：把症状翻译成层，而不是翻译成猜测</h3>
+<p>先记录用户看到的精确现象：NXDOMAIN、超时、connection refused、证书错误、HTTP 403/404/502、备案拦截页、还是浏览器 CORS。不同症状已经携带了“请求大概走到哪一层”的信息。不要只记录一句“打不开”。</p>
+
+<h3>第二步：证明 DNS</h3>
+<pre><code>dig +short A api.example.com
+dig +short AAAA api.example.com
+dig @1.1.1.1 api.example.com
+dig +trace api.example.com</code></pre>
+<p>如果记录不正确，处理权威记录、TTL、缓存、域名状态；如果记录一致正确，就不要继续频繁改 DNS。注意检查 AAAA，避免 IPv6 路径成为隐蔽分支。</p>
+
+<h3>第三步：证明 TCP 与 TLS，并利用 --resolve 隔离 DNS</h3>
+<pre><code>nc -vz api.example.com 443
+
+curl -vk --resolve api.example.com:443:203.0.113.10   https://api.example.com/health</code></pre>
+<p><code>--resolve</code> 是这类问题的高价值工具：它固定目标 IP，却保留域名语义，因此可以同时验证 TCP、SNI、证书、HTTP Host 和 origin 行为，而不受递归 DNS 当前答案影响。</p>
+
+<h3>第四步：从服务器内部验证反代与应用</h3>
+<pre><code>curl -sS http://127.0.0.1:8080/health
+ss -lntp
+journalctl -u caddy --since '10 min ago'
+# 或查看实际使用的 Nginx / 容器 / 应用日志</code></pre>
+<p>如果本地应用都不通，问题在应用或依赖；如果应用通而反代不通，查 upstream、Host、TLS 配置；如果服务器本地 443 通而公网不通，查安全组、主机防火墙、监听地址和平台网络。</p>
+
+<h3>第五步：再处理浏览器 CORS</h3>
+<p>若命令行请求成功而网页失败，打开 DevTools，看是否有 OPTIONS 预检、实际响应码和 <code>Access-Control-Allow-*</code>。带 Cookie/Authorization 的跨源请求还要区分 credentials、允许来源与通配符的约束。此时不要再把 CORS 错误描述成“服务器没有收到请求”。</p>
+
+<h3>第六步：并行核对中国大陆接入要求</h3>
+<p>截至 2026 年 9 月，腾讯云公开文档说明：使用中国大陆境内服务器开办网站或 APP，需要先按相应流程完成 ICP 备案；已在其他接入商取得备案号、现将服务接入腾讯云中国大陆资源时，需要在腾讯云办理接入备案。多个接入商可以同时存在。工程团队应该把“备案/接入状态”当作部署准入条件，而不是 DNS 的一个子选项。</p>
+<p>参考：<a href="https://cloud.tencent.com/document/product/243/39038">如何快速备案您的网站或 APP</a> · <a href="https://cloud.tencent.com/document/product/243/37403">接入备案</a> · <a href="https://cloud.tencent.com/document/product/243/20220">网站/APP 阻断相关</a>。</p>
+
+<h3>第七步：定义真正的上线验收</h3>
+<div class="call success"><strong>上线不是“浏览器偶尔能打开”。</strong>最小闭环应包括：① 权威/公共 DNS 返回预期记录；② 目标用户网络到 443 可达；③ TLS 证书链和域名匹配；④ Host 命中正确反代与应用；⑤ 关键健康检查/业务 smoke 正常；⑥ 浏览器跨源策略正确；⑦ 使用中国大陆云资源时相应备案/接入状态正确；⑧ 日志能把一次失败请求追到具体层。</div>
+
+<h3>迁移能力：以后换技术栈仍然适用</h3>
+<p>Nginx 换成 Caddy、单机换成 Kubernetes Ingress、DNSPod 换成 Cloudflare、服务器前加 CDN，这套模型都不会失效。你只需要把某一层继续细分。例如 CDN 会在 DNS 与 origin HTTP 之间增加“边缘节点 → 回源”的新边；Kubernetes 会把“反代 → 应用”细成 Ingress → Service → Pod。核心方法仍然是：<strong>画出请求图，为每条边定义可观察证据，找到最早失败的位置。</strong></p>
+</div></section></main></div><footer class="footer">Terms → Understand → Apply → Hint → Answer → Transfer</footer></div><script>(()=>{document.querySelectorAll('#terms details').forEach(d=>{const s=d.querySelector('summary'),first=d.querySelector('dd');if(!s||!first||s.querySelector('.term-gloss'))return;const g=document.createElement('span');g.className='term-gloss';g.textContent=first.textContent.trim();s.appendChild(g)});const key=`cdal:${document.body.dataset.lessonId}`,all=[...document.querySelectorAll('[data-progress]')],top=[...document.querySelectorAll('.progress [data-progress]')],keys=[...new Set(top.map(x=>x.dataset.progress))],pf=document.getElementById('pf'),pl=document.getElementById('pl'),draft=document.getElementById('draft'),status=document.getElementById('status');let s={checks:{},draft:'',open:[]};try{s={...s,...JSON.parse(localStorage.getItem(key)||'null')}}catch(_){}const save=()=>{try{localStorage.setItem(key,JSON.stringify(s))}catch(_){}};const sync=(k,v)=>{s.checks[k]=!!v;all.filter(x=>x.dataset.progress===k).forEach(x=>x.checked=!!v)};const upd=()=>{const n=keys.filter(k=>s.checks[k]).length;pl.textContent=`${n} / ${keys.length}`;pf.style.width=`${n/keys.length*100}%`};all.forEach(x=>{x.checked=!!s.checks[x.dataset.progress];x.onchange=()=>{sync(x.dataset.progress,x.checked);save();upd()}});draft.value=s.draft||'';draft.oninput=()=>{s.draft=draft.value;save()};document.querySelectorAll('[data-reveal]').forEach(b=>b.onclick=()=>{const id=b.dataset.reveal,e=document.getElementById(id);e.hidden=false;if(!s.open.includes(id))s.open.push(id);if(id==='final-answer')sync('answer',true);save();upd();e.scrollIntoView({behavior:'smooth',block:'center'})});s.open.forEach(id=>{const e=document.getElementById(id);if(e)e.hidden=false});document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(draft.value);status.textContent='已复制'}catch(_){draft.select();status.textContent='已选中'}};document.getElementById('reset').onclick=()=>{s={checks:{},draft:'',open:[]};try{localStorage.removeItem(key)}catch(_){};all.forEach(x=>x.checked=false);draft.value='';['h2','h3','final-answer'].forEach(id=>document.getElementById(id).hidden=true);upd()};keys.forEach(k=>sync(k,!!s.checks[k]));upd()})();</script></body></html>
