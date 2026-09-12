@@ -22,18 +22,15 @@ jobs:
         with:
           ref: main
           fetch-depth: 1
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
       - name: Install build and browser tools
         run: |
-          gem install jekyll -v 3.10.0 --no-document
-          python -m pip install beautifulsoup4 pyyaml playwright
-          python -m playwright install --with-deps chromium
-          sudo apt-get install -y fonts-noto-cjk
+          sudo apt-get update
+          sudo apt-get install -y ruby-dev fonts-noto-cjk
+          sudo gem install jekyll -v 3.10.0 --no-document
+          python3 -m venv /tmp/course-venv
+          echo '/tmp/course-venv/bin' >> "$GITHUB_PATH"
+          /tmp/course-venv/bin/python -m pip install beautifulsoup4 pyyaml playwright
+          /tmp/course-venv/bin/python -m playwright install --with-deps chromium
       - name: Import the hash-verified canonical lesson
         run: python tools/import-software-engineering-course.py
       - name: Run all repository source gates
