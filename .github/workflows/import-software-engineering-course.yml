@@ -1,0 +1,77 @@
+name: Import and verify two-hour software engineering course
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/.course-import/**'
+      - 'tools/import-software-engineering-course.py'
+      - 'tools/qa-software-engineering-course.py'
+      - '.github/workflows/import-software-engineering-course.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: import-software-engineering-course
+  cancel-in-progress: false
+jobs:
+  import-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - name: Install build and browser tools
+        run: |
+          gem install jekyll -v 3.10.0 --no-document
+          python -m pip install beautifulsoup4 pyyaml playwright
+          python -m playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Import the hash-verified canonical lesson
+        run: python tools/import-software-engineering-course.py
+      - name: Run all repository source gates
+        run: |
+          mkdir -p course-qa
+          set -o pipefail
+          for command in 'backwash-term-gates.py --check' 'build-lessons.py --check' 'check-lesson-consistency.py' 'check-term-depth.py' 'check-term-gate.py' 'check-math-render-safety.py'; do
+            python tools/$command | tee -a course-qa/static-gates.log
+          done
+      - name: Build the actual Jekyll site
+        run: |
+          jekyll build --source docs --destination _site
+          python tools/check-term-gate.py --built-site _site
+          python tools/check-math-render-safety.py --built-site _site
+      - name: Browser, mobile, interactions, print and regression checks
+        run: python tools/qa-software-engineering-course.py
+      - name: Commit verified lesson sources and mirrors
+        run: |
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$GITHUB_SHA" || { echo 'main changed; refusing to overwrite concurrent work'; exit 1; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913.json skills/learning-page-design-publisher/term-overrides.yml docs/_data docs/lessons/software-engineering-two-hour-primer-20260913.html docs/index.html docs/_layouts/lesson.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'docs: publish two-hour software engineering primer with verified lesson mirrors'
+            git push origin HEAD:main
+          fi
+          git rev-parse HEAD | tee course-qa/source-commit.txt
+      - name: Preserve build, source and browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: software-engineering-course-evidence
+          retention-days: 14
+          path: |
+            course-qa/
+            _site/
+            docs/
+            skills/learning-page-design-publisher/lessons/
+            skills/learning-page-design-publisher/term-overrides.yml
+            tools/*.py
