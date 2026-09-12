@@ -1,0 +1,16 @@
+{
+  "lesson_id": "software-engineering-two-hour-primer-20260913",
+  "status": "SOURCE_SAVED_PAGES_NOT_PUBLISHED",
+  "raw_json_bytes": 110990,
+  "raw_sha256": "6b8b3df6cece312d01be15013ef97356d986f60c08e1d42a6ee77c3e0223bf89",
+  "canonical_json_bytes": 112485,
+  "canonical_sha256": "efbc455c112744937764468ebcaca956134d4b046cf104e15f677b1fe8304ccf",
+  "source_parts": ["ace3543bb01692536a4a435fc402561e4a8af7aa", "15debd02a2911daed55902665b37b80ccfe672bd", "e7dbf252979b1fd0ba3645de6f630b0a0f71a529", "9264c61d446dda126b7678bf238e7346f57461dc", "4b6c8f8d63a7ea34ca93ea5ada1979531bfb3d60", "b4a96e355c21e3bb7c118c340f80af47916a5ac7", "a6da9aee7a86cea2ea4fadc8f40c1290222c649e"],
+  "global_term_cards": 12,
+  "threads": 6,
+  "source_entries": 51,
+  "browser_preview_widths": [1280, 390],
+  "local_preview_passed_checks": 20,
+  "unverified": ["real navigation/reload storage persistence", "repository source gates after import", "Jekyll-built course", "shared-layout full regression", "published Pages readback"],
+  "failed_workflow_runs": [34706454439, 34706592056]
+}

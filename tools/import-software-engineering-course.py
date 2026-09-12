@@ -1,17 +1,35 @@
 #!/usr/bin/env python3
-"""One-time hash-verified import; preserves existing lesson and registry bytes."""
+"""Import the complete authored course into canonical lesson/Pages paths.
+Does not commit or push. Validates the source payload before changing files.
+"""
 from pathlib import Path
 import hashlib
 import json
 import lzma
+import re
 import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = 'software-engineering-two-hour-primer-20260913'
 EXPECTED = '6b8b3df6cece312d01be15013ef97356d986f60c08e1d42a6ee77c3e0223bf89'
+CANONICAL_HASH = 'efbc455c112744937764468ebcaca956134d4b046cf104e15f677b1fe8304ccf'
 raw = lzma.decompress(b''.join((ROOT / f'tools/.course-import/part-{i}').read_bytes() for i in range(7)))
 assert hashlib.sha256(raw).hexdigest() == EXPECTED, 'Payload integrity failure'
 lesson = json.loads(raw)
 assert lesson['LESSON_ID'] == SLUG
+
+def normalize(value):
+    # Recover intended bold spans next to CJK punctuation; preserve code verbatim.
+    blocks = re.split(r'(<pre\b[\s\S]*?</pre>|<script\b[\s\S]*?</script>)', value, flags=re.I)
+    for i in range(0, len(blocks), 2):
+        text = blocks[i].replace('<strong>', '**').replace('</strong>', '**')
+        blocks[i] = re.sub(r'\*\*([^*]+?)\*\*', r'<strong>\1</strong>', text)
+    return ''.join(blocks)
+
+for key, value in list(lesson.items()):
+    if key.endswith('_HTML'):
+        lesson[key] = normalize(value)
+raw = (json.dumps(lesson, ensure_ascii=False, indent=2) + '\n').encode('utf-8')
+assert hashlib.sha256(raw).hexdigest() == CANONICAL_HASH, 'Canonical transformation drift'
 canonical = ROOT / f'skills/learning-page-design-publisher/lessons/{SLUG}.json'
 if canonical.exists():
     assert canonical.read_bytes() == raw, 'Refuse overwriting a divergent lesson'
@@ -52,4 +70,4 @@ if marker not in text:
 '''
     layout.write_text(text.replace(needle, patch + needle, 1), encoding='utf-8')
 subprocess.run(['python3', str(ROOT / 'tools/build-lessons.py')], cwd=ROOT, check=True)
-print('IMPORTED', SLUG, 'sha256=' + EXPECTED)
+print('IMPORTED', SLUG, 'canonical sha256=' + CANONICAL_HASH)
