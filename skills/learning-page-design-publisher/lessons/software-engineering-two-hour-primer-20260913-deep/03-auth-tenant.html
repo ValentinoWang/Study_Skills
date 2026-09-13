@@ -1,0 +1,26 @@
+<div class="k">Deep Dive 03 · 约 14–18 分钟</div>
+<h2>深挖三：鉴权真正难的不是登录，而是“谁能对哪条数据做什么”</h2>
+<p>Authentication（身份认证）只回答“你是谁”；Authorization（授权 / 鉴权）回答“你现在能不能对这个资源执行这个动作”。真实 SaaS 最危险的问题，往往发生在第二层。</p>
+<h3>1. Session、Cookie、Token、JWT 分别在解决什么</h3>
+<p>Session 通常表示服务端保存的一段会话状态；Cookie 是浏览器会自动随请求携带的小段数据；Token 是客户端主动携带的凭证；JWT（JSON Web Token）是一种常见的签名 Token 格式。它们的共同作用是让服务端能够稳定识别调用者身份。</p>
+<p>但“知道你是谁”并不等于“知道你能做什么”。即使 JWT 里写了 <code>role=coach</code>，也不能因此允许他修改所有训练组。</p>
+<h3>2. 真实判权通常是多个条件的交集</h3>
+<pre><code>allow =
+  authenticated
+  AND same_tenant
+  AND role_allows(action)
+  AND has_relation(user, resource)
+  AND state_allows(action)</code></pre>
+<p>例如教练发布训练计划，要同时满足：账号有效；属于当前机构；角色允许发布；确实管理这个训练组；计划当前还是可发布状态。少一个条件，都可能出现越权。</p>
+<h3>3. RBAC 很重要，但单独使用往往不够</h3>
+<p>RBAC（Role-Based Access Control，基于角色的访问控制）擅长表达“coach 可以 publish，athlete 可以 submit”。ABAC（Attribute-Based Access Control，基于属性的访问控制）进一步加入组织、资源 owner、时间、状态等条件。很多业务系统最终实际上采用“角色 + 资源关系 + 当前状态”的组合模型。</p>
+<div class="table"><table><thead><tr><th>角色判断</th><th>还需要补什么</th></tr></thead><tbody><tr><td>是 coach</td><td>是不是当前 tenant 的 coach</td></tr><tr><td>是 coach</td><td>是否管理当前 training_group</td></tr><tr><td>有 edit 权限</td><td>资源是否仍处于 editable state</td></tr><tr><td>是 admin</td><td>是否允许跨组织、是否需要更高风险二次确认</td></tr></tbody></table></div>
+<h3>4. 多租户系统最怕“改一个 ID 就看到别人数据”</h3>
+<p>假设正常页面从不展示别家机构计划，但用户手工请求：</p>
+<pre><code>GET /api/plans/another_org_plan_id</code></pre>
+<p>如果服务端只按 plan_id 查询然后直接返回，就属于典型的对象级越权。前端隐藏按钮、路由守卫、菜单权限都只能改善体验，不能成为安全边界。</p>
+<p>最稳妥的做法是让数据访问本身就带 tenant / relation 条件，例如按 <code>plan_id + tenant_id</code> 查询，再做资源关系判断。这样即使客户端被完全篡改，也无法跳过后端规则。</p>
+<h3>5. Audit Log 为什么和普通日志不同</h3>
+<p>普通 debug log 是给工程师排查代码；Audit Log（审计日志）记录高价值业务动作：谁在什么时候发布了哪个版本、谁撤回、谁给哪个运动员改了训练量、谁执行退款。它应该稳定引用 user_id、resource_id、action、before/after 或 version、request_id 等业务身份。</p>
+<div class="q"><strong>练习：</strong>“普通用户页面根本看不到删除按钮，所以不需要在删除 API 里再验权限。”这句话错在哪？</div>
+<p><strong>参考思路：</strong>浏览器完全可被用户控制。用户可以直接调用 API。真正安全条件必须由服务端重新校验，并用负向测试证明：无权用户即使构造请求，也无法读取或修改目标资源。</p>

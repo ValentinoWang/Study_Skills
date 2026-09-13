@@ -1,0 +1,48 @@
+<div class="k">Deep Dive 04 · 约 18–22 分钟</div>
+<h2>深挖四：异步、Webhook、幂等与支付，为什么会成为生产级难点</h2>
+<p>支付真正难的不是“调起微信支付页面”，而是<strong>在网络会失败、通知会重复、服务会重启、用户会连点的情况下，钱仍然只能算对一次</strong>。这背后其实是一整套可靠性问题。</p>
+<h3>1. 为什么要异步：不要让用户请求承担所有工作</h3>
+<p>发布计划后，真正必须同步确认的可能只有“版本是否成功冻结”。给 300 个运动员发通知、调用模型生成摘要、生成报表都可以异步处理。</p>
+<pre><code>HTTP Request
+→ 验权 + 核心事务
+→ 写 event / enqueue job
+→ Response 立即返回
+                   ↓
+               Queue
+                   ↓
+               Worker
+                   ↓
+         Push / AI / Email / Report</code></pre>
+<p>这样做能降低响应时间，也把慢任务隔离出去。但一旦使用 Queue 和 Worker，就必须接受 Worker 会崩、网络会超时、任务会重试。</p>
+<h3>2. Retry 的代价：同一件事可能执行多次</h3>
+<p>很多分布式系统更容易做到 at-least-once delivery：宁可消息重复，也不无声丢失。所以业务逻辑必须能处理重复。Idempotency（幂等性）就是：同一个业务意图被重复送达，副作用仍然只发生一次。</p>
+<p>例如训练记录上传，可以定义稳定业务键：</p>
+<pre><code>business_key = athlete_id + local_log_uuid</code></pre>
+<p>手机重试 5 次时，都使用同一个 local_log_uuid；数据库对这个 key 建 UNIQUE，最终只生成一条权威训练记录。</p>
+<h3>3. Webhook 是外部系统主动通知你，所以不能假设顺序和次数</h3>
+<p>支付平台、GitHub、物流平台都可能通过 Webhook 通知事件。你的服务需要考虑：重复、延迟、乱序、签名伪造、事件已经处理但响应超时等情况。</p>
+<p>一个典型处理流程是：</p>
+<pre><code>收到 Webhook
+→ 验签
+→ 读取 provider_event_id
+→ 尝试写入唯一事件记录
+→ 若已存在：返回已处理
+→ 若首次：开启事务
+→ 写 payment / ledger / quota 变化
+→ 提交
+→ 返回 2xx</code></pre>
+<h3>4. 为什么“先 SELECT 再 if”挡不住重复入账</h3>
+<pre><code>请求 A: SELECT processed=false
+请求 B: SELECT processed=false
+A: balance += 100
+B: balance += 100</code></pre>
+<p>两个请求都在更新前看见“未处理”，所以应用层 if 完全可能一起通过。真正的唯一性需要数据库 UNIQUE / 锁 / 事务等原子机制兜底。支付事件唯一 ID、账本分录和余额变化最好放在同一事务边界里。</p>
+<h3>5. Order、Payment、Ledger、Refund 不应混成一个 status</h3>
+<div class="table"><table><thead><tr><th>对象</th><th>它描述什么</th><th>常见误区</th></tr></thead><tbody><tr><td>Order</td><td>用户想买什么、应付多少钱</td><td>把订单状态直接当资金状态</td></tr><tr><td>Payment Transaction</td><td>支付渠道发生的具体交易</td><td>一订单可能对应多次支付尝试</td></tr><tr><td>Ledger Entry</td><td>系统内部余额/额度如何变化</td><td>只改 balance，没有可追溯分录</td></tr><tr><td>Refund</td><td>原交易的全部或部分退回</td><td>把退款理解为删除原支付</td></tr><tr><td>Settlement</td><td>支付机构何时结算给商户</td><td>支付成功不等于资金已结算</td></tr><tr><td>Reconciliation</td><td>你的记录和渠道记录是否一致</td><td>只相信自己数据库</td></tr></tbody></table></div>
+<h3>6. 按量计费比“支付”再多一层</h3>
+<p>Usage-based Billing 还需要 Metering（计量）、Quota（额度）、Plan（套餐）、Invoice（账单）。你必须回答：一个 API 调用失败要不要计费？重试算一次还是两次？迟到事件算哪个账期？退款是否返还已消费额度？</p>
+<p>这也是为什么商业 SaaS 的收费系统经常需要独立账本，而不是简单 <code>user.balance -= 10</code>。</p>
+<h3>7. Timeout 不是 Failure</h3>
+<p>客户端调用“充值 100 元”超时，只代表没有及时收到响应，不代表服务器没创建订单，更不代表支付没发生。正确策略是首次业务意图生成稳定 idempotency key，后续重试复用同一个 key，或者先查询订单状态。</p>
+<div class="q"><strong>练习：</strong>用户连续点击三次“购买套餐”，三个请求都成功创建订单。你会在客户端和服务端分别做什么，才能既防误触又不把真正的三次购买错误去重？</div>
+<p><strong>参考思路：</strong>前端可以在请求处理中禁用按钮，但真正可靠性来自“业务意图身份”：一次点击意图生成一个 idempotency key，网络重试复用；用户明确重新发起的新购买则生成新 key。服务端按 key 做唯一约束，而不是按用户+金额粗暴去重。</p>

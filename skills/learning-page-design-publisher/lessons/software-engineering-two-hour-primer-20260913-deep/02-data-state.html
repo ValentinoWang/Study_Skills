@@ -1,0 +1,41 @@
+<div class="k">Deep Dive 02 · 约 18–22 分钟</div>
+<h2>深挖二：数据库不是仓库，而是“守住事实”的机器</h2>
+<p>很多入门教程把数据库讲成“存用户、存订单、存文章”。真正的难点其实是：<strong>两个人同时改怎么办？只写成功一半怎么办？历史版本怎么保留？结构升级时旧数据怎么办？</strong></p>
+<h3>1. 从表开始，但不要停在 CRUD</h3>
+<p>Schema（数据模式）定义表、列和关系；Primary Key（主键）唯一标识一条记录；Foreign Key（外键）约束对象引用；Unique / Check / Not Null 等 Constraint（约束）负责拒绝不合法状态。CRUD 只是 Create、Read、Update、Delete 四种基本操作，并不等于业务完整。</p>
+<p>以训练 SaaS 为例，至少可以区分：<code>plans</code> 表示“计划这个业务对象”，<code>plan_versions</code> 保存每次发布或修订形成的不可变版本，<code>training_logs</code> 则记录运动员实际执行结果。这样昨天执行 v3、今天教练发布 v5，历史仍然可以回答“昨天到底执行了什么”。</p>
+<h3>2. 不变量比字段更重要</h3>
+<p>你真正想守住的通常不是“status 字段存在”，而是类似下面的条件：</p>
+<ul><li>已发布历史版本不能被静默改写。</li><li>训练记录必须引用执行时的计划版本。</li><li>一个支付事件只能生成一条有效账本分录。</li><li>同一机构中的 membership 不能指向另一个租户的私有资源。</li></ul>
+<p>优秀设计会尽可能让这些条件进入数据库约束、唯一索引、事务或版本字段，而不是只存在于某个前端页面的 if 判断里。</p>
+<h3>3. Transaction 解决“一半成功”</h3>
+<p>假设一次按量计费需要同时做四件事：写 usage record、写 ledger entry、扣 quota、更新 invoice。如果只完成前两步服务器就宕机，账本和额度会分裂。</p>
+<pre><code>BEGIN
+INSERT usage_event ...
+INSERT ledger_entry ...
+UPDATE quota ...
+UPDATE invoice ...
+COMMIT</code></pre>
+<p>Transaction（事务）的核心直觉是：业务上不可分割的事实变化，数据库也不要留下半成品。ACID 中，Atomicity 是“整体成功/整体失败”，Consistency 是事务前后都满足约束，Isolation 是并发事务之间尽量不互相破坏，Durability 是提交后的结果应可靠持久。</p>
+<h3>4. 状态机不是一个 status 字段</h3>
+<pre><code>DRAFT
+  ↓ publish
+PUBLISHED
+  ↓ execute
+IN_EXECUTION
+  ↓ complete
+COMPLETED
+  ↓ review
+REVIEWED</code></pre>
+<p>状态机明确两件事：有哪些合法状态，以及哪些迁移被允许。例如已发布计划需要调整时，通常不是把旧版本重新改成 DRAFT，而是创建新的 draft version。否则已经收到旧计划的运动员、已经执行的训练记录都会失去历史依据。</p>
+<h3>5. 并发是“先查再写”最危险的敌人</h3>
+<p>两位教练都读取 version=7。A 先保存成为 v8，B 仍拿着旧 v7 保存。如果后端只是普通 UPDATE，B 会把 A 的修改覆盖掉，这叫 Lost Update（丢失更新）。</p>
+<p>Optimistic Locking（乐观锁）的常见做法是写入时带期望版本：</p>
+<pre><code>UPDATE plans
+SET content = ?, version = 8
+WHERE id = 123 AND version = 7;</code></pre>
+<p>影响行数为 0 就说明版本已经变化，应返回 conflict，而不是继续覆盖。Pessimistic Locking（悲观锁）则在修改前就锁住记录，更适合冲突代价极高、事务时间较短的场景。</p>
+<h3>6. Migration 让“数据库结构”本身也有生命周期</h3>
+<p>新增字段不是只改 ORM 模型。真实上线要考虑：旧数据如何 backfill、旧版本 App 会不会继续发旧结构、是否能先新增可空字段再逐步收紧、索引创建是否会锁表。一个常见安全路线是 <strong>expand → migrate/backfill → switch → contract</strong>：先扩展兼容结构，再迁移数据，再切换新代码，最后删除旧结构。</p>
+<div class="q"><strong>练习：</strong>为什么“计划已经发布，但为了方便修改，我们直接把 status 改回 draft”通常是坏设计？</div>
+<p><strong>参考思路：</strong>因为它把修订伪装成历史倒退。已有运动员可能已经收到、确认或执行旧版本。更稳的方式是保留 published v7，创建新的 draft v8，再发布 v8。</p>
