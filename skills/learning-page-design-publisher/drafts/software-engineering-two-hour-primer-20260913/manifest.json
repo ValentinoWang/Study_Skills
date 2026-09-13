@@ -1,9 +1,10 @@
 {
   "lesson_id": "software-engineering-two-hour-primer-20260913",
-  "status": "EXPANDED_LONGFORM_SOURCE_READY",
+  "status": "EXPANDED_LONGFORM_PUBLISHED",
   "canonical_path": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913.json",
   "deep_source_dir": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913-deep/",
   "pages_entry_path": "docs/lessons/software-engineering-two-hour-primer-20260913.html",
   "expanded_sections": 6,
-  "note": "Six deep-dive sections were added for frontend/request flow, data/concurrency, authorization/multi-tenancy, async/payment, mobile/offline, and delivery/acceptance."
+  "deep_sections": ["frontend-request", "data-state", "auth-tenant", "async-payment", "mobile", "delivery"],
+  "note": "Long-form expansion prepared for the same public lesson URL."
 }
