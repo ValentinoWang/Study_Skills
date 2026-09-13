@@ -1,9 +1,9 @@
 {
   "lesson_id": "software-engineering-two-hour-primer-20260913",
-  "status": "PUBLISHED_TO_CANONICAL_AND_PAGES_SOURCE",
+  "status": "EXPANDED_LONGFORM_SOURCE_READY",
   "canonical_path": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913.json",
-  "pages_data_path": "docs/_data/lessons/software-engineering-two-hour-primer-20260913.json",
+  "deep_source_dir": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913-deep/",
   "pages_entry_path": "docs/lessons/software-engineering-two-hour-primer-20260913.html",
-  "homepage_registered": true,
-  "note": "The earlier draft/source-only state was repaired. GitHub Pages still needs its normal build/deploy run before the public URL reflects this source commit."
+  "expanded_sections": 6,
+  "note": "Six deep-dive sections were added for frontend/request flow, data/concurrency, authorization/multi-tenancy, async/payment, mobile/offline, and delivery/acceptance."
 }
