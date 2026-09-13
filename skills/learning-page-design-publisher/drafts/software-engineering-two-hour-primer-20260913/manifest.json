@@ -6,5 +6,5 @@
   "pages_entry_path": "docs/lessons/software-engineering-two-hour-primer-20260913.html",
   "expanded_sections": 6,
   "deep_sections": ["frontend-request", "data-state", "auth-tenant", "async-payment", "mobile", "delivery"],
-  "expected_publish_commit": "9a1ef41f01f89154ae8d173e5a9f50841cdcf043"
+  "published_commit": "797d924a539b19ff9a758c64d8f3b7d966b34bbf"
 }
