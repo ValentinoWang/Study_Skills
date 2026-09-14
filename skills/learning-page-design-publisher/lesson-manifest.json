@@ -38,5 +38,16 @@
         "terms": ["Source Code", "Commit", "Build", "Artifact", "artifact_digest", "Release Candidate", "CI", "CD", "Deployment", "Readback", "Observability", "Rollback"]
       }
     }
+  },
+  "cadenvo-generation-pipeline-20260915": {
+    "layout": "lesson-cadenvo",
+    "term_source": "lesson",
+    "supplement_source_dir": "skills/learning-page-design-publisher/lessons/cadenvo-generation-pipeline-20260915-parts",
+    "supplement_pages_dir": "docs/_includes/cadenvo-generation-pipeline",
+    "global_prerequisites": {
+      "file": "00-reading-primer.html",
+      "section_id": "symbols",
+      "terms": ["Variable", "Function", "Object", "Array", "AND", "OR", "assert", "pageId", "jobId", "manifestId", "status", "promptDigest", "confirmedPromptSha256", "consumerSurfaceDigest", "revision", "selectionEpoch", "Bound", "Valid", "SHA-256"]
+    }
   }
 }

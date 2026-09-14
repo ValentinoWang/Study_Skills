@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "lessonId": "cadenvo-generation-pipeline-20260915",
+  "sourceRepository": "ValentinoWang/Cadenvo_Frontend",
+  "sourceCommit": "0b4fedc57e8297b78beb2013a5cf2c30c2b6fa3e",
+  "status": "SOURCE_READY_BUILD_UNVERIFIED",
+  "identityChecks": {
+    "canonicalAndPagesLessonBlob": "56115d398b8c4c3cfd6202a693893aa5966a327d",
+    "canonicalAndPagesPrerequisiteBlob": "1723846cce145b52c3fc1747509ab38129bb6fdb",
+    "termSource": "lesson; existing terminology registry remains unchanged",
+    "layout": "lesson-cadenvo",
+    "manifest": "existing entries preserved; new course layout and prerequisite mirror declared",
+    "homepage": "one new course card; existing entries preserved"
+  },
+  "attemptedWorkflowRun": "https://github.com/ValentinoWang/Study_Skills/actions/runs/34873597170",
+  "attemptedWorkflowJob": 104075224769,
+  "runnerId": 0,
+  "executedSteps": 0,
+  "limitations": [
+    "The custom staging workflow failed before any steps ran, so it produced no course or browser test evidence.",
+    "This source report does not assert a successful native Jekyll build, browser QA, print QA, or live Pages deployment.",
+    "The course is based on source inspection, not execution of Cadenvo model generation or business operations.",
+    "75–100 minutes is a suggested learning schedule, not measured learner completion time."
+  ]
+}
