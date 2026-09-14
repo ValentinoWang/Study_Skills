@@ -1,0 +1,151 @@
+name: Cadenvo lesson staging proof
+on:
+  push:
+    branches: [course/cadenvo-generation-20260915]
+permissions:
+  contents: write
+jobs:
+  verify-and-stage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Register only the new course and preserve existing content
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, pathlib
+          root = pathlib.Path('.')
+          slug = 'cadenvo-generation-pipeline-20260915'
+          skill = root / 'skills/learning-page-design-publisher'
+          lesson = json.loads((skill / 'lessons' / (slug + '.json')).read_text())
+          assert lesson['LESSON_ID'] == slug
+          assert lesson['SOURCE_COMMIT'] == '0b4fedc57e8297b78beb2013a5cf2c30c2b6fa3e'
+          registry = skill / 'term-overrides.yml'
+          old = registry.read_text()
+          if '\n' + slug + ':\n' not in '\n' + old:
+              addition = '\n' + slug + ':\n  checklist: ' + json.dumps(lesson['TERMS_CHECKLIST_LABEL'], ensure_ascii=False) + '\n  html: |\n'
+              addition += ''.join('    ' + line + '\n' for line in lesson['TERMS_HTML'].splitlines())
+              registry.write_text(old.rstrip('\n') + '\n' + addition)
+          homepage = root / 'docs/index.html'
+          old = homepage.read_text()
+          href = 'lessons/' + slug + '.html'
+          if href not in old:
+              marker = '<section class="grid" aria-label="课程列表">'
+              assert old.count(marker) == 1
+              card = '<a class="card" href="' + href + '"><span class="tag">计算机基础 × 人工智能应用工程</span><h2>' + lesson['TITLE'] + '</h2><p>结合 Cadenvo 源码，拆解页面证据、提示词编译、前后端通信、摘要与状态机，以及设计图到网页代码的生成和验收边界。</p><div class="meta"><time datetime="2026-09-15">2026-09-15</time> · 75–100 分钟 · 入门 → 工程判断 →</div></a>'
+              homepage.write_text(old.replace(marker, marker + '\n' + card, 1))
+          PY
+          python tools/build-lessons.py
+      - name: Repository teaching and publishing checks
+        run: |
+          python tools/backwash-term-gates.py --check
+          python tools/build-lessons.py --check
+          python tools/check-lesson-consistency.py
+          python tools/check-term-depth.py
+          python tools/check-term-gate.py
+          python tools/check-math-render-safety.py
+      - name: Build native Jekyll output
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
+      - name: Check actual built HTML
+        run: |
+          python tools/check-term-gate.py --built-site _site
+          python tools/check-math-render-safety.py --built-site _site
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Desktop mobile print and interaction checks
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, http.server, json, pathlib, threading, functools, re
+          from playwright.sync_api import sync_playwright
+          root = pathlib.Path('.').resolve()
+          slug = 'cadenvo-generation-pipeline-20260915'
+          html = root / '_site/lessons' / (slug + '.html')
+          lesson = json.loads((root / 'skills/learning-page-design-publisher/lessons' / (slug + '.json')).read_text())
+          handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(root / '_site'))
+          server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
+          threading.Thread(target=server.serve_forever, daemon=True).start()
+          base = 'http://127.0.0.1:' + str(server.server_port)
+          out = root / 'course-qa'; out.mkdir(exist_ok=True)
+          checks = []; errors = []
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page(viewport={'width':1280,'height':900})
+              page.on('pageerror', lambda error: errors.append(str(error)))
+              response = page.goto(base + '/lessons/' + slug + '.html')
+              assert response.status == 200
+              assert page.locator('h1').inner_text() == lesson['TITLE']
+              assert page.locator('#terms details').count() == 14
+              assert page.locator('#terms summary .term-gloss').count() == 14
+              assert page.evaluate("document.querySelector('#terms').compareDocumentPosition(document.querySelector('#orient')) & Node.DOCUMENT_POSITION_FOLLOWING")
+              assert page.locator('.formula-scroll math').count() == 3
+              assert page.locator('math:not([aria-label])').count() == 0
+              checks += ['native Jekyll title and sections', '14 visible collapsed term glosses', 'terminology before reasoning', '3 native MathML formulas with accessible labels']
+              for name, width, height in [('desktop',1280,900),('mobile',390,844)]:
+                  page.set_viewport_size({'width':width,'height':height})
+                  page.evaluate('window.scrollTo(0,0)')
+                  assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), name
+                  assert page.locator('#terms summary .term-gloss').first.is_visible()
+                  page.screenshot(path=str(out / (name + '.png')))
+                  checks.append(name + ': no document horizontal overflow')
+              page.locator('#draft').fill('课程验收测试：先检查输入与版本，再决定是否生成。')
+              page.reload()
+              assert page.locator('#draft').input_value().startswith('课程验收测试')
+              assert not page.locator('#final-answer').is_visible()
+              for target in ['h2','h3','final-answer']:
+                  page.locator('[data-reveal="' + target + '"]').click()
+                  assert page.locator('#' + target).is_visible()
+              assert page.locator('.progress input[data-progress="answer"]').is_checked()
+              page.reload()
+              assert page.locator('#final-answer').is_visible()
+              checks += ['draft persists after reload', 'three-level hint reveal and real answer', 'answer progress and reveal state persist']
+              page.locator('#reset').click()
+              assert page.locator('#draft').input_value() == ''
+              assert not page.locator('#final-answer').is_visible()
+              checks.append('reset clears draft and hides answer')
+              page.set_viewport_size({'width':794,'height':1123})
+              page.emulate_media(media='print')
+              page.evaluate("document.querySelectorAll('details').forEach(x=>x.open=true); ['h2','h3','final-answer'].forEach(id=>document.getElementById(id).hidden=false); window.scrollTo(0,0)")
+              assert not page.locator('.toc').is_visible()
+              assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
+              page.screenshot(path=str(out / 'print-media.png'))
+              checks.append('A4-width print media: no document overflow, navigation hidden; all study content expanded for inspection')
+              visible_chars = len(re.sub(r'\s+', '', page.locator('main').inner_text()))
+              page.emulate_media(media='screen')
+              page.goto(base + '/')
+              assert page.locator('a[href="lessons/' + slug + '.html"]').count() == 1
+              checks.append('homepage contains exactly one course link')
+              assert not errors, errors
+              checks.append('no browser page errors')
+              browser.close()
+          server.shutdown()
+          report = {'schemaVersion':1,'lessonId':slug,'sourceRepository':'ValentinoWang/Cadenvo_Frontend','sourceCommit':lesson['SOURCE_COMMIT'],'status':'PASS','verificationType':'machine-checks-not-human-signoff','builtHtmlSha256':hashlib.sha256(html.read_bytes()).hexdigest(),'canonicalLessonSha256':hashlib.sha256((root / 'skills/learning-page-design-publisher/lessons' / (slug + '.json')).read_bytes()).hexdigest(),'expandedMainNonWhitespaceCharacters':visible_chars,'checks':checks,'limitations':['No Cadenvo model call or business runtime executed','Print media at A4 width checked; not a paginated PDF review','Screenshots require visual inspection; machine checks do not constitute human acceptance']}
+          dest = root / 'docs/qa' / (slug + '.json'); dest.parent.mkdir(exist_ok=True)
+          dest.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          (out / 'report.json').write_text(dest.read_text())
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          PY
+      - name: Retain browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: cadenvo-course-browser-proof
+          path: course-qa/
+      - name: Commit generated publication files only to the staging branch
+        run: |
+          git config user.name 'Study Skills publishing bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add skills/learning-page-design-publisher/term-overrides.yml docs/_data/term_overrides.yml docs/_data/lessons/cadenvo-generation-pipeline-20260915.json docs/lessons/cadenvo-generation-pipeline-20260915.html docs/index.html docs/qa/cadenvo-generation-pipeline-20260915.json
+          git diff --cached --check
+          git commit -m 'build: synchronize and verify Cadenvo course publication'
+          git push origin HEAD:course/cadenvo-generation-20260915
+          echo STAGED_COMMIT=$(git rev-parse HEAD)
+          echo STAGED_TREE=$(git rev-parse HEAD^{tree})
