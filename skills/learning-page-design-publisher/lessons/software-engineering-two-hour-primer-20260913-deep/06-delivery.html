@@ -1,30 +1,49 @@
 <div class="k">Deep Dive 06 · 约 12–16 分钟</div>
 <h2>深挖六：AI Coding 时代，真正的交付链不是“代码写完 → push”</h2>
-<p>写代码只完成了“实现候选”。软件交付还要回答：这一版是谁、测试证明了什么、部署的是不是同一个产物、线上真的生效了吗、出问题怎么恢复？</p>
-<h3>1. Git 证明源码历史，不证明线上版本</h3>
-<p>Commit 把一组源码变化封成可追溯历史节点；Branch 是指向 Commit 的移动引用；Merge / Rebase 解决历史整合。即使 <code>main</code> 已经是最新提交，也不能推出生产服务器正在运行它。</p>
-<p>所以发布时要区分至少三个身份：Source Commit、Build Artifact、Running Deployment。三者应该能互相追溯。</p>
-<h3>2. 测试不是越多越好，而是证据层不同</h3>
-<div class="table"><table><thead><tr><th>测试 / 证据</th><th>最适合证明</th><th>不能单独证明</th></tr></thead><tbody><tr><td>Unit Test</td><td>函数、算法、小状态转换</td><td>真实数据库/浏览器链路</td></tr><tr><td>Integration Test</td><td>服务与数据库、组件之间协作</td><td>完整用户体验</td></tr><tr><td>API Smoke</td><td>关键接口基本存活</td><td>所有边界和权限矩阵</td></tr><tr><td>E2E</td><td>从 UI 到后端的关键业务链</td><td>所有低层逻辑都正确</td></tr><tr><td>UAT / Acceptance</td><td>业务目标和风险是否可接受</td><td>替代技术 QA</td></tr></tbody></table></div>
-<p>Mock API 下的 E2E 只能证明前端在受控假后端下行为正确，不能证明真实鉴权、数据库迁移、第三方支付和部署环境正确。</p>
-<h3>3. Release Candidate 要冻结“验收对象”</h3>
-<p>如果验收期间代码仍然变化，就根本说不清“验收的是哪一版”。一个成熟 Candidate 应至少绑定：</p>
-<pre><code>source_commit
-artifact_digest
-migration_version
-configuration_version
-verification_report
-known_risks</code></pre>
-<p>如果重新 build 得到不同 digest，就应该视为新候选，而不是继续沿用旧验收。</p>
-<h3>4. CI/CD 是把重复工程动作变成机器合同</h3>
-<p>CI（Continuous Integration）在代码变化后自动执行 build、test、lint、type check、contract test 等。Continuous Delivery 让合格候选始终处于可发布状态；Continuous Deployment 则把满足门禁后的生产部署也自动化。</p>
-<p>高风险系统并不意味着“不能自动化”，而是可以保留明确的人工 Acceptance 门，同时其他步骤仍然自动、可重复。</p>
-<h3>5. Deployment Readback：部署命令成功，不等于用户看到新版本</h3>
-<p>发布以后应该从真实环境读回：页面版本标识、API build SHA、健康状态、关键业务接口。这样才能证明“刚才验收的候选确实在线”。</p>
-<h3>6. Observability 决定出事以后你是在实验还是在猜</h3>
-<p>Logs 记录离散事件；Metrics 观察错误率、P95/P99 延迟、队列长度等时间序列；Traces 把一次请求跨多个服务串起来。成熟系统还会把 request_id、user/tenant 的非敏感标识、release version 关联起来。</p>
-<h3>7. Rollback 也有边界</h3>
-<p>切回旧 Docker image 很容易，但数据库 migration、已经发送的邮件、已经扣掉的钱、已经调用的外部 API 不一定能自动撤销。所以发布设计应该区分“代码可回滚”和“业务副作用可补偿”。有些动作需要 Compensation，而不是简单 rollback。</p>
-<div class="call"><strong>AI Coding 最合理的分工：</strong>Agent 负责大量可重复工作——读需求、改代码、跑单测、API smoke、Playwright、构建、整理 diff 和证据；人重点确认需求、业务不变量、高风险权限/资金逻辑，并对一个明确 Release Candidate 作最终 Acceptance。Agent 说“完成”不是证据，测试报告也不是全部证据。</div>
-<div class="q"><strong>练习：</strong>Agent 告诉你“200 个测试通过、构建成功、已经 push main”。还缺哪些信息，你才敢说“这版已经线上完成验收”？</div>
-<p><strong>参考思路：</strong>至少要知道明确候选身份、真实后端/目标 Runtime 的关键链路结果、数据库迁移状态、部署是否使用同一 artifact、线上 readback、关键负向权限/资金测试，以及有权主体是否接受该候选。</p>
+<h3>0. 本节先认词 / 先认变量</h3>
+<div class="table"><table><thead><tr><th>词或变量</th><th>中文直觉</th><th>例子</th></tr></thead><tbody>
+<tr><td>Source Code · 源码</td><td>开发者真正编写和维护的代码。</td><td>仓库里的前端、后端、配置。</td></tr>
+<tr><td>Commit</td><td>Git 中一版固定历史快照。</td><td>某次修改对应一个 commit SHA。</td></tr>
+<tr><td>Build · 构建</td><td>把源码变成可运行或可发布产物。</td><td>生成前端静态文件、Docker image。</td></tr>
+<tr><td>Artifact · 构建产物</td><td>真正准备部署的输出。</td><td>镜像、二进制、静态站点包。</td></tr>
+<tr><td><code>artifact_digest</code></td><td>构建产物的内容指纹。</td><td>证明“部署的是不是刚才验收的同一份字节”。</td></tr>
+<tr><td>Release Candidate · 发布候选</td><td>已经冻结、准备进入最终验收/发布的一版明确对象。</td><td>绑定源码 commit、artifact digest、测试结果。</td></tr>
+<tr><td>CI</td><td>Continuous Integration，持续集成。</td><td>代码变化后自动 build、test、lint。</td></tr>
+<tr><td>CD</td><td>Continuous Delivery / Deployment，持续交付 / 持续部署。</td><td>把合格候选推进到可发布或生产环境。</td></tr>
+<tr><td>Deployment · 部署</td><td>把某个明确产物放进目标运行环境。</td><td>把 image digest 部署到生产。</td></tr>
+<tr><td>Readback · 读回</td><td>部署以后从真实环境重新读取版本/页面/接口，确认真的生效。</td><td>线上 API 返回当前 build SHA。</td></tr>
+<tr><td>Observability · 可观测性</td><td>通过日志、指标、追踪推断系统内部状态。</td><td>错误率、P95 延迟、request trace。</td></tr>
+<tr><td>Rollback · 回滚</td><td>把运行版本恢复到之前的已知安全状态。</td><td>切回上一个 image digest。</td></tr>
+</tbody></table></div>
+<h3>1. Git 证明“源码历史”，不证明“线上版本”</h3>
+<p>Commit 只能证明某一版源码存在。<code>main</code> 指向最新 commit，也不能推出生产服务器已经运行它。</p>
+<p>至少要区分三个身份：</p><ul><li><code>source_commit</code>：源码是哪一版。</li><li><code>artifact_digest</code>：构建出的产物是哪一份。</li><li><code>running_version</code>：线上当前到底运行哪一版。</li></ul>
+<p>这三个变量最好能互相追溯。</p>
+<h3>2. 测试分层：每种测试证明的东西不同</h3>
+<div class="table"><table><thead><tr><th>测试</th><th>先翻译</th><th>擅长证明</th></tr></thead><tbody><tr><td>Unit Test</td><td>单元测试</td><td>函数、小算法、小状态转换</td></tr><tr><td>Integration Test</td><td>集成测试</td><td>数据库、服务、组件之间能否正确协作</td></tr><tr><td>Smoke Test</td><td>冒烟测试</td><td>系统最关键入口是不是基本活着</td></tr><tr><td>E2E</td><td>End-to-End，端到端测试</td><td>从用户入口穿过多个组件的完整链路</td></tr><tr><td>UAT</td><td>User Acceptance Testing，用户验收测试</td><td>真实业务场景是否满足使用目标</td></tr></tbody></table></div>
+<p>所以“Mock API 下 E2E 全绿”只证明：在假后端返回可控数据时，前端链路能工作。它不能单独证明真实鉴权、真实数据库、支付平台和生产配置正确。</p>
+<h3>3. Release Candidate 为什么必须冻结</h3>
+<p>先定义下面几个变量：</p><ul><li><code>source_commit</code>：候选对应的 Git commit。</li><li><code>artifact_digest</code>：候选构建产物的指纹。</li><li><code>migration_version</code>：数据库结构迁移到哪一版。</li><li><code>configuration_version</code>：运行配置是哪一版。</li><li><code>verification_report</code>：这版已经跑过哪些检查及结果。</li><li><code>known_risks</code>：已知但仍接受的风险。</li></ul>
+<pre><code>release_candidate = {
+  source_commit,
+  artifact_digest,
+  migration_version,
+  configuration_version,
+  verification_report,
+  known_risks
+}</code></pre>
+<p>这段伪代码只是在表达：<strong>验收对象必须是一个有明确身份的组合，而不是“最新代码”这种不断变化的概念。</strong></p>
+<h3>4. CI/CD 是把重复动作变成机器合同</h3>
+<p>CI 负责在代码变化后统一执行 build、test、lint、type check 等。Continuous Delivery 的目标是“合格候选随时可发布”；Continuous Deployment 再进一步，把生产发布也自动执行。</p>
+<p>高风险系统可以保留人工 Acceptance（验收接受）门，但这不妨碍构建、测试、部署准备都自动化。</p>
+<h3>5. Deployment Readback：真正去线上看一眼</h3>
+<p>部署命令返回成功只说明“部署工具认为操作完成”。你还应从真实目标环境读回：</p><ul><li>页面上是否出现新版本标识。</li><li>API 是否返回预期 build SHA。</li><li>关键接口是否真的能工作。</li><li>数据库 migration 是否处于目标版本。</li></ul>
+<p>Readback 是把“我执行过发布命令”升级成“我有证据证明目标环境真的变成了这版”。</p>
+<h3>6. Observability：Logs、Metrics、Traces 分别是什么</h3>
+<ul><li><strong>Logs · 日志：</strong>某一时刻发生了什么事件。</li><li><strong>Metrics · 指标：</strong>错误率、请求量、P95/P99 延迟等连续数值。</li><li><strong>Traces · 链路追踪：</strong>把一次请求经过的多个服务串起来。</li></ul>
+<p><code>P95</code> 的意思是“95% 的请求延迟不超过这个值”；<code>P99</code> 类似，只是看更尾部的慢请求。</p>
+<h3>7. Rollback 为什么也不是万能药</h3>
+<p>代码版本可以切回去，但已经发生的支付、通知、邮件、数据库不可逆迁移不一定能自动撤销。这类外部副作用可能需要 <strong>Compensation · 补偿动作</strong>，例如单独发退款，而不是假装旧代码重新上线就把钱退回来了。</p>
+<div class="call"><strong>AI Coding 的合理分工：</strong>Agent 做大量可重复检查；人负责确认需求、不变量、高风险权限/资金边界，以及对一个明确 Release Candidate 作最终 Acceptance。</div>
+<div class="q"><strong>练习：</strong>Agent 说“200 个测试通过、build 成功、已经 push main”。为什么还不能说“线上验收完成”？</div>
+<p><strong>答案：</strong>还缺明确候选身份、真实后端/目标 Runtime 证据、数据库迁移状态、部署 artifact 身份、线上 readback、关键负向测试，以及有权主体的 Acceptance。</p>

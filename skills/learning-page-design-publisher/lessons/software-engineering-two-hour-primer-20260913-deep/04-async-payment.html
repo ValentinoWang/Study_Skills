@@ -1,48 +1,60 @@
 <div class="k">Deep Dive 04 · 约 18–22 分钟</div>
 <h2>深挖四：异步、Webhook、幂等与支付，为什么会成为生产级难点</h2>
-<p>支付真正难的不是“调起微信支付页面”，而是<strong>在网络会失败、通知会重复、服务会重启、用户会连点的情况下，钱仍然只能算对一次</strong>。这背后其实是一整套可靠性问题。</p>
-<h3>1. 为什么要异步：不要让用户请求承担所有工作</h3>
-<p>发布计划后，真正必须同步确认的可能只有“版本是否成功冻结”。给 300 个运动员发通知、调用模型生成摘要、生成报表都可以异步处理。</p>
+<h3>0. 本节先认词 / 先认变量</h3>
+<div class="table"><table><thead><tr><th>词或变量</th><th>中文直觉</th><th>例子</th></tr></thead><tbody>
+<tr><td>Synchronous · 同步</td><td>当前步骤没结束，调用方就继续等。</td><td>用户点保存，等数据库写完再返回。</td></tr>
+<tr><td>Asynchronous · 异步</td><td>核心动作完成后，后续工作可以慢慢做，不让用户一直等。</td><td>发布计划成功后，通知 300 个运动员可以后台发送。</td></tr>
+<tr><td>Queue · 队列</td><td>等待后台处理的任务列表。</td><td>“给运动员发推送”先进入队列。</td></tr>
+<tr><td>Worker</td><td>后台真正拿任务来执行的进程。</td><td>从 Queue 取一条通知任务并发送。</td></tr>
+<tr><td>Retry · 重试</td><td>失败或超时后重新执行。</td><td>推送接口暂时失败，过一会再试。</td></tr>
+<tr><td>Webhook</td><td>外部平台主动调用你的 HTTP 接口来通知事件。</td><td>支付平台通知“这笔付款成功了”。</td></tr>
+<tr><td><code>event_id</code></td><td>某个外部事件的唯一编号。</td><td>用它判断“这个 Webhook 我是不是已经处理过”。</td></tr>
+<tr><td>Idempotency · 幂等</td><td>同一个业务意图重复到达，最终副作用只发生一次。</td><td>支付成功通知来 5 次，余额也只加一次。</td></tr>
+<tr><td><code>idempotency_key</code></td><td>一次业务意图的唯一身份。</td><td>网络重试时复用同一个 key。</td></tr>
+<tr><td><code>balance</code></td><td>账户余额。</td><td><code>balance += 100</code> 表示余额增加 100。</td></tr>
+<tr><td><code>quota</code></td><td>剩余可用额度。</td><td>还有多少 API 次数或服务金额。</td></tr>
+<tr><td>Ledger · 账本</td><td>每次余额/额度变化的可追溯记录。</td><td>不是只保存最终 balance，而是保存每一笔为什么变。</td></tr>
+</tbody></table></div>
+<h3>1. 为什么要异步</h3>
+<p>发布计划时，真正必须同步确认的通常只有核心事实：“这份计划版本是否成功发布”。给 300 个运动员发通知、调用 AI 生成摘要、生成报表，可以放到后台。</p>
 <pre><code>HTTP Request
-→ 验权 + 核心事务
-→ 写 event / enqueue job
-→ Response 立即返回
-                   ↓
-               Queue
-                   ↓
-               Worker
-                   ↓
-         Push / AI / Email / Report</code></pre>
-<p>这样做能降低响应时间，也把慢任务隔离出去。但一旦使用 Queue 和 Worker，就必须接受 Worker 会崩、网络会超时、任务会重试。</p>
-<h3>2. Retry 的代价：同一件事可能执行多次</h3>
-<p>很多分布式系统更容易做到 at-least-once delivery：宁可消息重复，也不无声丢失。所以业务逻辑必须能处理重复。Idempotency（幂等性）就是：同一个业务意图被重复送达，副作用仍然只发生一次。</p>
-<p>例如训练记录上传，可以定义稳定业务键：</p>
+→ 核心事务
+→ 写入 Queue
+→ Response 返回给用户
+              ↓
+            Worker
+              ↓
+     Push / AI / Email</code></pre>
+<p>这里 <code>HTTP Request</code> 是用户发来的请求；<code>核心事务</code> 是必须当场确认的数据库变化；<code>Queue</code> 保存待处理任务；<code>Worker</code> 在后台执行。</p>
+<h3>2. 为什么 Retry 会逼出幂等问题</h3>
+<p>系统很难保证每个消息“恰好只送一次”。现实里更常见的是：宁愿重复，也别无声丢失。这类语义常被称为 <strong>at-least-once delivery</strong>，中文可以理解为“至少送达一次，因此可能送达多次”。</p>
+<p>于是业务必须能安全处理重复，这就是幂等。</p>
+<h3>3. 先定义 business key，再谈去重</h3>
+<p>假设手机离线上传训练记录。先定义两个变量：</p><ul><li><code>athlete_id</code>：哪位运动员。</li><li><code>local_log_uuid</code>：手机在本地生成的这条训练记录的唯一编号。</li></ul>
 <pre><code>business_key = athlete_id + local_log_uuid</code></pre>
-<p>手机重试 5 次时，都使用同一个 local_log_uuid；数据库对这个 key 建 UNIQUE，最终只生成一条权威训练记录。</p>
-<h3>3. Webhook 是外部系统主动通知你，所以不能假设顺序和次数</h3>
-<p>支付平台、GitHub、物流平台都可能通过 Webhook 通知事件。你的服务需要考虑：重复、延迟、乱序、签名伪造、事件已经处理但响应超时等情况。</p>
-<p>一个典型处理流程是：</p>
+<p>这句话读成：<strong>“一条训练记录的业务身份，由运动员身份 + 本地唯一记录号共同决定。”</strong> 手机重试 5 次都复用同一个 <code>local_log_uuid</code>，数据库对这个业务键做唯一约束，就能避免生成 5 条重复记录。</p>
+<h3>4. Webhook 为什么不能假设只来一次</h3>
+<p>支付平台发来成功通知，你必须考虑重复、延迟、乱序、网络超时。一个稳健流程是：</p>
 <pre><code>收到 Webhook
 → 验签
-→ 读取 provider_event_id
+→ 读取 event_id
 → 尝试写入唯一事件记录
-→ 若已存在：返回已处理
-→ 若首次：开启事务
-→ 写 payment / ledger / quota 变化
-→ 提交
+→ 若 event_id 已存在：直接返回“已处理”
+→ 若首次出现：开启数据库事务
+→ 写 Payment / Ledger / Quota 变化
+→ COMMIT
 → 返回 2xx</code></pre>
-<h3>4. 为什么“先 SELECT 再 if”挡不住重复入账</h3>
-<pre><code>请求 A: SELECT processed=false
-请求 B: SELECT processed=false
+<p><strong>验签</strong>就是验证这条通知确实来自可信平台，而不是别人伪造的 HTTP 请求。</p>
+<h3>5. “先 SELECT 再 if”为什么仍然会多加钱</h3>
+<pre><code>请求 A: SELECT processed = false
+请求 B: SELECT processed = false
 A: balance += 100
 B: balance += 100</code></pre>
-<p>两个请求都在更新前看见“未处理”，所以应用层 if 完全可能一起通过。真正的唯一性需要数据库 UNIQUE / 锁 / 事务等原子机制兜底。支付事件唯一 ID、账本分录和余额变化最好放在同一事务边界里。</p>
-<h3>5. Order、Payment、Ledger、Refund 不应混成一个 status</h3>
-<div class="table"><table><thead><tr><th>对象</th><th>它描述什么</th><th>常见误区</th></tr></thead><tbody><tr><td>Order</td><td>用户想买什么、应付多少钱</td><td>把订单状态直接当资金状态</td></tr><tr><td>Payment Transaction</td><td>支付渠道发生的具体交易</td><td>一订单可能对应多次支付尝试</td></tr><tr><td>Ledger Entry</td><td>系统内部余额/额度如何变化</td><td>只改 balance，没有可追溯分录</td></tr><tr><td>Refund</td><td>原交易的全部或部分退回</td><td>把退款理解为删除原支付</td></tr><tr><td>Settlement</td><td>支付机构何时结算给商户</td><td>支付成功不等于资金已结算</td></tr><tr><td>Reconciliation</td><td>你的记录和渠道记录是否一致</td><td>只相信自己数据库</td></tr></tbody></table></div>
-<h3>6. 按量计费比“支付”再多一层</h3>
-<p>Usage-based Billing 还需要 Metering（计量）、Quota（额度）、Plan（套餐）、Invoice（账单）。你必须回答：一个 API 调用失败要不要计费？重试算一次还是两次？迟到事件算哪个账期？退款是否返还已消费额度？</p>
-<p>这也是为什么商业 SaaS 的收费系统经常需要独立账本，而不是简单 <code>user.balance -= 10</code>。</p>
+<p>先解释：<code>processed=false</code> 表示“数据库暂时认为这个事件还没处理”；<code>balance += 100</code> 表示“在原余额基础上再加 100”。</p>
+<p>两个并发请求都可能在任何一个写入之前读到 false，于是两个 if 都通过。真正防重不能只靠应用层查询，而要用数据库 UNIQUE、事务、锁等原子机制。</p>
+<h3>6. Order、Payment、Ledger、Refund 是不同对象</h3>
+<div class="table"><table><thead><tr><th>对象</th><th>它回答什么</th></tr></thead><tbody><tr><td>Order · 订单</td><td>用户想买什么、应付多少钱</td></tr><tr><td>Payment Transaction · 支付交易</td><td>支付渠道实际发生了哪次资金尝试</td></tr><tr><td>Ledger Entry · 账本分录</td><td>系统内部余额为什么变化</td></tr><tr><td>Refund · 退款</td><td>原支付的全部或部分资金如何退回</td></tr><tr><td>Settlement · 结算</td><td>支付机构何时把钱结给商户</td></tr><tr><td>Reconciliation · 对账</td><td>你的记录与支付平台记录是否一致</td></tr></tbody></table></div>
 <h3>7. Timeout 不是 Failure</h3>
-<p>客户端调用“充值 100 元”超时，只代表没有及时收到响应，不代表服务器没创建订单，更不代表支付没发生。正确策略是首次业务意图生成稳定 idempotency key，后续重试复用同一个 key，或者先查询订单状态。</p>
-<div class="q"><strong>练习：</strong>用户连续点击三次“购买套餐”，三个请求都成功创建订单。你会在客户端和服务端分别做什么，才能既防误触又不把真正的三次购买错误去重？</div>
-<p><strong>参考思路：</strong>前端可以在请求处理中禁用按钮，但真正可靠性来自“业务意图身份”：一次点击意图生成一个 idempotency key，网络重试复用；用户明确重新发起的新购买则生成新 key。服务端按 key 做唯一约束，而不是按用户+金额粗暴去重。</p>
+<p>Timeout 只表示“规定时间内没收到 Response”。第一次充值请求可能已经成功，只是响应没回来。所以创建支付/订单这类有副作用的动作，要让重试复用同一个 <code>idempotency_key</code>。</p>
+<div class="q"><strong>练习：</strong>用户连续点三次“购买套餐”。怎样区分“同一次购买的网络重试”和“用户真的想买三次”？</div>
+<p><strong>答案：</strong>一次明确业务意图生成一个 idempotency key；网络重试复用这个 key。用户明确重新发起一次新购买，则生成新的 key。服务端按 key 唯一，而不是简单按“用户+金额”去重。</p>

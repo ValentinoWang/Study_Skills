@@ -1,23 +1,42 @@
 <div class="k">Deep Dive 02 · 约 18–22 分钟</div>
 <h2>深挖二：数据库不是仓库，而是“守住事实”的机器</h2>
-<p>很多入门教程把数据库讲成“存用户、存订单、存文章”。真正的难点其实是：<strong>两个人同时改怎么办？只写成功一半怎么办？历史版本怎么保留？结构升级时旧数据怎么办？</strong></p>
-<h3>1. 从表开始，但不要停在 CRUD</h3>
-<p>Schema（数据模式）定义表、列和关系；Primary Key（主键）唯一标识一条记录；Foreign Key（外键）约束对象引用；Unique / Check / Not Null 等 Constraint（约束）负责拒绝不合法状态。CRUD 只是 Create、Read、Update、Delete 四种基本操作，并不等于业务完整。</p>
-<p>以训练 SaaS 为例，至少可以区分：<code>plans</code> 表示“计划这个业务对象”，<code>plan_versions</code> 保存每次发布或修订形成的不可变版本，<code>training_logs</code> 则记录运动员实际执行结果。这样昨天执行 v3、今天教练发布 v5，历史仍然可以回答“昨天到底执行了什么”。</p>
-<h3>2. 不变量比字段更重要</h3>
-<p>你真正想守住的通常不是“status 字段存在”，而是类似下面的条件：</p>
-<ul><li>已发布历史版本不能被静默改写。</li><li>训练记录必须引用执行时的计划版本。</li><li>一个支付事件只能生成一条有效账本分录。</li><li>同一机构中的 membership 不能指向另一个租户的私有资源。</li></ul>
-<p>优秀设计会尽可能让这些条件进入数据库约束、唯一索引、事务或版本字段，而不是只存在于某个前端页面的 if 判断里。</p>
-<h3>3. Transaction 解决“一半成功”</h3>
-<p>假设一次按量计费需要同时做四件事：写 usage record、写 ledger entry、扣 quota、更新 invoice。如果只完成前两步服务器就宕机，账本和额度会分裂。</p>
+<h3>0. 本节先认词 / 先认变量</h3>
+<div class="table"><table><thead><tr><th>词或变量</th><th>先把它理解成什么</th><th>例子</th></tr></thead><tbody>
+<tr><td>Database · 数据库</td><td>长期保存结构化事实，并负责约束、并发和事务的系统。</td><td>保存用户、训练计划、订单、训练记录。</td></tr>
+<tr><td>Table / Row / Column</td><td>表 / 行 / 列。表像一类对象，行像一条记录，列像对象的某个属性。</td><td><code>plans</code> 表里一行可以是一份训练计划。</td></tr>
+<tr><td>Schema</td><td>数据库结构定义：有哪些表、字段、类型和约束。</td><td>规定 <code>plan_id</code>、<code>status</code>、<code>version</code> 等字段。</td></tr>
+<tr><td><code>id</code> / Primary Key</td><td>一条记录自己的唯一身份证。</td><td><code>plan_id=123</code> 表示第 123 号计划。</td></tr>
+<tr><td>Foreign Key</td><td>一条记录引用另一条记录的关系。</td><td>训练记录里的 <code>plan_version_id</code> 指向实际执行的计划版本。</td></tr>
+<tr><td>Constraint · 约束</td><td>数据库自己强制执行的规则。</td><td>某字段不能为空；某业务键必须唯一。</td></tr>
+<tr><td>Transaction · 事务</td><td>把多步数据库变化当成一个不可分割动作。</td><td>记账和扣额度要么一起成功，要么一起失败。</td></tr>
+<tr><td><code>status</code></td><td>对象当前业务状态。</td><td><code>DRAFT</code>、<code>PUBLISHED</code>。</td></tr>
+<tr><td><code>version</code></td><td>对象版本号，用来区分“我看到的是第几版”。</td><td><code>version=7</code> 表示当前第 7 版。</td></tr>
+<tr><td>State Machine · 状态机</td><td>规定有哪些状态，以及哪些状态之间允许迁移。</td><td><code>DRAFT → PUBLISHED</code> 可以；某些反向迁移不允许。</td></tr>
+<tr><td>Race Condition · 竞态条件</td><td>两个并发操作因为执行先后不同，产生了不同或错误结果。</td><td>两名教练同时改同一份计划。</td></tr>
+<tr><td>Migration · 数据库迁移</td><td>让数据库结构从旧版本安全升级到新版本。</td><td>给 <code>plans</code> 新增一个字段并处理旧数据。</td></tr>
+</tbody></table></div>
+<h3>1. CRUD 只是最表层</h3>
+<p>CRUD 是 Create（创建）、Read（读取）、Update（更新）、Delete（删除）。它告诉你数据库能做哪四类基础动作，但没有回答“哪些数据可以更新、什么时候能删、两个人一起更新怎么办”。</p>
+<p>以训练 SaaS 为例，可以把三个对象分开：</p>
+<ul><li><code>plans</code>：计划这个业务对象的“当前入口”。</li><li><code>plan_versions</code>：每次发布/修订后形成的历史版本。</li><li><code>training_logs</code>：运动员真实执行后产生的记录。</li></ul>
+<p>这里 <code>plans</code>、<code>plan_versions</code>、<code>training_logs</code> 只是示例表名。重点是：<strong>“计划本身”“计划的版本”“实际执行记录”不是同一个对象。</strong></p>
+<h3>2. 不变量：真正要守的是规则，而不只是字段</h3>
+<p><strong>Invariant（不变量）</strong>可以理解为：无论系统经历多少合法操作，都必须一直成立的条件。</p>
+<ul><li>已经发布的历史版本不能被偷偷改写。</li><li>训练记录必须知道自己执行的是哪个计划版本。</li><li>同一个支付事件不能生成两条有效账本。</li><li>一个机构的数据不能被另一个机构的普通账号读到。</li></ul>
+<p>这些规则如果只写在前端 if 里，很脆弱；越关键的不变量，越应该由数据库约束、唯一索引、事务和服务端规则一起兜底。</p>
+<h3>3. Transaction 为什么解决“一半成功”</h3>
+<p>先认代码里的两个关键词：<code>BEGIN</code> 表示“事务开始”，<code>COMMIT</code> 表示“确认提交”。</p>
 <pre><code>BEGIN
 INSERT usage_event ...
 INSERT ledger_entry ...
 UPDATE quota ...
 UPDATE invoice ...
 COMMIT</code></pre>
-<p>Transaction（事务）的核心直觉是：业务上不可分割的事实变化，数据库也不要留下半成品。ACID 中，Atomicity 是“整体成功/整体失败”，Consistency 是事务前后都满足约束，Isolation 是并发事务之间尽量不互相破坏，Durability 是提交后的结果应可靠持久。</p>
-<h3>4. 状态机不是一个 status 字段</h3>
+<p>逐行翻译：</p><ul><li><code>usage_event</code>：记录这次到底用了多少服务。</li><li><code>ledger_entry</code>：账本里新增一条金额/额度变化记录。</li><li><code>quota</code>：用户剩余额度。</li><li><code>invoice</code>：账单。</li></ul>
+<p>如果这四件事在业务上是一体的，就不希望只做完前两件服务器就挂掉。Transaction 的作用就是尽量让它们表现为“整体成功”或“整体失败”。</p>
+<h3>4. ACID 四个字母先翻译成人话</h3>
+<div class="table"><table><thead><tr><th>字母</th><th>全称</th><th>人话</th></tr></thead><tbody><tr><td>A</td><td>Atomicity · 原子性</td><td>不留半成品</td></tr><tr><td>C</td><td>Consistency · 一致性</td><td>操作前后都不能违反约束</td></tr><tr><td>I</td><td>Isolation · 隔离性</td><td>并发事务尽量不要互相踩坏</td></tr><tr><td>D</td><td>Durability · 持久性</td><td>一旦提交，结果应可靠保存</td></tr></tbody></table></div>
+<h3>5. 状态机不是“有个 status 字段”</h3>
 <pre><code>DRAFT
   ↓ publish
 PUBLISHED
@@ -27,15 +46,18 @@ IN_EXECUTION
 COMPLETED
   ↓ review
 REVIEWED</code></pre>
-<p>状态机明确两件事：有哪些合法状态，以及哪些迁移被允许。例如已发布计划需要调整时，通常不是把旧版本重新改成 DRAFT，而是创建新的 draft version。否则已经收到旧计划的运动员、已经执行的训练记录都会失去历史依据。</p>
-<h3>5. 并发是“先查再写”最危险的敌人</h3>
-<p>两位教练都读取 version=7。A 先保存成为 v8，B 仍拿着旧 v7 保存。如果后端只是普通 UPDATE，B 会把 A 的修改覆盖掉，这叫 Lost Update（丢失更新）。</p>
-<p>Optimistic Locking（乐观锁）的常见做法是写入时带期望版本：</p>
+<p>这里 <code>publish</code>、<code>execute</code>、<code>complete</code>、<code>review</code> 是“触发状态变化的动作”。状态机真正规定的是：<strong>哪些动作在当前状态下合法。</strong></p>
+<p>所以“已发布以后为了方便继续改，直接把 status 改回 DRAFT”通常很危险。更合理的是保留已发布的 v7，再创建新的 draft v8。</p>
+<h3>6. 并发更新为什么会把别人改动覆盖掉</h3>
+<p>先定义：<code>v7</code> 就是版本 7，<code>v8</code> 是版本 8。A、B 两位教练同时看到 v7。A 先保存，服务器变成 v8。B 还拿着旧 v7 保存，如果服务器不检查版本，就可能把 A 的修改覆盖掉。这叫 Lost Update（丢失更新）。</p>
+<p>Optimistic Locking（乐观锁）的一种写法：</p>
 <pre><code>UPDATE plans
 SET content = ?, version = 8
 WHERE id = 123 AND version = 7;</code></pre>
-<p>影响行数为 0 就说明版本已经变化，应返回 conflict，而不是继续覆盖。Pessimistic Locking（悲观锁）则在修改前就锁住记录，更适合冲突代价极高、事务时间较短的场景。</p>
-<h3>6. Migration 让“数据库结构”本身也有生命周期</h3>
-<p>新增字段不是只改 ORM 模型。真实上线要考虑：旧数据如何 backfill、旧版本 App 会不会继续发旧结构、是否能先新增可空字段再逐步收紧、索引创建是否会锁表。一个常见安全路线是 <strong>expand → migrate/backfill → switch → contract</strong>：先扩展兼容结构，再迁移数据，再切换新代码，最后删除旧结构。</p>
-<div class="q"><strong>练习：</strong>为什么“计划已经发布，但为了方便修改，我们直接把 status 改回 draft”通常是坏设计？</div>
-<p><strong>参考思路：</strong>因为它把修订伪装成历史倒退。已有运动员可能已经收到、确认或执行旧版本。更稳的方式是保留 published v7，创建新的 draft v8，再发布 v8。</p>
+<p>逐个解释：<code>content</code> 是计划内容；<code>?</code> 是稍后传入真实内容的参数占位符；<code>id=123</code> 指具体计划；<code>version=7</code> 表示“只有服务器仍然是我看到的旧版本 7 时，才允许这次更新”。如果服务器已经是 v8，这次 UPDATE 会匹配不到记录，应返回冲突。</p>
+<h3>7. Migration：数据库结构自己也有版本</h3>
+<p>例如现在要给 <code>plans</code> 增加 <code>coach_note</code>。不能只改代码，因为旧数据库没有这个字段。常见安全思路是：</p>
+<pre><code>expand → backfill → switch → contract</code></pre>
+<p>翻译：先新增兼容结构（expand）→ 给旧数据补值（backfill）→ 新代码切过去（switch）→ 确认旧逻辑不用后再删旧结构（contract）。</p>
+<div class="q"><strong>练习：</strong>为什么“计划已经发布，但为了继续编辑，我们把 status 直接改回 draft”通常是坏设计？</div>
+<p><strong>答案：</strong>因为这会让历史事实倒退。已经收到或执行 v7 的运动员仍需要一个稳定的 v7。正确思路通常是保留 v7，再创建 v8 draft。</p>

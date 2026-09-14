@@ -1,31 +1,49 @@
 <div class="k">Deep Dive 01 · 约 18–22 分钟</div>
 <h2>深挖一：一个按钮点击以后，前端到底发生了什么？</h2>
-<p>如果只说“前端就是 HTML、CSS、JavaScript”，五分钟就能讲完。真正的软件工程入门要继续追问：<strong>页面状态是谁维护的？一个点击怎样变成请求？请求失败后页面为什么不能乱？布局为什么会出现多层滚动？</strong></p>
-<h3>1. 把页面理解成状态函数，而不是截图</h3>
-<p>现代前端最核心的心智模型可以写成 <code>View = render(props, state)</code>。Props 是外部输入，State 是组件自己维护的当前状态，Render 根据两者产生界面。于是“页面长什么样”只是某个状态下的结果，而不是页面本身。</p>
-<p>例如教练正在编辑周计划，至少同时存在三种完全不同的状态：</p>
-<ul><li><strong>界面状态：</strong>当前选中了周三、动作编辑 Drawer 已打开、某个折叠区展开。</li><li><strong>请求状态：</strong>保存请求是 idle、loading、success 还是 error。</li><li><strong>业务状态：</strong>计划是 draft、published、archived，或者当前版本已经被另一个教练修改。</li></ul>
-<p>如果把这三类状态混成一个 <code>isPublished</code>，请求一超时就会出现“按钮已经显示发布成功，但数据库并没有确认”的错觉。前端可以做 optimistic UI（乐观更新），但前提是你清楚哪些状态只是临时推测，哪些必须等服务端权威确认。</p>
-<h3>2. 路由、布局和滚动其实是三件事</h3>
-<p>Routing 决定“你现在在哪个页面”；Flexbox / Grid 决定“元素怎么分配空间”；Scroll Ownership 决定“内容超出时到底谁滚”。这三件事混起来，页面就容易变成一个不断打补丁的高度系统。</p>
-<div class="table"><table><thead><tr><th>场景</th><th>更合理的布局意图</th><th>为什么</th></tr></thead><tbody><tr><td>设置页、治理页、长表单</td><td>content / 自然文档流</td><td>内容多就向下长，让浏览器页面滚动</td></tr><tr><td>聊天、地图、IDE、实时工作台</td><td>fill / 视口填充</td><td>需要固定工作区，让内部消息区或编辑器滚</td></tr><tr><td>统计卡片矩阵</td><td>Grid</td><td>二维行列关系比一维 Flex 更清楚</td></tr><tr><td>Header + Sidebar + Main</td><td>Flex / Grid</td><td>固定区域和剩余空间容易表达</td></tr></tbody></table></div>
-<p>所谓 <code>fill</code> / <code>content</code> 通常是项目自己的布局语义，不是 CSS 官方关键字。判断时先问：<strong>这个页面是在“阅读一份会自然增长的内容”，还是在“操作一个需要占满视口的工作台”？</strong></p>
-<h3>3. 点击“发布”之后是一条跨进程链路</h3>
+<h3>0. 本节先认词 / 先认变量</h3>
+<div class="table"><table><thead><tr><th>词或变量</th><th>中文直觉</th><th>本节为什么需要它</th></tr></thead><tbody>
+<tr><td><code>Component</code> · 组件</td><td>页面里可以独立复用的一块界面与逻辑。</td><td>“发布按钮”“动作编辑卡”“训练日面板”都可以是组件。</td></tr>
+<tr><td><code>props</code></td><td>父组件传进来的外部输入，可以理解为“别人给我的参数”。</td><td>例如父页面把 <code>plan_id</code>、运动员名字传给子组件。</td></tr>
+<tr><td><code>state</code></td><td>组件当前自己记住的状态，可以理解为“我现在是什么情况”。</td><td>例如 Drawer 是否打开、输入框内容、请求是否 loading。</td></tr>
+<tr><td><code>render</code> · 渲染</td><td>根据当前数据计算“现在应该显示什么界面”的过程。</td><td>state 变化后，页面需要重新算一遍应该显示什么。</td></tr>
+<tr><td><code>View</code></td><td>最终呈现给用户看的界面结果。</td><td>后面的公式左边只是给“当前界面”起一个名字。</td></tr>
+<tr><td><code>Request</code> · 请求</td><td>客户端发给服务器的一次消息。</td><td>点击“发布”后，前端要把“我要发布这份计划”的意图发给后端。</td></tr>
+<tr><td><code>Response</code> · 响应</td><td>服务器处理请求后回给客户端的结果。</td><td>前端必须根据 Response 判断成功、冲突还是失败。</td></tr>
+<tr><td><code>Route / Routing</code> · 路由</td><td>把一个 URL 或导航目标映射到某个页面。</td><td>决定“用户现在在哪个页面”，不是决定页面内部怎么排版。</td></tr>
+<tr><td><code>HTTP</code></td><td>HyperText Transfer Protocol，超文本传输协议；Web 客户端和服务器常用的通信协议。</td><td>后面的 Method、URL、Status Code 都属于 HTTP 请求/响应的一部分。</td></tr>
+<tr><td><code>Endpoint</code> · 接口地址</td><td>后端提供某项能力的具体网络入口。</td><td>例如 <code>POST /api/plans/123/publish</code>。</td></tr>
+</tbody></table></div>
+<h3>1. 先把页面理解成“状态 → 界面”的函数</h3>
+<p>现在再看下面这句：</p>
+<pre><code>View = render(props, state)</code></pre>
+<p>逐个翻译：</p><ul><li><code>View</code>：用户现在看到的界面。</li><li><code>render</code>：根据数据生成界面的过程。</li><li><code>props</code>：外部传给组件的数据。</li><li><code>state</code>：组件当前自己保存的状态。</li></ul>
+<p>所以整句不是让你算数学题，而是在说：<strong>“页面现在长什么样，由外部输入和当前状态共同决定。”</strong></p>
+<p>例如教练正在编辑一周计划，至少同时存在三类状态：</p>
+<ul><li><strong>界面状态：</strong>周三是否选中、动作 Drawer 是否打开、筛选器是什么。</li><li><strong>请求状态：</strong>保存请求当前是 idle（还没发）、loading（正在等）、success（服务器确认成功）、error（失败）。</li><li><strong>业务状态：</strong>这份计划究竟是 draft、published、archived，或者服务器里已经变成了新版本。</li></ul>
+<p>最关键的边界是：<strong>业务状态不能只听前端自己的。</strong> 前端可以临时显示“正在发布”，但最终“是否真的发布成功”要以服务端权威状态为准。</p>
+<h3>2. 路由、布局、滚动是三个不同问题</h3>
+<p><strong>Routing</strong> 回答“在哪个页面”；<strong>Layout</strong> 回答“页面内部怎么排”；<strong>Scroll Ownership</strong> 回答“内容超出以后到底哪一层滚动”。</p>
+<div class="table"><table><thead><tr><th>场景</th><th>更合理的布局</th><th>原因</th></tr></thead><tbody><tr><td>设置页、长表单</td><td><code>content</code></td><td>内容多就自然向下长，让浏览器页面滚</td></tr><tr><td>聊天、地图、IDE</td><td><code>fill</code></td><td>工作区需要占满视口，让内部区域滚</td></tr><tr><td>统计卡片矩阵</td><td>Grid</td><td>它是二维行列关系</td></tr><tr><td>Header + Sidebar + Main</td><td>Flex / Grid</td><td>固定区域与剩余空间关系清楚</td></tr></tbody></table></div>
+<p><code>fill</code> 和 <code>content</code> 是项目语义，不是 CSS 官方关键字。你真正要问的是：<strong>这个页面是在“读一份会自然增长的内容”，还是在“操作一个需要占满视口的工作台”？</strong></p>
+<h3>3. 点击“发布”之后发生了什么</h3>
+<p>先认下面链路里的三个新词：<strong>Reverse Proxy（反向代理）</strong>是服务端前门；<strong>Authentication（身份认证）</strong>回答“你是谁”；<strong>Authorization（授权）</strong>回答“你能不能做这件事”。后面第三章会细讲，这里只看它们在流程中的位置。</p>
 <pre><code>用户点击
 → 前端读取 state
 → 构造 HTTP Request
-→ 浏览器发送到网络
-→ 反向代理 / API Gateway
+→ 浏览器发送请求
+→ Reverse Proxy / API Gateway
 → 后端 Route
-→ 身份认证
-→ 授权
-→ 业务规则
+→ Authentication
+→ Authorization
+→ Business Rule
 → Database Transaction
 → HTTP Response
 → 前端更新 request state
-→ 再拉取或使用权威业务状态</code></pre>
-<p>HTTP Request 常见四部分：Method、URL/Endpoint、Headers、Body。Response 也不只是一个 JSON，还包括 Status Code 和 Headers。初学者最容易犯的错误是把所有非 200 都当成“系统错误”，但从恢复策略看，400 输入错误、401 未认证、403 无权限、409 版本冲突、429 限流、500 服务端错误完全不是一回事。</p>
-<h3>4. 错误提示的本质是“用户下一步能做什么”</h3>
-<div class="table"><table><thead><tr><th>类型</th><th>例子</th><th>正确恢复</th></tr></thead><tbody><tr><td>输入可修复</td><td>训练日期缺失</td><td>保留输入，定位字段，告诉用户怎么改</td></tr><tr><td>无权限</td><td>不是该组教练</td><td>停止提交；不要提供“再试一次”假希望</td></tr><tr><td>版本冲突</td><td>别人已保存 v8</td><td>拉取新版，比较差异，让用户决定合并</td></tr><tr><td>超时</td><td>不知道服务端是否执行</td><td>先查询结果或用同一个幂等键安全重试</td></tr><tr><td>服务端故障</td><td>500</td><td>保留草稿，展示可追踪错误 ID</td></tr></tbody></table></div>
-<div class="q"><strong>练习：</strong>用户点“发布”后 8 秒没有响应。为什么“直接让他再点一次”可能是危险设计？请分别从前端状态、HTTP 语义和后端副作用三个角度回答。</div>
-<p><strong>参考思路：</strong>客户端只知道“没收到结果”，并不知道服务端没执行。如果第一次其实已经写库并触发通知，第二次点击会制造重复副作用。因此创建型操作应有稳定业务键/幂等键，前端也要把“结果未知”和“明确失败”分开呈现。</p>
+→ 显示权威业务状态</code></pre>
+<h3>4. HTTP Request 里每个变量是什么意思</h3>
+<div class="table"><table><thead><tr><th>字段</th><th>意思</th><th>示例</th></tr></thead><tbody><tr><td>Method</td><td>这次请求想做哪类动作</td><td><code>GET</code> 读取；<code>POST</code> 创建/触发动作</td></tr><tr><td>URL / Endpoint</td><td>请求要去哪</td><td><code>/api/plans/123/publish</code></td></tr><tr><td>Headers</td><td>附加的元信息</td><td>身份 Token、Content-Type</td></tr><tr><td>Body</td><td>请求真正携带的数据</td><td>备注、目标版本等</td></tr><tr><td>Status Code</td><td>服务器告诉客户端的结果类别</td><td>200、403、409、500</td></tr></tbody></table></div>
+<p>常见状态码也先翻译成人话：<strong>200</strong> 大体成功；<strong>400</strong> 输入本身有问题；<strong>401</strong> 没有有效身份；<strong>403</strong> 有身份但没权限；<strong>409</strong> 当前状态/版本冲突；<strong>500</strong> 服务端内部出错。</p>
+<h3>5. 错误提示真正解决的是“用户下一步做什么”</h3>
+<div class="table"><table><thead><tr><th>错误</th><th>真正含义</th><th>下一步</th></tr></thead><tbody><tr><td>输入错误</td><td>用户可以修</td><td>保留草稿并定位字段</td></tr><tr><td>403</td><td>当前身份没有权限</td><td>停止提交，不给“重试”假希望</td></tr><tr><td>409</td><td>你手里的版本旧了</td><td>拉取新版本并比较</td></tr><tr><td>Timeout</td><td>没及时收到结果，不等于没执行</td><td>查询结果或安全重试</td></tr><tr><td>500</td><td>后端失败</td><td>保留输入，给错误追踪 ID</td></tr></tbody></table></div>
+<div class="q"><strong>练习：</strong>用户点“发布”后 8 秒没响应。为什么“直接再点一次”可能危险？</div>
+<p><strong>答案：</strong>因为客户端只知道“没收到 Response”，不知道服务端是否已经执行。如果第一次其实已经写库并发通知，第二次可能重复产生副作用。后面支付章节会进一步解释“幂等”如何解决这类问题。</p>

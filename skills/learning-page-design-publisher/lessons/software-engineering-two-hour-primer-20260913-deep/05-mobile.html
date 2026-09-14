@@ -1,35 +1,50 @@
 <div class="k">Deep Dive 05 · 约 14–18 分钟</div>
 <h2>深挖五：小程序和手机 App，真正多出来的是“平台与现实世界”</h2>
-<p>同一个后端可以同时服务 Web、小程序和 App，但移动端会额外遇到宿主平台、系统生命周期、离线、设备权限和旧版本共存。难度并不只是“多写一份 UI”。</p>
-<h3>1. 小程序登录为什么不是普通账号密码</h3>
-<pre><code>小程序 wx.login()
-→ 临时 code
-→ 你的后端
-→ 微信服务
-→ 平台身份标识
-→ 映射到你的 user_id
-→ 建立你自己的 session / token</code></pre>
-<p>平台身份只是“这个微信账号是谁”，真正业务权限仍然属于你的用户模型。一个微信用户可能同时属于俱乐部 A 和 B，在 A 是教练，在 B 只是访客。</p>
+<h3>0. 本节先认词 / 先认变量</h3>
+<div class="table"><table><thead><tr><th>词或变量</th><th>中文直觉</th><th>例子</th></tr></thead><tbody>
+<tr><td>Runtime · 运行时</td><td>程序真正执行代码、维护状态、调用平台能力的环境。</td><td>浏览器、微信小程序运行环境、iOS/Android App。</td></tr>
+<tr><td>App Lifecycle · 应用生命周期</td><td>App 从启动、前台、后台、挂起到被系统回收的状态变化。</td><td>锁屏后 App 可能进入后台甚至被杀死。</td></tr>
+<tr><td>Local Storage · 本地存储</td><td>数据保存在手机本机，而不是服务器。</td><td>草稿、离线记录。</td></tr>
+<tr><td>Sync · 同步</td><td>把本地和服务器两边的数据重新对齐。</td><td>恢复网络后上传离线训练记录。</td></tr>
+<tr><td>Conflict · 冲突</td><td>本地和服务器都改了同一个事实，不能简单自动合并。</td><td>离线期间两端都编辑了同一条备注。</td></tr>
+<tr><td><code>local_uuid</code></td><td>手机本地生成的唯一记录 ID。</td><td>用来识别“重试上传的还是同一条记录”。</td></tr>
+<tr><td><code>plan_version</code></td><td>运动员执行时所依据的计划版本。</td><td>执行 v3，不等于当前服务器计划仍是 v3。</td></tr>
+<tr><td>Push Notification · 推送通知</td><td>服务器通过操作系统/厂商通道给手机发消息。</td><td>训练提醒。</td></tr>
+<tr><td>Permission · 系统权限</td><td>操作系统是否允许 App 使用某项设备能力。</td><td>相机、定位、蓝牙、麦克风。</td></tr>
+</tbody></table></div>
+<h3>1. 小程序登录为什么比普通 Web 多一层</h3>
+<p>先定义：<code>code</code> 是微信临时给客户端的一次性登录凭证；<code>openid</code> 可以理解为某个用户在某个小程序里的平台身份标识；<code>user_id</code> 是你自己业务数据库里的用户 ID。</p>
+<pre><code>wx.login()
+→ 得到临时 code
+→ code 发给你的后端
+→ 后端向微信验证
+→ 得到平台身份 openid
+→ 映射到你自己的 user_id
+→ 建立业务 Session / Token</code></pre>
+<p>这里最重要的边界是：<strong>openid 不是你的完整业务用户模型。</strong> 同一个微信用户可能在机构 A 是教练，在机构 B 是运动员。</p>
 <h3>2. 平台能力意味着平台规则</h3>
-<p>合法请求域名、WebView 业务域名、微信支付、手机号能力、定位、相机、隐私声明、审核，都可能成为“代码没错但平台不允许”的失败原因。于是小程序开发必须同时理解你的业务规则和宿主平台规则。</p>
-<h3>3. App Lifecycle 打破“页面关了程序就结束”的直觉</h3>
+<p>小程序除了你的代码，还受宿主平台约束：合法请求域名、支付 API、隐私接口、审核、WebView 业务域名等。于是“代码逻辑正确”不等于“平台允许这样运行”。</p>
+<h3>3. App Lifecycle：程序可能突然不再运行</h3>
+<p>先解释几个状态：<strong>Foreground</strong> 是 App 正在屏幕前台；<strong>Background</strong> 是离开当前屏幕但进程可能还在；<strong>Suspended</strong> 是系统暂时停止它继续执行；<strong>Cold Start</strong> 是完全没运行时重新启动。</p>
 <pre><code>Cold Start
 → Foreground
 → Background
 → Suspended
-→ OS kills process
+→ OS 回收进程
 → 用户重新打开
-→ 恢复本地状态
-→ 重新同步服务器</code></pre>
-<p>手机系统随时可能回收进程，所以关键输入不能只存在内存里。Local Storage 或 SQLite 等本地持久化会变得重要。</p>
-<h3>4. Offline-first 的核心不是“离线也能打开”，而是“离线产生的事实如何合并”</h3>
-<p>运动员在体育场没有网络，执行计划 v3 并记录 100m=10.92s、RPE=8。期间教练在服务器已经发布 v5。重新联网后，正确模型应该是：</p>
-<ul><li>服务器 current plan 继续是 v5；</li><li>这条训练记录保留自己执行时引用的 plan_version=v3；</li><li>本地记录有稳定 local UUID，重试上传不会重复生成记录；</li><li>如果同一条记录两端都编辑，需要明确 Conflict Resolution 规则。</li></ul>
-<p>Last Write Wins（最后写入覆盖）不是万能方案。对昵称、草稿备注也许可接受；对计划版本、账单、审批、成绩历史通常不够。</p>
-<h3>5. Push Notification 不能冒充业务回执</h3>
-<p>后端把消息交给 APNs、FCM 或厂商推送，平台返回 accepted，只证明“平台接收了推送任务”。后续还有设备是否在线、系统是否展示、用户是否看到、用户是否点击。即使用户点击了，也不能自动推出“接受训练计划”。</p>
-<p>业务 Ack / Accept 应该是独立对象或明确动作：用户针对具体版本主动确认，后端记录 actor、object、version、time。</p>
-<h3>6. Permission 被拒绝是正常状态</h3>
-<p>相机、定位、麦克风、蓝牙、健康数据都可能处于“未询问 / 允许一次 / 使用时允许 / 永久拒绝”等状态。设计时要问：这项权限是核心不变量，还是增强能力？如果只是增强能力，就应该优雅降级。</p>
-<div class="q"><strong>练习：</strong>一个短跑训练 App 希望用 GPS 辅助记录，但用户拒绝定位。应该阻止整个训练页吗？</div>
-<p><strong>参考思路：</strong>如果核心任务仍可通过手动输入成绩完成，就不应因为增强能力缺失而硬阻断。应该提示定位能力缺失会影响哪些自动分析，同时保留手动记录路径。只有功能本身逻辑上依赖定位才能成立时，才需要阻断。</p>
+→ 从本地恢复
+→ 再和服务器同步</code></pre>
+<p>所以关键输入不能只存在内存变量里。否则用户锁屏或系统回收进程后，刚填的训练记录可能直接消失。</p>
+<h3>4. Offline-first：本地事实和服务器事实怎么合并</h3>
+<p>假设运动员离线时执行计划 v3，并记录 100m=10.92s。这里 <code>v3</code> 是 plan_version=3。期间教练在服务器发布 v5。</p>
+<p>恢复网络后，正确理解不是“手机有 v3，所以把服务器改回 v3”，而是：</p>
+<ul><li>服务器当前计划仍然是 v5。</li><li>本次训练记录保存 <code>plan_version=3</code>，说明当时执行的是 v3。</li><li>这条本地训练记录有稳定 <code>local_uuid</code>，重复上传不会生成多条。</li><li>如果同一条记录两端都编辑过，再进入 Conflict Resolution（冲突解决）。</li></ul>
+<h3>5. Last Write Wins 为什么不是万能答案</h3>
+<p><strong>Last Write Wins（LWW，最后写入者获胜）</strong>就是“谁最后保存，谁覆盖前面”。它对昵称、普通草稿可能够用；对计划版本、审批、支付、训练历史等关键事实通常不够，因为你可能需要保留两边来源和历史。</p>
+<h3>6. Push accepted 不等于用户已接受业务</h3>
+<p>先区分三个事实：</p><ol><li>推送平台 accepted：平台接收了你要发消息的请求。</li><li>设备 displayed / received：设备可能已经展示或收到。</li><li>业务 accept：用户本人针对某个具体计划版本明确点击“接受”。</li></ol>
+<p>这三件事不能混成一个布尔值。</p>
+<h3>7. Permission 被拒绝本身就是一种正常状态</h3>
+<p>定位权限可能是“未请求、允许一次、使用时允许、始终允许、拒绝”。产品逻辑要明确：这个能力是核心必要，还是增强功能。</p>
+<div class="q"><strong>练习：</strong>短跑训练 App 想用 GPS 辅助记录，但用户拒绝定位。要不要阻止整个训练页？</div>
+<p><strong>答案：</strong>如果核心任务还能通过手动输入完成，就不应把增强能力缺失变成全局阻断。应该说明哪些自动分析会受影响，同时保留手动路径。</p>
