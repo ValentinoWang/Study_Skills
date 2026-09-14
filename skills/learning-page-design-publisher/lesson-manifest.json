@@ -1,0 +1,39 @@
+{
+  "software-engineering-two-hour-primer-20260913": {
+    "layout": "lesson-expanded",
+    "term_source": "lesson",
+    "supplement_source_dir": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913-deep",
+    "supplement_pages_dir": "docs/_includes/software-engineering-two-hour-primer",
+    "global_prerequisites": {
+      "file": "00-reading-primer.html",
+      "section_id": "symbols",
+      "terms": ["variable", "xxx_id", "AND", "OR", "v3", "?", "UUID"]
+    },
+    "section_prerequisites": {
+      "deep1": {
+        "file": "01-frontend-request.html",
+        "terms": ["Component", "props", "state", "render", "View", "Request", "Response", "Routing", "HTTP", "Endpoint"]
+      },
+      "deep2": {
+        "file": "02-data-state.html",
+        "terms": ["Database", "Schema", "Primary Key", "Foreign Key", "Constraint", "Transaction", "status", "version", "State Machine", "Race Condition", "Migration"]
+      },
+      "deep3": {
+        "file": "03-auth-tenant.html",
+        "terms": ["user_id", "tenant_id", "resource_id", "role", "action", "relation", "Authentication", "Authorization", "RBAC", "ABAC"]
+      },
+      "deep4": {
+        "file": "04-async-payment.html",
+        "terms": ["Synchronous", "Asynchronous", "Queue", "Worker", "Retry", "Webhook", "event_id", "Idempotency", "idempotency_key", "balance", "quota", "Ledger"]
+      },
+      "deep5": {
+        "file": "05-mobile.html",
+        "terms": ["Runtime", "App Lifecycle", "Local Storage", "Sync", "Conflict", "local_uuid", "plan_version", "Push Notification", "Permission"]
+      },
+      "deep6": {
+        "file": "06-delivery.html",
+        "terms": ["Source Code", "Commit", "Build", "Artifact", "artifact_digest", "Release Candidate", "CI", "CD", "Deployment", "Readback", "Observability", "Rollback"]
+      }
+    }
+  }
+}

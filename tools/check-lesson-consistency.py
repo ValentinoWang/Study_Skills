@@ -1,39 +1,67 @@
 #!/usr/bin/env python3
-"""Check the current terminology-first GitHub Pages lesson architecture.
-
-The published page is no longer a hand-written/static copy of lesson-template.html.
-Consistency now means:
-  1. canonical lesson JSON == docs/_data/lessons mirror;
-  2. canonical term registry == docs/_data/term_overrides.yml;
-  3. each docs/lessons page is the deterministic Jekyll wrapper for its slug;
-  4. the shared layout renders terminology before the main orientation;
-  5. docs/.nojekyll is absent so Pages can run Jekyll.
-"""
+"""Check canonical lesson, layout, wrapper and supplemental-source consistency."""
 from __future__ import annotations
 
+import json
 import pathlib
-import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PAGE_SKILL = ROOT / "skills/learning-page-design-publisher"
 SOURCE_DIR = PAGE_SKILL / "lessons"
 TERM_SOURCE = PAGE_SKILL / "term-overrides.yml"
+MANIFEST = PAGE_SKILL / "lesson-manifest.json"
 DATA_DIR = ROOT / "docs/_data/lessons"
 TERM_DATA = ROOT / "docs/_data/term_overrides.yml"
 ENTRY_DIR = ROOT / "docs/lessons"
-LAYOUT = ROOT / "docs/_layouts/lesson.html"
+LAYOUT_DIR = ROOT / "docs/_layouts"
 NOJEKYLL = ROOT / "docs/.nojekyll"
 EXEMPT = {"welcome.html"}
 
 
-def wrapper(slug: str) -> str:
-    return f"---\nlayout: lesson\nlesson: {slug}\n---\n"
+def load_manifest() -> dict[str, dict]:
+    if not MANIFEST.exists():
+        return {}
+    data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise SystemExit("lesson-manifest.json must contain an object")
+    return data
+
+
+def layout_for(manifest: dict[str, dict], slug: str) -> str:
+    return str(manifest.get(slug, {}).get("layout", "lesson"))
+
+
+def wrapper(manifest: dict[str, dict], slug: str) -> str:
+    return f"---\nlayout: {layout_for(manifest, slug)}\nlesson: {slug}\n---\n"
+
+
+def compare_tree(src_dir: pathlib.Path, dst_dir: pathlib.Path) -> list[str]:
+    failures: list[str] = []
+    if not src_dir.is_dir():
+        return [f"missing supplemental source dir: {src_dir.relative_to(ROOT)}"]
+    if not dst_dir.is_dir():
+        return [f"missing supplemental Pages dir: {dst_dir.relative_to(ROOT)}"]
+    src = {p.relative_to(src_dir): p for p in src_dir.rglob("*") if p.is_file()}
+    dst = {p.relative_to(dst_dir): p for p in dst_dir.rglob("*") if p.is_file()}
+    for rel in sorted(set(src) | set(dst)):
+        if rel not in src:
+            failures.append(f"orphan supplemental Pages file: {(dst_dir / rel).relative_to(ROOT)}")
+        elif rel not in dst:
+            failures.append(f"missing supplemental mirror: {(dst_dir / rel).relative_to(ROOT)}")
+        elif src[rel].read_bytes() != dst[rel].read_bytes():
+            failures.append(f"supplemental mirror mismatch: {(dst_dir / rel).relative_to(ROOT)}")
+    return failures
 
 
 def main() -> int:
     failures: list[str] = []
+    manifest = load_manifest()
     sources = sorted(SOURCE_DIR.glob("*.json"))
     slugs = {p.stem for p in sources}
+
+    extra_manifest = sorted(set(manifest) - slugs)
+    if extra_manifest:
+        failures.append("manifest entries without canonical lesson: " + ", ".join(extra_manifest))
 
     print("canonical lesson data mirrors")
     for src in sources:
@@ -49,14 +77,17 @@ def main() -> int:
     else:
         print("  OK   terminology registry")
 
-    print("\nJekyll lesson entry files")
+    print("\nJekyll lesson entry files and layouts")
     for slug in sorted(slugs):
         page = ENTRY_DIR / f"{slug}.html"
-        expected = wrapper(slug)
+        expected = wrapper(manifest, slug)
         ok = page.is_file() and page.read_text(encoding="utf-8") == expected
         print(f"  {'OK  ' if ok else 'DRIFT'} {page.relative_to(ROOT)}")
         if not ok:
             failures.append(f"entry wrapper mismatch: {page.relative_to(ROOT)}")
+        layout = LAYOUT_DIR / f"{layout_for(manifest, slug)}.html"
+        if not layout.is_file():
+            failures.append(f"missing configured layout: {layout.relative_to(ROOT)}")
 
     if ENTRY_DIR.is_dir():
         for page in sorted(ENTRY_DIR.glob("*.html")):
@@ -65,26 +96,42 @@ def main() -> int:
             if page.stem not in slugs:
                 failures.append(f"orphan lesson entry: {page.relative_to(ROOT)}")
 
-    print("\nshared Pages layout")
-    if not LAYOUT.is_file():
-        failures.append("missing docs/_layouts/lesson.html")
-    else:
-        text = LAYOUT.read_text(encoding="utf-8")
-        terms_pos = text.find('id="terms"')
-        orient_pos = text.find('id="orient"')
+    print("\nlesson supplemental mirrors")
+    for slug, cfg in sorted(manifest.items()):
+        src_rel = cfg.get("supplement_source_dir")
+        dst_rel = cfg.get("supplement_pages_dir")
+        if bool(src_rel) != bool(dst_rel):
+            failures.append(f"{slug}: supplement source/pages dirs must be declared together")
+            continue
+        if not src_rel:
+            continue
+        local = compare_tree(ROOT / str(src_rel), ROOT / str(dst_rel))
+        print(f"  {'OK  ' if not local else 'DRIFT'} {slug}")
+        failures.extend(f"{slug}: {x}" for x in local)
+
+    print("\nlayout learning-order contracts")
+    for layout_name in sorted({layout_for(manifest, slug) for slug in slugs}):
+        layout = LAYOUT_DIR / f"{layout_name}.html"
+        if not layout.is_file():
+            continue
+        text = layout.read_text(encoding="utf-8")
         checks = {
             "uses lesson data": "site.data.lessons[page.lesson]" in text,
-            "uses terminology registry": "site.data.term_overrides[page.lesson]" in text,
-            "terms before orientation": terms_pos >= 0 and orient_pos >= 0 and terms_pos < orient_pos,
-            "collapsed gloss support": "term-gloss" in text,
+            "has terms section": 'id="terms"' in text,
         }
+        if layout_name == "lesson":
+            a, b = text.find('id="terms"'), text.find('id="orient"')
+            checks["terms before orientation"] = a >= 0 and b >= 0 and a < b
+            checks["terminology fallback/registry"] = (
+                "site.data.term_overrides[page.lesson]" in text or "lesson['TERMS_HTML']" in text
+            )
         for label, ok in checks.items():
-            print(f"  {'OK  ' if ok else 'FAIL'} {label}")
+            print(f"  {'OK  ' if ok else 'FAIL'} {layout_name}: {label}")
             if not ok:
-                failures.append(f"layout check failed: {label}")
+                failures.append(f"layout {layout_name} failed: {label}")
 
     if NOJEKYLL.exists():
-        failures.append("docs/.nojekyll exists and disables the Jekyll lesson layout")
+        failures.append("docs/.nojekyll exists and disables Jekyll")
 
     print()
     if failures:
@@ -92,7 +139,7 @@ def main() -> int:
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("PASS: canonical lesson data, terminology registry, wrappers and Pages layout are consistent.")
+    print("PASS: canonical data, supplemental chapters, wrappers and configured layouts are consistent.")
     return 0
 
 

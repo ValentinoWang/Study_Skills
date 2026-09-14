@@ -1,26 +1,19 @@
 #!/usr/bin/env python3
-"""Check that terminology-primer cards contain real explanations.
-
-Baseline rule: every collapsed card exposes a one-line gloss and at least one
-structured explanatory dimension.
-
-Selected system lessons also carry a richer teaching contract: every core term
-must contain intuition, a stricter definition, a current-case mapping and a
-boundary.  This prevents a glossary that is technically present but still too
-thin to support reasoning for a cross-disciplinary learner.
-"""
+"""Check that terminology and per-section prerequisite primers have teaching depth."""
 from __future__ import annotations
 
+import json
 import pathlib
 import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-REGISTRY = ROOT / "skills/learning-page-design-publisher/term-overrides.yml"
+PAGE_SKILL = ROOT / "skills/learning-page-design-publisher"
+REGISTRY = PAGE_SKILL / "term-overrides.yml"
+MANIFEST = PAGE_SKILL / "lesson-manifest.json"
 ALLOWED_LABELS = {
     "直觉", "一句话直觉", "严格一点", "严格定义", "当前案例", "本案作用",
     "边界", "比喻", "比喻的边界", "怎么观察",
 }
-
 RICH_LESSONS = {
     "software-delivery-lifecycle-ai-coding-20260910": {
         "required_labels": {"直觉", "严格定义", "当前案例", "边界"},
@@ -36,7 +29,7 @@ RICH_LESSONS = {
 
 
 def plain(text: str) -> str:
-    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"&(?:#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);", " ", text)
     return re.sub(r"\s+", " ", text).strip()
 
@@ -50,32 +43,38 @@ def registry_sections(text: str) -> dict[str, str]:
     return out
 
 
+def primer_prefix(html: str) -> str:
+    split = re.search(r"<h3>\s*1[\.、．]", html, re.I)
+    return html[: split.start()] if split else html
+
+
+def load_manifest() -> dict[str, dict]:
+    if not MANIFEST.exists():
+        return {}
+    return json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+
 def main() -> int:
     if not REGISTRY.is_file():
         raise SystemExit(f"missing terminology registry: {REGISTRY}")
-
     text = REGISTRY.read_text(encoding="utf-8")
     sections = registry_sections(text)
+    manifest = load_manifest()
     failures: list[str] = []
     total_cards = 0
 
     print(f"registry: {REGISTRY.relative_to(ROOT)}")
-
     for slug, section in sections.items():
         cards = re.findall(r"<details>(.*?)</details>", section, re.S)
         total_cards += len(cards)
         rich = RICH_LESSONS.get(slug)
         print(f"\n{slug}: cards={len(cards)}" + (" [rich]" if rich else ""))
-
         if rich:
             visible = plain(section)
             if len(cards) < rich["min_cards"]:
                 failures.append(f"{slug}: cards={len(cards)} < {rich['min_cards']}")
             if len(visible) < rich["min_plain_chars"]:
-                failures.append(
-                    f"{slug}: visible term text={len(visible)} < {rich['min_plain_chars']} chars"
-                )
-
+                failures.append(f"{slug}: visible term text={len(visible)} < {rich['min_plain_chars']} chars")
         for i, block in enumerate(cards, 1):
             summary_m = re.search(r"<summary>(.*?)</summary>", block, re.S)
             gloss_m = re.search(r'<span class="term-gloss">(.*?)</span>', block, re.S)
@@ -84,7 +83,6 @@ def main() -> int:
             name = plain(summary_m.group(1)) if summary_m else f"card #{i}"
             gloss = plain(gloss_m.group(1)) if gloss_m else ""
             reasons: list[str] = []
-
             if not summary_m:
                 reasons.append("missing summary")
             if len(gloss) < 8:
@@ -95,28 +93,65 @@ def main() -> int:
                 reasons.append("expanded card lacks a recognized explanatory dimension")
             if dds and all(len(x) < 6 for x in dds):
                 reasons.append("expanded explanations are too thin")
-
             if rich:
                 missing_labels = sorted(rich["required_labels"] - set(dts))
                 if missing_labels:
                     reasons.append("rich lesson missing dimensions: " + ", ".join(missing_labels))
                 if len(plain(block)) < 170:
-                    reasons.append("rich lesson card is still too short (<170 visible chars)")
-
+                    reasons.append("rich lesson card is too short (<170 visible chars)")
             print(f"  {'THIN' if reasons else 'OK  '} {name[:72]}")
             if reasons:
                 failures.append(f"{slug} / {name}: {'; '.join(reasons)}")
+
+    print("\nlong-form section primer depth")
+    for slug, cfg in sorted(manifest.items()):
+        src_rel = cfg.get("supplement_source_dir")
+        if not src_rel:
+            continue
+        src_dir = ROOT / str(src_rel)
+        global_cfg = cfg.get("global_prerequisites") or {}
+        if global_cfg:
+            f = src_dir / str(global_cfg.get("file", ""))
+            if not f.is_file():
+                failures.append(f"{slug}: missing global primer {f.relative_to(ROOT)}")
+            else:
+                chars = len(plain(f.read_text(encoding="utf-8")))
+                ok = chars >= 350
+                print(f"  {'OK  ' if ok else 'THIN'} {slug}/global-primer: visible={chars}")
+                if not ok:
+                    failures.append(f"{slug}: global prerequisite primer too thin ({chars} < 350)")
+
+        for section_id, spec in (cfg.get("section_prerequisites") or {}).items():
+            f = src_dir / str(spec.get("file", ""))
+            if not f.is_file():
+                failures.append(f"{slug}/{section_id}: missing section source")
+                continue
+            html = f.read_text(encoding="utf-8")
+            total = len(plain(html))
+            prefix = len(plain(primer_prefix(html)))
+            declared = len(spec.get("terms", []))
+            primer_min = max(260, min(900, declared * 30))
+            section_min = 850
+            ok = total >= section_min and prefix >= primer_min
+            print(
+                f"  {'OK  ' if ok else 'THIN'} {slug}/{section_id}: "
+                f"visible={total}, primer={prefix}, declared={declared}"
+            )
+            if total < section_min:
+                failures.append(f"{slug}/{section_id}: section visible text too thin ({total} < {section_min})")
+            if prefix < primer_min:
+                failures.append(f"{slug}/{section_id}: prerequisite primer too thin ({prefix} < {primer_min})")
 
     if total_cards == 0:
         failures.append("no terminology cards found")
 
     print()
     if failures:
-        print(f"FAIL: {len(failures)} terminology depth problem(s)")
+        print(f"FAIL: {len(failures)} terminology/prerequisite depth problem(s)")
         for item in failures:
             print(f"  - {item}")
         return 1
-    print("PASS: terminology primers meet baseline depth; rich lessons meet the four-dimension contract.")
+    print("PASS: global terminology and long-form prerequisite primers meet depth contracts.")
     return 0
 
 
