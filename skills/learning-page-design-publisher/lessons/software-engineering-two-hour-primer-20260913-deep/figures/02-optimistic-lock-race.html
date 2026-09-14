@@ -1,7 +1,8 @@
 <figure class="learning-figure" data-figure-id="optimistic-lock-race" style="margin:22px 0 18px;padding:16px;border:1px solid #dfe3ea;border-radius:16px;background:#fbfcff">
   <div style="font-weight:800;color:#1d2433;margin-bottom:10px">图解复盘｜并发保存为什么不能“后写覆盖先写”？</div>
   <div class="learning-figure-scroll" style="overflow-x:auto;overscroll-behavior-inline:contain;border-radius:12px;background:#fff">
-    <img src="{{ '/assets/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg' | relative_url }}" alt="图示：教练 A 和 B 都读到 version 7，A 先保存使服务器变为 version 8，B 再携带 expected version 7 保存时被 409 冲突拒绝。" style="display:block;width:100%;min-width:760px;height:auto">
+    <img src="{{ '/assets/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg?v=2' | relative_url }}" alt="图示：教练 A 和 B 都读到 version 7，A 先保存使服务器变为 version 8，B 再携带 expected version 7 保存时被 409 冲突拒绝。" style="display:block;width:100%;min-width:760px;height:auto">
   </div>
   <figcaption style="margin-top:10px;color:#667085;font-size:.92rem;line-height:1.65">读图顺序：先看两人都拿到 v7，再看 A 把服务器推进到 v8，最后看 B 的旧 expected version=7 为什么必须失败。</figcaption>
 </figure>
+<script>(()=>{const s=document.currentScript,f=s.previousElementSibling,sec=f&&f.closest('section');if(!sec)return;const h=[...sec.querySelectorAll('h3')].find(x=>x.textContent.trim().startsWith('6. 并发更新'));if(h)h.insertAdjacentElement('afterend',f)})();</script>
