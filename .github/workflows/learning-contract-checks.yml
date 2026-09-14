@@ -1,0 +1,47 @@
+name: Learning contract checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/math-cs-concept-tutor/**'
+      - 'skills/learning-page-design-publisher/**'
+      - 'tools/build-lessons.py'
+      - 'tools/check-lesson-consistency.py'
+      - 'tools/check-term-depth.py'
+      - 'tools/check-term-gate.py'
+      - 'tools/test-learning-contract-regressions.py'
+      - 'docs/_includes/**'
+      - 'docs/_layouts/**'
+      - 'docs/_data/**'
+      - 'docs/lessons/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  learning-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Python gates
+        run: |
+          python3 -m py_compile \
+            tools/build-lessons.py \
+            tools/check-lesson-consistency.py \
+            tools/check-term-depth.py \
+            tools/check-term-gate.py \
+            tools/test-learning-contract-regressions.py
+      - name: Check generated source consistency
+        run: |
+          python3 tools/build-lessons.py --check
+          python3 tools/check-lesson-consistency.py
+      - name: Check learning prerequisites
+        run: |
+          python3 tools/check-term-depth.py
+          python3 tools/check-term-gate.py
+          python3 tools/test-learning-contract-regressions.py
+      - name: Check math rendering safety
+        run: python3 tools/check-math-render-safety.py
