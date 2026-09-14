@@ -3,24 +3,50 @@
   "lessonId": "cadenvo-generation-pipeline-20260915",
   "sourceRepository": "ValentinoWang/Cadenvo_Frontend",
   "sourceCommit": "0b4fedc57e8297b78beb2013a5cf2c30c2b6fa3e",
-  "status": "BUILD_FIX_SUBMITTED_AWAITING_VERIFICATION",
-  "identityChecks": {
-    "canonicalAndPagesLessonBlob": "470de15291f1ff15856652254b1850cd4dae8f05",
-    "canonicalAndPagesPrerequisiteBlob": "1723846cce145b52c3fc1747509ab38129bb6fdb",
-    "termSource": "lesson; existing terminology registry remains unchanged",
-    "layout": "lesson-cadenvo",
-    "manifest": "existing entries preserved; new layout and prerequisite mirror declared",
-    "homepage": "one new course card; existing entries preserved"
+  "verifiedPublicationCommit": "122f1a99580de272db5ef849910b58cade4beb41",
+  "canonicalAndPagesLessonBlob": "470de15291f1ff15856652254b1850cd4dae8f05",
+  "canonicalAndPagesPrerequisiteBlob": "1723846cce145b52c3fc1747509ab38129bb6fdb",
+  "status": "NATIVE_PAGES_DEPLOYED_ARTIFACT_RENDER_CHECKS_PASS",
+  "nativePages": {
+    "workflowRunId": 34876459815,
+    "build": "success",
+    "deploy": "success",
+    "artifactId": 10361008925,
+    "archiveDigest": "sha256:020c340eb0b7d610fdae870e584ff9b1eb63345478fa84f153d873dc8f95db0a",
+    "builtHtmlSha256": "1fd846ae63717e6e2b841eb7be88b8b02fff949fd562d9dd4d7e651311658728"
   },
-  "previousAttempts": [
-    {"runId":34873597170,"kind":"custom staging","result":"failed before runner allocation; zero checks executed"},
-    {"runId":34875751790,"kind":"native Pages","result":"Jekyll build failed; deployment skipped; source inspection found unescaped newlines and quotes inside code examples in lesson JSON"}
+  "browserVerificationMethod": "Chromium set_content using the exact HTML bytes downloaded from the native Pages artifact; no simulated course content or substituted lesson template.",
+  "checks": [
+    "Exact course title and all seven source-analysis stages present",
+    "14 terminology cards expose a definition while collapsed",
+    "Variable and pseudocode primer precedes the source-analysis reasoning",
+    "Three accessible native MathML formulas retained",
+    "Unique element IDs and valid internal navigation targets",
+    "Four multiline code examples retained; embedded JSON example parses",
+    "No document-level horizontal overflow at desktop 1280px and mobile 390px",
+    "Answer editing, three-stage hints, actual answer reveal and progress update work",
+    "Copy action provides clipboard success or selection fallback",
+    "Reset clears in-memory draft, checks and revealed answers",
+    "A4-width print media expands terms and answers and hides navigation without document overflow",
+    "After-print handler restores the prior collapsed and hidden state",
+    "Homepage contains exactly one course entry",
+    "No browser JavaScript page errors"
   ],
-  "repair": "Code sample newlines and quotes are represented using HTML entities inside valid JSON strings; full lesson sections and examples retained.",
+  "visualInspection": {
+    "screenshotsReviewed": ["desktop-top.png", "mobile-stage3.png", "print-media.png"],
+    "result": "No observed clipping or overlapping text in the reviewed views; not a review of every scroll position or printed page."
+  },
+  "expandedMainNonWhitespaceCharacters": 15472,
+  "readingTime": "Suggested 75–100 minute activity schedule, not measured learner completion time",
+  "previousAttempts": [
+    {"runId":34873597170,"result":"Custom staging job failed before runner allocation; no checks executed"},
+    {"runId":34875751790,"result":"Initial native build failed; unescaped code-example newlines and quotes in JSON were subsequently repaired"}
+  ],
   "limitations": [
-    "This record does not yet assert successful native Jekyll build or live deployment of the repair.",
-    "No browser or paginated print QA has been executed for this course.",
-    "No Cadenvo model calls or business operations were executed for this source-based lesson.",
-    "75–100 minutes is a suggested activity schedule, not measured completion time."
+    "Browser HTTP and file navigation are blocked by this execution environment; live-origin networking and localStorage persistence across reloads were not tested.",
+    "The live public URL was not independently read back; native deployment success and downloaded artifact identity are recorded separately.",
+    "Print media and print handlers checked; paginated PDF output not reviewed.",
+    "Repository-wide custom consistency scripts were not executed in this verification run.",
+    "No Cadenvo model generation, business operations, security audit or end-user acceptance was executed."
   ]
 }
