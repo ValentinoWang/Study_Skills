@@ -1,0 +1,7 @@
+<figure class="learning-figure" data-figure-id="idempotent-webhook" style="margin:22px 0 18px;padding:16px;border:1px solid #dfe3ea;border-radius:16px;background:#fbfcff">
+  <div style="font-weight:800;color:#1d2433;margin-bottom:10px">图解复盘｜为什么两次 Webhook 只能入账一次？</div>
+  <div class="learning-figure-scroll" style="overflow-x:auto;overscroll-behavior-inline:contain;border-radius:12px;background:#fff">
+    <img src="{{ '/assets/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.svg' | relative_url }}" alt="图示：相同 event_id 的支付成功 Webhook 到达两次，第一次进入事务并写 Ledger，第二次因事件已存在而不再入账。" style="display:block;width:100%;min-width:760px;height:auto">
+  </div>
+  <figcaption style="margin-top:10px;color:#667085;font-size:.92rem;line-height:1.65">读图顺序：比较两条相同 event_id 的通知。关键结论：重复收到消息可以接受，但业务副作用必须只发生一次。</figcaption>
+</figure>

@@ -37,7 +37,48 @@
         "file": "06-delivery.html",
         "terms": ["Source Code", "Commit", "Build", "Artifact", "artifact_digest", "Release Candidate", "CI", "CD", "Deployment", "Readback", "Observability", "Rollback"]
       }
-    }
+    },
+    "figures": [
+      {
+        "id": "state-to-view",
+        "section_id": "deep1",
+        "question": "计划要求没有变化时，为什么界面上的完成数量会变化？",
+        "takeaway": "props 保持“要求 4 组”，state 从 2 变 3，render 使 View 从 2/4 变 3/4；这仍不证明服务器已经保存。",
+        "source": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/state-to-view.svg",
+        "public_path": "docs/assets/figures/software-engineering-two-hour-primer-20260913/state-to-view.svg",
+        "requires": ["props", "state", "render", "View"],
+        "mobile_strategy": "scroll",
+        "evidence_type": "teaching-example",
+        "embed_file": "figures/01-state-to-view.html",
+        "layout_include": "software-engineering-two-hour-primer/figures/01-state-to-view.html"
+      },
+      {
+        "id": "optimistic-lock-race",
+        "section_id": "deep2",
+        "question": "两位教练都读到 version=7，为什么第二个保存会冲突？",
+        "takeaway": "A 先把服务器推进到 version=8 后，B 携带的 expected version=7 已过期，所以后端应拒绝覆盖。",
+        "source": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg",
+        "public_path": "docs/assets/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg",
+        "requires": ["version"],
+        "mobile_strategy": "scroll",
+        "evidence_type": "teaching-example",
+        "embed_file": "figures/02-optimistic-lock-race.html",
+        "layout_include": "software-engineering-two-hour-primer/figures/02-optimistic-lock-race.html"
+      },
+      {
+        "id": "idempotent-webhook",
+        "section_id": "deep4",
+        "question": "同一个支付成功 Webhook 到达两次，为什么余额只能变化一次？",
+        "takeaway": "两个通知共享同一个 event_id；数据库唯一约束与事务让第一次入账，第二次识别为重复并结束。",
+        "source": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.svg",
+        "public_path": "docs/assets/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.svg",
+        "requires": ["Webhook", "event_id", "Idempotency", "Ledger"],
+        "mobile_strategy": "scroll",
+        "evidence_type": "teaching-example",
+        "embed_file": "figures/04-idempotent-webhook.html",
+        "layout_include": "software-engineering-two-hour-primer/figures/04-idempotent-webhook.html"
+      }
+    ]
   },
   "cadenvo-generation-pipeline-20260915": {
     "layout": "lesson-cadenvo",

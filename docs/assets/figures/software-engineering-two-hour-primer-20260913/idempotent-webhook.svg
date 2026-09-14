@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" data-figure-id="idempotent-webhook" aria-labelledby="hook-title hook-desc" viewBox="0 0 960 500">
+  <title id="hook-title">重复支付 Webhook 如何只产生一次账本变化</title>
+  <desc id="hook-desc">支付平台把相同 event_id 的成功 Webhook 发送两次。处理器通过唯一事件记录和事务让第一次写入账本，第二次识别为重复后直接结束。</desc>
+  <defs>
+    <marker id="arrow-hook" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#667085"/></marker>
+  </defs>
+  <rect x="20" y="20" width="920" height="460" rx="22" fill="#fbfcff" stroke="#dfe3ea"/>
+  <text x="48" y="60" font-size="22" font-weight="700" fill="#1d2433">重复通知不是异常：系统必须把“同一事件”认出来</text>
+
+  <g data-semantic="provider">
+    <rect x="60" y="94" width="220" height="80" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
+    <rect id="provider-safe" data-protect="text" x="78" y="108" width="184" height="52" fill="none" stroke="none"/>
+    <text x="170" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">支付平台</text>
+    <text data-term="Webhook" x="170" y="156" text-anchor="middle" font-size="20" fill="#303849">成功 Webhook</text>
+  </g>
+  <g data-semantic="handler">
+    <rect x="370" y="94" width="220" height="80" rx="14" fill="#fff8df" stroke="#dfbf68"/>
+    <rect id="handler-safe" data-protect="text" x="388" y="108" width="184" height="52" fill="none" stroke="none"/>
+    <text x="480" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#8a5b00">Webhook 处理器</text>
+    <text data-term="Idempotency" x="480" y="156" text-anchor="middle" font-size="20" fill="#303849">Idempotency 检查</text>
+  </g>
+  <g data-semantic="database">
+    <rect x="680" y="94" width="220" height="80" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
+    <rect id="db-safe" data-protect="text" x="698" y="108" width="184" height="52" fill="none" stroke="none"/>
+    <text x="790" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">数据库事务</text>
+    <text data-term="Ledger" x="790" y="156" text-anchor="middle" font-size="20" fill="#303849">Ledger 只写一次</text>
+  </g>
+
+  <line data-connector="first-hook" x1="280" y1="230" x2="360" y2="230" stroke="#4f46e5" stroke-width="4" marker-end="url(#arrow-hook)"/>
+  <text data-term="event_id" x="320" y="214" text-anchor="middle" font-size="20" fill="#39348d">event_id = evt_42</text>
+  <rect x="390" y="196" width="180" height="68" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
+  <rect id="first-safe" data-protect="text" x="410" y="210" width="140" height="36" fill="none" stroke="none"/>
+  <text x="480" y="237" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">首次出现 → 继续</text>
+  <line data-connector="first-ledger" x1="590" y1="230" x2="670" y2="230" stroke="#176348" stroke-width="4" marker-end="url(#arrow-hook)"/>
+  <text data-term="Ledger" x="630" y="214" text-anchor="middle" font-size="20" fill="#176348">写唯一事件 + Ledger</text>
+
+  <line data-connector="second-hook" x1="280" y1="340" x2="360" y2="340" stroke="#a33129" stroke-width="4" marker-end="url(#arrow-hook)"/>
+  <text data-term="event_id" x="320" y="324" text-anchor="middle" font-size="20" fill="#a33129">同一个 event_id = evt_42</text>
+  <rect x="390" y="306" width="180" height="68" rx="14" fill="#fff2f0" stroke="#df9b95"/>
+  <rect id="second-safe" data-protect="text" x="410" y="320" width="140" height="36" fill="none" stroke="none"/>
+  <text x="480" y="347" text-anchor="middle" font-size="20" font-weight="700" fill="#a33129">已存在 → 重复</text>
+  <line data-connector="duplicate-stop" x1="590" y1="340" x2="670" y2="340" stroke="#a33129" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow-hook)"/>
+  <text x="630" y="324" text-anchor="middle" font-size="20" fill="#a33129">不再入账</text>
+
+  <text x="86" y="438" font-size="20" fill="#667085">最终结果：收到 2 次通知，但账本和余额只发生 1 次业务副作用。</text>
+</svg>

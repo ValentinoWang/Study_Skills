@@ -3,9 +3,13 @@
 
 Default lessons use the shared ``lesson`` layout. Per-lesson exceptions are
 explicitly declared in ``skills/learning-page-design-publisher/lesson-manifest.json``.
-The same manifest also declares canonical supplemental chapter sources and the
-Pages include directory they mirror to, so a normal rebuild cannot silently
-collapse a long-form course back to the default wrapper.
+
+The manifest also declares:
+- canonical supplemental chapter sources and Pages include mirrors;
+- canonical teaching-figure sources and public SVG mirrors.
+
+A normal rebuild must not silently collapse a long-form course, drop supplemental
+chapters, or publish a figure different from the canonical source.
 """
 from __future__ import annotations
 
@@ -108,6 +112,45 @@ def mirror_supplements(manifest: dict[str, dict], check_only: bool) -> bool:
     return ok
 
 
+def mirror_figures(manifest: dict[str, dict], check_only: bool) -> bool:
+    ok = True
+    print("\nteaching figure mirrors")
+    seen_public: set[pathlib.Path] = set()
+    for slug, cfg in sorted(manifest.items()):
+        figures = cfg.get("figures", [])
+        if not figures:
+            continue
+        if not isinstance(figures, list):
+            print(f"  FAIL {slug}: figures must be a list")
+            ok = False
+            continue
+        for spec in figures:
+            if not isinstance(spec, dict):
+                print(f"  FAIL {slug}: figure spec must be an object")
+                ok = False
+                continue
+            figure_id = str(spec.get("id", "<missing-id>"))
+            source_rel = spec.get("source")
+            public_rel = spec.get("public_path")
+            if not source_rel or not public_rel:
+                print(f"  FAIL {slug}/{figure_id}: source and public_path are required")
+                ok = False
+                continue
+            src = ROOT / str(source_rel)
+            dst = ROOT / str(public_rel)
+            if not src.is_file():
+                print(f"  FAIL {slug}/{figure_id}: missing {src.relative_to(ROOT)}")
+                ok = False
+                continue
+            if dst in seen_public:
+                print(f"  FAIL {slug}/{figure_id}: duplicate public_path {dst.relative_to(ROOT)}")
+                ok = False
+                continue
+            seen_public.add(dst)
+            ok &= sync_file(src, dst, check_only)
+    return ok
+
+
 def main() -> int:
     check_only = "--check" in sys.argv
     manifest = load_manifest()
@@ -132,6 +175,7 @@ def main() -> int:
     ok &= sync_file(TERM_SOURCE, PAGES_TERM_DATA, check_only)
 
     ok &= mirror_supplements(manifest, check_only)
+    ok &= mirror_figures(manifest, check_only)
 
     print("\nlesson entry files")
     for slug in sorted(source_slugs):
@@ -163,9 +207,9 @@ def main() -> int:
             print(f"\nremoved  {NOJEKYLL.relative_to(ROOT)}")
 
     if not ok:
-        print("\nFAIL: Pages 数据、补充章节或入口与 canonical sources 不一致。")
+        print("\nFAIL: Pages 数据、补充章节、教学图或入口与 canonical sources 不一致。")
         return 1
-    print("\nOK: lesson data, supplements, terminology registry and Pages entries are synchronized.")
+    print("\nOK: lesson data, supplements, figures, terminology registry and Pages entries are synchronized.")
     return 0
 
 
