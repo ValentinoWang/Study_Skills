@@ -1,0 +1,9 @@
+{% assign lpf_collection = site.data.learning_page_figures[page.lesson] %}
+{% if lpf_collection %}
+  {% for pair in lpf_collection %}
+    {% assign lpf = pair[1] %}
+    {% if lpf.slot == include.slot %}
+      {% include learning-page-figure.html figure=lpf %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
