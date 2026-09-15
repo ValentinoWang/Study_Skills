@@ -1,0 +1,19 @@
+{% assign f = include.figure %}
+<figure class="learning-page-figure lpf-v1" id="fig-{{ f.id }}" aria-labelledby="fig-{{ f.id }}-title">
+  <figcaption id="fig-{{ f.id }}-title">
+    <span class="lpf-kicker">图解 · Pages 原生结构图</span>
+    <strong>{{ f.question | escape }}</strong>
+  </figcaption>
+  <p class="lpf-reading">{{ f.reading_order | escape }}</p>
+  <div class="lpf-track" role="list" aria-label="{{ f.question | escape }}">
+    {% for step in f.steps %}
+      <div class="lpf-step lpf-tone-{{ step.tone }}" role="listitem">
+        <strong>{{ step.label | escape }}</strong>
+        <p>{{ step.detail | escape }}</p>
+      </div>
+      {% unless forloop.last %}<div class="lpf-arrow" aria-hidden="true">→</div>{% endunless %}
+    {% endfor %}
+  </div>
+  <p class="lpf-takeaway"><strong>结论：</strong>{{ f.takeaway | escape }}</p>
+  <p class="lpf-boundary"><strong>边界：</strong>{{ f.boundary | escape }}</p>
+</figure>
