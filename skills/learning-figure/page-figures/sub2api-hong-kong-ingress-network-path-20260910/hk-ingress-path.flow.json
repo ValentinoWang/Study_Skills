@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "id": "hk-ingress-path",
+  "kind": "pipeline",
+  "question": "香港前置接入到底改变了哪一段网络路径？",
+  "takeaway": "香港接入把用户入站从“大陆客户端直接跨境到新加坡源站”改成“大陆客户端 → 香港入口 → 新加坡源站”；新加坡侧的 egress proxy 只影响“源站 → 模型上游”，不会反向修复用户已经经历过的入站链路。",
+  "reading_order": "从左到右按请求方向看四个位置；重点区分前两段属于用户入站，最后一段属于服务器出站。返回流量沿相反方向经过同一接入链。",
+  "boundary": "这是网络角色与控制位置示意，不代表实际 BGP 物理跳数，也不证明香港方案一定更快；是否改善必须用大陆→香港、香港→新加坡和端到端 HTTPS/流式请求实测。",
+  "evidence_type": "schematic",
+  "steps": [
+    {
+      "id": "client",
+      "label": "① 中国大陆客户端",
+      "detail": "Codex、Claude Code 或浏览器先发起 HTTPS / SSE / WebSocket 请求；这里是用户入站路径的起点。",
+      "tone": "neutral"
+    },
+    {
+      "id": "hk",
+      "label": "② 香港 Ingress",
+      "detail": "公网前门终止 TLS、保持长连接并做反向代理，把用户先接到更可控的入口；这一层尽量无状态。",
+      "tone": "success"
+    },
+    {
+      "id": "sg",
+      "label": "③ 新加坡 Sub2API Origin",
+      "detail": "账号、鉴权、计费、渠道调度、数据库与 Redis 仍留在源站；香港不是第二套业务系统。",
+      "tone": "info"
+    },
+    {
+      "id": "upstream",
+      "label": "④ 模型上游",
+      "detail": "GPT / Claude 等上游属于服务器 egress 路径；在新加坡配置 mihomo 只会改变这一段的出站选择。",
+      "tone": "warn"
+    }
+  ]
+}
