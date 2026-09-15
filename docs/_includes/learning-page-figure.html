@@ -1,11 +1,12 @@
 {% assign f = include.figure %}
+{% assign step_count = f.steps | size %}
 <figure class="learning-page-figure lpf-v1" id="fig-{{ f.id }}" aria-labelledby="fig-{{ f.id }}-title">
   <figcaption id="fig-{{ f.id }}-title">
     <span class="lpf-kicker">图解 · Pages 原生结构图</span>
     <strong>{{ f.question | escape }}</strong>
   </figcaption>
   <p class="lpf-reading">{{ f.reading_order | escape }}</p>
-  <div class="lpf-track" role="list" aria-label="{{ f.question | escape }}">
+  <div class="lpf-track lpf-count-{{ step_count }}" role="list" aria-label="{{ f.question | escape }}">
     {% for step in f.steps %}
       <div class="lpf-step lpf-tone-{{ step.tone }}" role="listitem">
         <strong>{{ step.label | escape }}</strong>
