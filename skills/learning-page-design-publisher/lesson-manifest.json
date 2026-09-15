@@ -10,73 +10,130 @@
     "global_prerequisites": {
       "file": "00-reading-primer.html",
       "section_id": "symbols",
-      "terms": ["variable", "xxx_id", "AND", "OR", "v3", "?", "UUID"]
+      "terms": [
+        "variable",
+        "xxx_id",
+        "AND",
+        "OR",
+        "v3",
+        "?",
+        "UUID"
+      ]
     },
     "section_prerequisites": {
       "deep1": {
         "file": "01-frontend-request.html",
-        "terms": ["Component", "props", "state", "render", "View", "Request", "Response", "Routing", "HTTP", "Endpoint"]
+        "terms": [
+          "Component",
+          "props",
+          "state",
+          "render",
+          "View",
+          "Request",
+          "Response",
+          "Routing",
+          "HTTP",
+          "Endpoint"
+        ]
       },
       "deep2": {
         "file": "02-data-state.html",
-        "terms": ["Database", "Schema", "Primary Key", "Foreign Key", "Constraint", "Transaction", "status", "version", "State Machine", "Race Condition", "Migration"]
+        "terms": [
+          "Database",
+          "Schema",
+          "Primary Key",
+          "Foreign Key",
+          "Constraint",
+          "Transaction",
+          "status",
+          "version",
+          "State Machine",
+          "Race Condition",
+          "Migration"
+        ]
       },
       "deep3": {
         "file": "03-auth-tenant.html",
-        "terms": ["user_id", "tenant_id", "resource_id", "role", "action", "relation", "Authentication", "Authorization", "RBAC", "ABAC"]
+        "terms": [
+          "user_id",
+          "tenant_id",
+          "resource_id",
+          "role",
+          "action",
+          "relation",
+          "Authentication",
+          "Authorization",
+          "RBAC",
+          "ABAC"
+        ]
       },
       "deep4": {
         "file": "04-async-payment.html",
-        "terms": ["Synchronous", "Asynchronous", "Queue", "Worker", "Retry", "Webhook", "event_id", "Idempotency", "idempotency_key", "balance", "quota", "Ledger"]
+        "terms": [
+          "Synchronous",
+          "Asynchronous",
+          "Queue",
+          "Worker",
+          "Retry",
+          "Webhook",
+          "event_id",
+          "Idempotency",
+          "idempotency_key",
+          "balance",
+          "quota",
+          "Ledger"
+        ]
       },
       "deep5": {
         "file": "05-mobile.html",
-        "terms": ["Runtime", "App Lifecycle", "Local Storage", "Sync", "Conflict", "local_uuid", "plan_version", "Push Notification", "Permission"]
+        "terms": [
+          "Runtime",
+          "App Lifecycle",
+          "Local Storage",
+          "Sync",
+          "Conflict",
+          "local_uuid",
+          "plan_version",
+          "Push Notification",
+          "Permission"
+        ]
       },
       "deep6": {
         "file": "06-delivery.html",
-        "terms": ["Source Code", "Commit", "Build", "Artifact", "artifact_digest", "Release Candidate", "CI", "CD", "Deployment", "Readback", "Observability", "Rollback"]
+        "terms": [
+          "Source Code",
+          "Commit",
+          "Build",
+          "Artifact",
+          "artifact_digest",
+          "Release Candidate",
+          "CI",
+          "CD",
+          "Deployment",
+          "Readback",
+          "Observability",
+          "Rollback"
+        ]
       }
     },
     "figures": [
       {
         "id": "state-to-view",
+        "model": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/state-to-view.figure.json",
         "section_id": "deep1",
-        "question": "计划要求没有变化时，为什么界面上的完成数量会变化？",
-        "takeaway": "props 保持“要求 4 组”，state 从 2 变 3，render 使 View 从 2/4 变 3/4；这仍不证明服务器已经保存。",
-        "source": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/state-to-view.svg",
-        "public_path": "docs/assets/figures/software-engineering-two-hour-primer-20260913/state-to-view.svg",
-        "requires": ["props", "state", "render", "View"],
-        "mobile_strategy": "scroll",
-        "evidence_type": "teaching-example",
-        "embed_file": "figures/01-state-to-view.html",
-        "layout_include": "software-engineering-two-hour-primer/figures/01-state-to-view.html"
+        "after_id": "lf-slot-state-to-view"
       },
       {
         "id": "optimistic-lock-race",
+        "model": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.figure.json",
         "section_id": "deep2",
-        "question": "两位教练都读到 version=7，为什么第二个保存会冲突？",
-        "takeaway": "A 先把服务器推进到 version=8 后，B 携带的 expected version=7 已过期，所以后端应拒绝覆盖。",
-        "source": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg",
-        "public_path": "docs/assets/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg",
-        "requires": ["version"],
-        "mobile_strategy": "scroll",
-        "evidence_type": "teaching-example",
-        "embed_file": "figures/02-optimistic-lock-race.html",
-        "layout_include": "software-engineering-two-hour-primer/figures/02-optimistic-lock-race.html"
+        "after_id": "lf-slot-optimistic-lock-race"
       },
       {
         "id": "idempotent-webhook",
+        "model": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.figure.json",
         "section_id": "deep4",
-        "question": "同一个支付成功 Webhook 到达两次，为什么余额只能变化一次？",
-        "takeaway": "两个通知共享同一个 event_id；数据库唯一约束与事务让第一次入账，第二次识别为重复并结束。",
-        "source": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.svg",
-        "public_path": "docs/assets/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.svg",
-        "requires": ["Webhook", "event_id", "Idempotency", "Ledger"],
-        "mobile_strategy": "scroll",
-        "evidence_type": "teaching-example",
-        "embed_file": "figures/04-idempotent-webhook.html",
-        "layout_include": "software-engineering-two-hour-primer/figures/04-idempotent-webhook.html"
+        "after_id": "lf-slot-idempotent-webhook"
       }
     ]
   },
@@ -88,7 +145,27 @@
     "global_prerequisites": {
       "file": "00-reading-primer.html",
       "section_id": "symbols",
-      "terms": ["Variable", "Function", "Object", "Array", "AND", "OR", "assert", "pageId", "jobId", "manifestId", "status", "promptDigest", "confirmedPromptSha256", "consumerSurfaceDigest", "revision", "selectionEpoch", "Bound", "Valid", "SHA-256"]
+      "terms": [
+        "Variable",
+        "Function",
+        "Object",
+        "Array",
+        "AND",
+        "OR",
+        "assert",
+        "pageId",
+        "jobId",
+        "manifestId",
+        "status",
+        "promptDigest",
+        "confirmedPromptSha256",
+        "consumerSurfaceDigest",
+        "revision",
+        "selectionEpoch",
+        "Bound",
+        "Valid",
+        "SHA-256"
+      ]
     }
   }
 }

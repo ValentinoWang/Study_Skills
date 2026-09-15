@@ -1,46 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" role="img" data-figure-id="idempotent-webhook" aria-labelledby="hook-title hook-desc" viewBox="0 0 960 500">
-  <title id="hook-title">重复支付 Webhook 如何只产生一次账本变化</title>
-  <desc id="hook-desc">支付平台把相同 event_id 的成功 Webhook 发送两次。处理器通过唯一事件记录和事务让第一次写入账本，第二次识别为重复后直接结束。</desc>
-  <defs>
-    <marker id="arrow-hook" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#667085"/></marker>
-  </defs>
-  <rect x="20" y="20" width="920" height="460" rx="22" fill="#fbfcff" stroke="#dfe3ea"/>
-  <text x="48" y="60" font-size="22" font-weight="700" fill="#1d2433">重复通知不是异常：系统必须把“同一事件”认出来</text>
-
-  <g data-semantic="provider">
-    <rect x="60" y="94" width="220" height="80" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
-    <rect id="provider-safe" data-protect="text" x="78" y="108" width="184" height="52" fill="none" stroke="none"/>
-    <text x="170" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">支付平台</text>
-    <text data-term="Webhook" x="170" y="156" text-anchor="middle" font-size="20" fill="#303849">成功 Webhook</text>
-  </g>
-  <g data-semantic="handler">
-    <rect x="370" y="94" width="220" height="80" rx="14" fill="#fff8df" stroke="#dfbf68"/>
-    <rect id="handler-safe" data-protect="text" x="388" y="108" width="184" height="52" fill="none" stroke="none"/>
-    <text x="480" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#8a5b00">Webhook 处理器</text>
-    <text data-term="Idempotency" x="480" y="156" text-anchor="middle" font-size="20" fill="#303849">Idempotency 检查</text>
-  </g>
-  <g data-semantic="database">
-    <rect x="680" y="94" width="220" height="80" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
-    <rect id="db-safe" data-protect="text" x="698" y="108" width="184" height="52" fill="none" stroke="none"/>
-    <text x="790" y="128" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">数据库事务</text>
-    <text data-term="Ledger" x="790" y="156" text-anchor="middle" font-size="20" fill="#303849">Ledger 只写一次</text>
-  </g>
-
-  <line data-connector="first-hook" x1="280" y1="230" x2="360" y2="230" stroke="#4f46e5" stroke-width="4" marker-end="url(#arrow-hook)"/>
-  <text data-term="event_id" x="320" y="214" text-anchor="middle" font-size="20" fill="#39348d">event_id = evt_42</text>
-  <rect x="390" y="196" width="180" height="68" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
-  <rect id="first-safe" data-protect="text" x="410" y="210" width="140" height="36" fill="none" stroke="none"/>
-  <text x="480" y="237" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">首次出现 → 继续</text>
-  <line data-connector="first-ledger" x1="590" y1="230" x2="670" y2="230" stroke="#176348" stroke-width="4" marker-end="url(#arrow-hook)"/>
-  <text data-term="Ledger" x="630" y="214" text-anchor="middle" font-size="20" fill="#176348">写唯一事件 + Ledger</text>
-
-  <line data-connector="second-hook" x1="280" y1="340" x2="360" y2="340" stroke="#a33129" stroke-width="4" marker-end="url(#arrow-hook)"/>
-  <text data-term="event_id" x="320" y="324" text-anchor="middle" font-size="20" fill="#a33129">同一个 event_id = evt_42</text>
-  <rect x="390" y="306" width="180" height="68" rx="14" fill="#fff2f0" stroke="#df9b95"/>
-  <rect id="second-safe" data-protect="text" x="410" y="320" width="140" height="36" fill="none" stroke="none"/>
-  <text x="480" y="347" text-anchor="middle" font-size="20" font-weight="700" fill="#a33129">已存在 → 重复</text>
-  <line data-connector="duplicate-stop" x1="590" y1="340" x2="670" y2="340" stroke="#a33129" stroke-width="3" stroke-dasharray="8 8" marker-end="url(#arrow-hook)"/>
-  <text x="630" y="324" text-anchor="middle" font-size="20" fill="#a33129">不再入账</text>
-
-  <text x="86" y="438" font-size="20" fill="#667085">最终结果：收到 2 次通知，但账本和余额只发生 1 次业务副作用。</text>
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="software-engineering-two-hour-primer-20260913--idempotent-webhook-title software-engineering-two-hour-primer-20260913--idempotent-webhook-desc" data-figure-id="idempotent-webhook" data-renderer="learning-figure-v2" viewBox="0 0 904 1730" width="904" height="1730" style="font-family:&quot;Noto Sans CJK SC&quot;, Arial, sans-serif;background:#fff">
+<title id="software-engineering-two-hour-primer-20260913--idempotent-webhook-title">同一笔付款通知两次，为什么余额只增加 100 元？</title><desc id="software-engineering-two-hour-primer-20260913--idempotent-webhook-desc">“已收到通知”不等于“业务已提交”。唯一业务占位、账本和余额同事务提交；重复到达不重复记账。</desc>
+<line data-guide-id="provider" x1="152" x2="152" y1="94" y2="1698" stroke="#667085" stroke-width="1" stroke-dasharray="4 7"/>
+<line data-guide-id="handler" x1="452" x2="452" y1="94" y2="1698" stroke="#667085" stroke-width="1" stroke-dasharray="4 7"/>
+<line data-guide-id="database" x1="752" x2="752" y1="94" y2="1698" stroke="#667085" stroke-width="1" stroke-dasharray="4 7"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-notify-first" data-edge-id="notify-first" data-role="message" data-from="provider" data-to="handler" x1="152" y1="208" x2="452" y2="208" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-notify-first-head" data-head-for="notify-first" points="452,208 442,203 442,213" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-request-first" data-edge-id="request-first" data-role="message" data-from="handler" data-to="database" x1="452" y1="362" x2="752" y2="362" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-request-first-head" data-head-for="request-first" points="752,362 742,357 742,367" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-db-first" data-edge-id="db-first" data-role="message" data-from="database" data-to="handler" x1="752" y1="772" x2="452" y2="772" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-db-first-head" data-head-for="db-first" points="452,772 462,767 462,777" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-ack-first" data-edge-id="ack-first" data-role="message" data-from="handler" data-to="provider" x1="452" y1="894" x2="152" y2="894" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-ack-first-head" data-head-for="ack-first" points="152,894 162,889 162,899" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-notify-again" data-edge-id="notify-again" data-role="message" data-from="provider" data-to="handler" x1="152" y1="1016" x2="452" y2="1016" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-notify-again-head" data-head-for="notify-again" points="452,1016 442,1011 442,1021" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-request-again" data-edge-id="request-again" data-role="message" data-from="handler" data-to="database" x1="452" y1="1138" x2="752" y2="1138" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-request-again-head" data-head-for="request-again" points="752,1138 742,1133 742,1143" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-db-again" data-edge-id="db-again" data-role="message" data-from="database" data-to="handler" x1="752" y1="1548" x2="452" y2="1548" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-db-again-head" data-head-for="db-again" points="452,1548 462,1543 462,1553" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--idempotent-webhook-ack-again" data-edge-id="ack-again" data-role="message" data-from="handler" data-to="provider" x1="452" y1="1670" x2="152" y2="1670" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--idempotent-webhook-ack-again-head" data-head-for="ack-again" points="152,1670 162,1665 162,1675" fill="#475467"/>
+<rect id="software-engineering-two-hour-primer-20260913--idempotent-webhook-provider" data-node-id="provider" data-parent="" data-role="actor" x="32" y="28" width="240" height="66" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--idempotent-webhook-handler" data-node-id="handler" data-parent="" data-role="actor" x="332" y="28" width="240" height="66" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--idempotent-webhook-database" data-node-id="database" data-parent="" data-role="actor" x="632" y="28" width="240" height="66" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--idempotent-webhook-credit-first" data-node-id="credit-first" data-parent="" data-role="event" x="632" y="406" width="240" height="256" rx="10" fill="#edf8f2" stroke="#16704a" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--idempotent-webhook-credit-again" data-node-id="credit-again" data-parent="" data-role="event" x="632" y="1182" width="240" height="256" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-provider-text" data-label-id="provider-text" data-owner="provider" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="52" y="70">支付平台</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-handler-text" data-label-id="handler-text" data-owner="handler" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="352" y="70">接收服务</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-database-text" data-label-id="database-text" data-owner="database" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="652" y="70">数据库</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-notify-first-label" data-label-id="notify-first-label" data-owner="notify-first" data-role="message" data-terms="event_id" font-size="20" fill="#1d2939"><tspan x="184" y="156">首次成功通知</tspan><tspan x="184" y="188">通知编号：evt_42</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-request-first-label" data-label-id="request-first-label" data-owner="request-first" data-role="message" data-terms="business_key" font-size="20" fill="#1d2939"><tspan x="484" y="278">验签、字段校验后请求入</tspan><tspan x="484" y="310">账</tspan><tspan x="484" y="342">业务键：pay_42_credit</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-credit-first-text" data-label-id="credit-first-text" data-owner="credit-first" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="652" y="448">同一数据库事务</tspan><tspan x="652" y="480">业务键：</tspan><tspan x="652" y="512">pay_42_credit</tspan><tspan x="652" y="544">唯一占位、记账、余</tspan><tspan x="652" y="576">额一起提交</tspan><tspan x="652" y="608">余额：100 元；账本：</tspan><tspan x="652" y="640">1 笔</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-db-first-label" data-label-id="db-first-label" data-owner="db-first" data-role="message" data-terms="" font-size="20" fill="#1d2939"><tspan x="484" y="720">确认事务结果</tspan><tspan x="484" y="752">200 · 已提交</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-ack-first-label" data-label-id="ack-first-label" data-owner="ack-first" data-role="message" data-terms="" font-size="20" fill="#1d2939"><tspan x="184" y="842">返回处理结果</tspan><tspan x="184" y="874">200 · 已提交</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-notify-again-label" data-label-id="notify-again-label" data-owner="notify-again" data-role="message" data-terms="event_id" font-size="20" fill="#1d2939"><tspan x="184" y="964">相同通知再次到达</tspan><tspan x="184" y="996">通知编号：evt_42</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-request-again-label" data-label-id="request-again-label" data-owner="request-again" data-role="message" data-terms="business_key" font-size="20" fill="#1d2939"><tspan x="484" y="1086">仍请求同一业务效果</tspan><tspan x="484" y="1118">业务键：pay_42_credit</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-credit-again-text" data-label-id="credit-again-text" data-owner="credit-again" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="652" y="1224">核对已提交的业务键</tspan><tspan x="652" y="1256">业务键：</tspan><tspan x="652" y="1288">pay_42_credit</tspan><tspan x="652" y="1320">已提交：本次不再记</tspan><tspan x="652" y="1352">账</tspan><tspan x="652" y="1384">余额：100 元；账本：</tspan><tspan x="652" y="1416">1 笔</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-db-again-label" data-label-id="db-again-label" data-owner="db-again" data-role="message" data-terms="" font-size="20" fill="#1d2939"><tspan x="484" y="1496">确认已经处理</tspan><tspan x="484" y="1528">200 · 已处理，不重复</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--idempotent-webhook-ack-again-label" data-label-id="ack-again-label" data-owner="ack-again" data-role="message" data-terms="" font-size="20" fill="#1d2939"><tspan x="184" y="1618">返回成功，不再入账</tspan><tspan x="184" y="1650">200 · 已处理，不重复</tspan></text>
 </svg>

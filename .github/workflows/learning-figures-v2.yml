@@ -1,0 +1,58 @@
+name: Learning Figure v2 validation
+on:
+  push:
+    branches: [main]
+    paths: ['skills/**', 'tools/**', 'tests/learning-figures/**', 'docs/**', '.github/workflows/learning-figures-v2.yml']
+  pull_request:
+    paths: ['skills/**', 'tools/**', 'tests/learning-figures/**', 'docs/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: learning-figures-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install tested dependencies and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk ruby-dev build-essential
+          python -m pip install -r tools/learning-figures-requirements.txt
+          python -m playwright install --with-deps chromium
+          sudo gem install jekyll --version 4.4.1 --no-document
+      - name: Static contracts and generated identity
+        run: |
+          python tools/build-lessons.py --check
+          python tools/check-lesson-consistency.py
+          python tools/check-term-depth.py
+          python tools/check-term-gate.py
+          python tools/check-math-render-safety.py
+          python tools/check-learning-figures.py
+      - name: Historical and synthetic red-green regressions
+        run: |
+          python tools/test-learning-contract-regressions.py
+          python tools/test-learning-figure-regressions.py
+      - name: Build candidate without touching deployment settings
+        run: jekyll build --source docs --destination /tmp/learning-figure-site --baseurl /Study_Skills
+      - name: Validate actual built HTML
+        run: |
+          python tools/check-term-gate.py --built-site /tmp/learning-figure-site
+          python tools/check-math-render-safety.py --built-site /tmp/learning-figure-site
+          python tools/check-learning-figures-render.py --built-site /tmp/learning-figure-site --output /tmp/learning-figure-evidence
+      - name: Preserve evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: learning-figure-v2-evidence
+          path: /tmp/learning-figure-evidence
+          if-no-files-found: warn
+      - name: State enforcement boundary
+        if: always()
+        run: echo 'This validates a candidate. Native branch-based Pages remains independent; this workflow is not yet a pre-deployment gate.' >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" data-figure-id="optimistic-lock-race" aria-labelledby="race-title race-desc" viewBox="0 0 960 520">
+  <title id="race-title">两个基于 version 7 的并发保存为什么只有一个能成功</title>
+  <desc id="race-desc">教练 A 和教练 B 都先读到版本七。A 先保存使服务器进入版本八。B 后续携带期望版本七保存时，服务器发现版本不匹配并返回冲突。</desc>
+  <defs>
+    <marker id="arrow-race" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#667085"/></marker>
+  </defs>
+  <rect x="20" y="20" width="920" height="480" rx="22" fill="#fbfcff" stroke="#dfe3ea"/>
+  <text x="48" y="60" font-size="22" font-weight="700" fill="#1d2433">乐观并发控制：不是“谁最后写谁赢”</text>
+
+  <g data-semantic="coach-a">
+    <rect x="60" y="86" width="220" height="64" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
+    <rect id="coach-a-safe" data-protect="text" x="78" y="100" width="184" height="34" fill="none" stroke="none"/>
+    <text x="170" y="126" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">教练 A</text>
+  </g>
+  <g data-semantic="server">
+    <rect x="370" y="86" width="220" height="64" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
+    <rect id="server-safe" data-protect="text" x="388" y="100" width="184" height="34" fill="none" stroke="none"/>
+    <text x="480" y="126" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">服务器计划记录</text>
+  </g>
+  <g data-semantic="coach-b">
+    <rect x="680" y="86" width="220" height="64" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
+    <rect id="coach-b-safe" data-protect="text" x="698" y="100" width="184" height="34" fill="none" stroke="none"/>
+    <text x="790" y="126" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">教练 B</text>
+  </g>
+
+  <text data-term="version" x="480" y="190" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">服务器 version = 7</text>
+  <line data-connector="read-a" x1="370" y1="220" x2="290" y2="220" stroke="#667085" stroke-width="3" marker-end="url(#arrow-race)"/>
+  <text data-term="version" x="330" y="207" text-anchor="middle" font-size="20" fill="#303849">读到 v7</text>
+  <line data-connector="read-b" x1="590" y1="250" x2="670" y2="250" stroke="#667085" stroke-width="3" marker-end="url(#arrow-race)"/>
+  <text data-term="version" x="630" y="237" text-anchor="middle" font-size="20" fill="#303849">读到 v7</text>
+
+  <line data-connector="write-a" x1="280" y1="310" x2="360" y2="310" stroke="#4f46e5" stroke-width="4" marker-end="url(#arrow-race)"/>
+  <text data-term="version" x="320" y="296" text-anchor="middle" font-size="20" fill="#39348d">保存 expected=7</text>
+  <rect x="390" y="278" width="180" height="70" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
+  <rect id="server-v8-safe" data-protect="text" x="410" y="292" width="140" height="38" fill="none" stroke="none"/>
+  <text data-term="version" x="480" y="319" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">成功 → version = 8</text>
+
+  <line data-connector="write-b" x1="680" y1="390" x2="600" y2="390" stroke="#a33129" stroke-width="4" marker-end="url(#arrow-race)"/>
+  <text data-term="version" x="640" y="376" text-anchor="middle" font-size="20" fill="#a33129">仍保存 expected=7</text>
+  <rect x="390" y="360" width="180" height="70" rx="14" fill="#fff2f0" stroke="#df9b95"/>
+  <rect id="conflict-safe" data-protect="text" x="410" y="374" width="140" height="38" fill="none" stroke="none"/>
+  <text x="480" y="401" text-anchor="middle" font-size="20" font-weight="700" fill="#a33129">拒绝：409 冲突</text>
+
+  <text x="90" y="468" font-size="20" fill="#667085">B 必须先拿到 v8，再决定比较、合并或重新编辑；不能静默覆盖 A 的结果。</text>
+</svg>

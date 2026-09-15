@@ -140,103 +140,34 @@ python3 tools/build-lessons.py
 
 ---
 
-# 5. Teaching Figure Publishing Contract · 教学图发布合同
+# 5. Teaching Figure v2 发布合同
 
-## 5.1 Canonical source
+图的唯一人工来源是 `skills/learning-figure/figures/<lesson>/<id>.figure.json`，不是派生SVG。
+manifest.figures只登记 id、model、section_id、after_id。模型保存问题、结论、绑定、状态和值。
+构建器、检查器和测试统一读取 tools/learning_figures，不各自硬编码标签与坐标。
 
-教学图的可编辑源必须位于 Skill/canonical 区，而不是只存在 `docs/`：
+生成器同步：模型旁SVG、docs/assets/figures SVG、docs/_includes/learning-figures SVG、
+docs/_data/learning_figures数据。任一漂移必须重建。不能只改public图或手工维护两套事实。
 
-```text
-skills/learning-figure/figures/<lesson>/<figure>.svg
-                    ↓ mirror
-docs/assets/figures/<lesson>/<figure>.svg
-```
+章节定义区之后放稳定带ID的段落，紧接共享 `learning-figure.html` include。
+缺锚点或重复图必须失败；禁止document.currentScript按h3文案搬图。无JS也保持基础阅读位置。
 
-manifest 中的 `figures` 至少声明：
+受控inline SVG使用完整对象清单和课程/图/变体前缀。任意导入SVG的脚本、外部资源、mask等不能直接拼接。
+宽屏显示图，窄屏和打印显示同模型步骤；手机可用原生details查看完整图。颜色与文字冗余允许。
 
-```json
-{
-  "id": "optimistic-lock-race",
-  "section_id": "deep2",
-  "question": "两个人都读到 v7，为什么第二次保存会冲突？",
-  "takeaway": "A 推进到 v8 后，B 携带的 expected version=7 已过期。",
-  "source": "skills/learning-figure/figures/<lesson>/optimistic-lock-race.svg",
-  "public_path": "docs/assets/figures/<lesson>/optimistic-lock-race.svg",
-  "requires": ["version"],
-  "mobile_strategy": "scroll",
-  "evidence_type": "teaching-example"
-}
-```
+# 6. 图的验收不等于文件存在
 
-## 5.2 Source-of-truth
+先静态检查模型/派生身份与插入点，再对真实构建HTML检查实际文字、归属、连线、箭头头部、字号与间距。
+`check-learning-figures.py`只报告静态层；render入口才报告浏览器范围。不得以术语token存在或保护框无相交代替可读性。
 
-若使用 SVG：
+必须保留历史遮字SVG红例，以及正常包含、长文字、漏标、删字、隐藏、path逃逸、变换、箭头加粗等测试。
+默认Chromium包含桌面、390/320窄屏、后备字体、无JS、打印媒体；打印媒体不等于分页PDF验收。
 
-```text
-canonical SVG = editable source of truth
-public SVG = deterministic mirror
-```
+环境禁止导航可明确使用 --offline，报告实际是离线artifact DOM；公开URL读回和WebKit未做时单独记BLOCKED/NOT_RUN。
+视觉审阅与分页打印结果独立记录，机器测试不自动给PASS。封存入口只检查精确报告/审阅/产物身份，不伪造人工接受。
 
-若未来使用 Mermaid/D2/Graphviz：
-
-```text
-declarative source = editable source of truth
-generated SVG = build artifact
-```
-
-禁止同时手工修改“源”和“生成结果”，然后把两份都当唯一来源。
-
-## 5.3 HTML embedding
-
-每张复杂图在正文中至少有：
-
-```html
-<figure data-figure-id="...">
-  <div class="learning-figure-scroll">
-    <img ... alt="短描述">
-  </div>
-  <figcaption>读图顺序 + takeaway</figcaption>
-</figure>
-```
-
-复杂关系还应提供默认可见或可展开的文字说明，保证不依赖视觉才能理解关键顺序和结论。
-
-## 5.4 响应式
-
-`mobile_strategy` 必须声明：
-
-- `stack`：手机改为纵向阶段；
-- `scroll`：二维关系必须保留，只允许图容器内部横向滚动；
-- `responsive`：可以直接缩放且文字仍可读。
-
-仅设置 `width:100%` 但导致标签缩到不可读，不算响应式成功。
-
----
-
-# 6. Figure QA · 图形质量门
-
-复用 `paper-figure-sentinel` / `paper-figure-harness` 的稳定失败类型，但改成学习网页口径。
-
-静态检查至少覆盖：
-
-1. figure manifest 字段完整；
-2. canonical/public SVG 字节一致；
-3. SVG 有 `viewBox`、`role="img"`、`title`、`desc`；
-4. SVG 中 `data-term` 标签都已包含在 figure `requires`；
-5. figure `requires` 都属于该章节的 prerequisite closure；
-6. 页面正文真的引用这张图；
-7. connector 不穿过 `data-protect="text"` 的内部安全区；
-8. `mobile_strategy` 合法；
-9. measured-data 图有来源/单位合同。
-
-稳定 geometry guard 应有 red/green 关系；不要为一次坐标事故增加永久规则。
-
-默认执行：
-
-```bash
-python3 tools/check-learning-figures.py
-python3 tools/test-learning-figure-regressions.py
-```
+当前validation workflow独立于原生Pages，不能声称它已经在部署前阻止所有坏图。保留失败任务和原因。
+详见 `skills/learning-figure/references/qa-and-release.md`。
 
 ---
 
@@ -271,7 +202,7 @@ MathML 根节点不能被普通布局接管。需要横向滚动时滚动外层 
 
 代码块出现前必须确认其中承担推理作用的变量、参数、字段和占位符已经解释。代码块不是定义区。
 
-同理：**图也不是定义区。**
+关键变量不能只在图中含混出现；图旁默认可见的绑定说明可以承担定义，alt/desc/tooltip 不可以。
 
 ---
 
@@ -313,10 +244,10 @@ same bytes
 → canonical lesson + manifest + supplements + figure sources
 → build-lessons 同步
 → consistency / term-depth / term-gate / figure-gate / math-safety
-→ GitHub Pages build
-→ 桌面 / 手机 / 打印浏览器 QA
-→ artifact readback
-→ remote main
+→ 候选构建与桌面 / 手机 / 打印预检
+→ remote main（仅证明源码提交）
+→ GitHub Pages build / deploy
+→ 同一提交的最终 artifact 检查与公开页面读回
 ```
 
 只给 HTML、只看源码、只看到 deployment success，都不算 `/full` 完成。
@@ -342,6 +273,7 @@ python3 tools/check-math-render-safety.py
 拿到 `_site` / Pages artifact 后继续：
 
 ```bash
+python3 tools/check-learning-figures-render.py --built-site /path/to/_site --output /path/to/evidence
 python3 tools/check-term-gate.py --built-site /path/to/_site
 python3 tools/check-math-render-safety.py --built-site /path/to/_site
 ```
@@ -444,3 +376,9 @@ Skill、manifest、layout、figure contract 或门禁升级后：
 一句话：
 
 > **上游定义“学什么”；learning-figure 把关键关系画成可见推理；Publisher 保证这些图不会在生成、响应式和发布环节失真。**
+
+
+## v2 输出边界补充
+
+任何旧文中“canonical SVG”用于v2图时均指JSON模型派生SVG，模型才是人工唯一来源。
+静态PASS、浏览器PASS、视觉接受、分页打印和公开读回分别记录；不得合成无范围的“全部完成”。

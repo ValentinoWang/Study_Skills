@@ -21,6 +21,14 @@
 <p>例如教练正在编辑一周计划，至少同时存在三类状态：</p>
 <ul><li><strong>界面状态：</strong>周三是否选中、动作 Drawer 是否打开、筛选器是什么。</li><li><strong>请求状态：</strong>保存请求当前是 idle（还没发）、loading（正在等）、success（服务器确认成功）、error（失败）。</li><li><strong>业务状态：</strong>这份计划究竟是 draft、published、archived，或者服务器里已经变成了新版本。</li></ul>
 <p>最关键的边界是：<strong>业务状态不能只听前端自己的。</strong> 前端可以临时显示“正在发布”，但最终“是否真的发布成功”要以服务端权威状态为准。</p>
+<div class="lf-bindings">
+<p id="lf-def-props"><strong>计划要求 · props（<code>props</code>）</strong>：外层页面提供的计划数据，不由这次填写动作改写。来源：父组件传入；例子：要求 4 组。</p>
+<p id="lf-def-state"><strong>已填写 · state（<code>state</code>）</strong>：训练卡本地暂存的填写进度。来源：当前组件维护；例子：已填写 2 组，随后 3 组。</p>
+<p id="lf-def-render"><strong>计算界面 · render（<code>render</code>）</strong>：根据外部输入与本地状态计算界面。来源：前端渲染过程；例子：输入 4 和 3，显示 3／4。</p>
+<p id="lf-def-view"><strong>显示结果 · View（<code>View</code>）</strong>：用户当前看到的结果。来源：渲染结果；例子：2／4 → 3／4。</p>
+</div>
+<p id="lf-slot-state-to-view">下面按具体值读图。图是教学示例，不是生产系统运行记录。</p>
+{% include learning-figure.html lesson=page.lesson figure="state-to-view" %}
 <h3>2. 路由、布局、滚动是三个不同问题</h3>
 <p><strong>Routing</strong> 回答“在哪个页面”；<strong>Layout</strong> 回答“页面内部怎么排”；<strong>Scroll Ownership</strong> 回答“内容超出以后到底哪一层滚动”。</p>
 <div class="table"><table><thead><tr><th>场景</th><th>更合理的布局</th><th>原因</th></tr></thead><tbody><tr><td>设置页、长表单</td><td><code>content</code></td><td>内容多就自然向下长，让浏览器页面滚</td></tr><tr><td>聊天、地图、IDE</td><td><code>fill</code></td><td>工作区需要占满视口，让内部区域滚</td></tr><tr><td>统计卡片矩阵</td><td>Grid</td><td>它是二维行列关系</td></tr><tr><td>Header + Sidebar + Main</td><td>Flex / Grid</td><td>固定区域与剩余空间关系清楚</td></tr></tbody></table></div>

@@ -1,8 +1,1 @@
-<figure class="learning-figure" data-figure-id="state-to-view" style="margin:22px 0 18px;padding:16px;border:1px solid #dfe3ea;border-radius:16px;background:#fbfcff">
-  <div style="font-weight:800;color:#1d2433;margin-bottom:10px">图解复盘｜为什么 props 不变，View 仍会变化？</div>
-  <div class="learning-figure-scroll" style="overflow-x:auto;overscroll-behavior-inline:contain;border-radius:12px;background:#fff">
-    <img src="{{ '/assets/figures/software-engineering-two-hour-primer-20260913/state-to-view.svg?v=2' | relative_url }}" alt="图示：计划要求 4 组保持不变，state 从已填写 2 组变为 3 组，render 后 View 从 2/4 变为 3/4。" style="display:block;width:100%;min-width:760px;height:auto">
-  </div>
-  <figcaption style="margin-top:10px;color:#667085;font-size:.92rem;line-height:1.65">读图顺序：先看左侧 props 与 state，再沿箭头看 render 和 View。关键结论：界面重新计算不等于服务器已经保存。</figcaption>
-</figure>
-<script>(()=>{const s=document.currentScript,f=s.previousElementSibling,sec=f&&f.closest('section');if(!sec)return;const h=[...sec.querySelectorAll('h3')].find(x=>x.textContent.trim().startsWith('1. 先把页面理解'));if(h)h.insertAdjacentElement('afterend',f)})();</script>
+{% include learning-figure.html lesson=page.lesson figure="state-to-view" %}

@@ -50,6 +50,13 @@ REVIEWED</code></pre>
 <p>所以“已发布以后为了方便继续改，直接把 status 改回 DRAFT”通常很危险。更合理的是保留已发布的 v7，再创建新的 draft v8。</p>
 <h3>6. 并发更新为什么会把别人改动覆盖掉</h3>
 <p>先定义：<code>v7</code> 就是版本 7，<code>v8</code> 是版本 8。A、B 两位教练同时看到 v7。A 先保存，服务器变成 v8。B 还拿着旧 v7 保存，如果服务器不检查版本，就可能把 A 的修改覆盖掉。这叫 Lost Update（丢失更新）。</p>
+<div class="lf-bindings">
+<p id="lf-def-version"><strong>当前版本（<code>version</code>）</strong>：服务器目前持久保存的计划版本号。来源：由成功提交原子递增；例子：7 → 8。</p>
+<p id="lf-def-expected-version"><strong>期望版本（<code>expected_version</code>）</strong>：客户端提交修改时声明自己此前读到的版本。来源：客户端读取后随保存请求发送；例子：7。</p>
+<p id="lf-def-conflict"><strong>响应状态码（<code>status_code</code>）</strong>：409 在此示例表示版本冲突，200 表示请求成功。来源：服务器返回；例子：409：不覆盖当前版本。</p>
+</div>
+<p id="lf-slot-optimistic-lock-race">下面按具体值读图。图是教学示例，不是生产系统运行记录。</p>
+{% include learning-figure.html lesson=page.lesson figure="optimistic-lock-race" %}
 <p>Optimistic Locking（乐观锁）的一种写法：</p>
 <pre><code>UPDATE plans
 SET content = ?, version = 8

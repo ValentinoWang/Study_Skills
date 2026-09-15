@@ -1,0 +1,17 @@
+/* Learning Figure v2. Scope all rules; do not alter other lesson layouts. */
+.lf-v2{margin:28px 0;padding:18px;border:1px solid #cbd5e1;border-radius:16px;background:#fff;scroll-margin-top:24px;min-width:0}
+.lf-v2>figcaption{display:grid;gap:6px;font-size:1.14rem;line-height:1.55;color:#1d2939}
+.lf-kicker{font-size:.78rem;letter-spacing:.05em;color:#475467}
+.lf-reading,.lf-boundary{font-size:.95rem;color:#475467;line-height:1.75}
+.lf-scroll{overflow-x:auto;overscroll-behavior-inline:contain;max-width:100%;background:#fff}
+.lf-scroll:focus-visible{outline:3px solid #4f46e5;outline-offset:3px}
+.lf-scroll>svg{display:block;width:100%;min-width:var(--lf-min);height:auto;max-width:none}
+.lf-linear,.lf-full{display:none}
+.lf-steps{padding:0;list-style:none;counter-reset:lf-step}
+.lf-steps>li{counter-increment:lf-step;border:1px solid #cbd5e1;border-radius:10px;margin:12px 0;padding:14px;color:#1d2939;background:#f8fafc;break-inside:avoid;overflow-wrap:anywhere}
+.lf-steps>li>strong:before{content:counter(lf-step) ' · '}
+.lf-steps p{margin:4px 0;font-size:1rem;line-height:1.6}
+.lf-takeaway{padding:12px 14px;border-left:3px solid #4f46e5;background:#eef2ff;color:#1d2939;line-height:1.75}
+.lf-bindings{margin-top:18px;border-left:3px solid #cbd5e1;padding-left:14px}
+@media(max-width:820px){.lf-v2{padding:12px}.lf-wide{display:none}.lf-linear,.lf-full{display:block}.lf-v2>.lf-full{background:#fff}.lf-full>summary{font-size:1rem}.lf-full .lf-scroll{margin:8px}}
+@media print{.lf-v2{border:0;border-top:1px solid #cbd5e1;border-radius:0;padding:10px 0;break-inside:auto}.lf-wide,.lf-full{display:none!important}.lf-linear{display:block!important}.lf-steps>li{font-size:10.5pt;break-inside:avoid}.lf-steps p{font-size:10.5pt}.lf-takeaway,.lf-boundary{break-inside:avoid}}

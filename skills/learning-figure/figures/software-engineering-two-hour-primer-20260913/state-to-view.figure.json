@@ -1,0 +1,66 @@
+{
+  "schema_version": "2.0",
+  "evidence_type": "teaching-example",
+  "id": "state-to-view",
+  "kind": "comparison",
+  "question": "计划仍是 4 组，为什么界面从 2／4 变成 3／4？",
+  "takeaway": "外部计划保持不变，本地填写进度变化，重新渲染后显示结果随之变化。",
+  "reading_order": "左右对照同一行：先看计划要求，再看本地填写进度，最后看显示结果。用户在这两刻之间又填写了一组。",
+  "boundary": "图只描述组件中的本地界面变化，不表示已经发送请求，也不证明服务器保存成功。",
+  "bindings": {
+    "props": {
+      "label": "计划要求 · props",
+      "definition_id": "lf-def-props",
+      "meaning": "外层页面提供的计划数据，不由这次填写动作改写",
+      "source": "父组件传入",
+      "example": "要求 4 组"
+    },
+    "state": {
+      "label": "已填写 · state",
+      "definition_id": "lf-def-state",
+      "meaning": "训练卡本地暂存的填写进度",
+      "source": "当前组件维护",
+      "example": "已填写 2 组，随后 3 组"
+    },
+    "render": {
+      "label": "计算界面 · render",
+      "definition_id": "lf-def-render",
+      "meaning": "根据外部输入与本地状态计算界面",
+      "source": "前端渲染过程",
+      "example": "输入 4 和 3，显示 3／4"
+    },
+    "View": {
+      "label": "显示结果 · View",
+      "definition_id": "lf-def-view",
+      "meaning": "用户当前看到的结果",
+      "source": "渲染结果",
+      "example": "2／4 → 3／4"
+    }
+  },
+  "titles": {
+    "before": "① 再填一组之前",
+    "after": "② 再填一组之后"
+  },
+  "rows": [
+    {
+      "field": "props",
+      "before": "要求 4 组",
+      "after": "要求 4 组"
+    },
+    {
+      "field": "state",
+      "before": "已填写 2 组",
+      "after": "已填写 3 组（变化）"
+    },
+    {
+      "field": "render",
+      "before": "根据 4 和 2 计算",
+      "after": "根据 4 和 3 重新计算"
+    },
+    {
+      "field": "View",
+      "before": "已填写 2／4 组",
+      "after": "已填写 3／4 组"
+    }
+  ]
+}

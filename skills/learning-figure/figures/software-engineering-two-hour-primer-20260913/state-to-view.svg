@@ -1,67 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" role="img" data-figure-id="state-to-view" aria-labelledby="state-title state-desc" viewBox="0 0 960 520">
-  <title id="state-title">props 和 state 如何共同决定 View</title>
-  <desc id="state-desc">上下两块分别展示填写前和填写后。计划要求四组保持不变，本地填写进度从两组变为三组，render 重新计算后界面从二比四变为三比四。</desc>
-  <defs>
-    <marker id="arrow-state" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#667085"/></marker>
-  </defs>
-  <rect x="20" y="20" width="920" height="480" rx="22" fill="#fbfcff" stroke="#dfe3ea"/>
-  <text x="48" y="60" font-size="22" font-weight="700" fill="#1d2433">同一份计划，只有本地填写进度发生变化</text>
-
-  <text x="48" y="115" font-size="20" font-weight="700" fill="#4f46e5">填写前</text>
-  <g data-semantic="props-before">
-    <rect x="150" y="80" width="190" height="70" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
-    <rect id="props-before-safe" data-protect="text" x="168" y="92" width="154" height="46" fill="none" stroke="none"/>
-    <text data-term="props" x="245" y="110" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">props</text>
-    <text x="245" y="136" text-anchor="middle" font-size="20" fill="#303849">计划要求 4 组</text>
-  </g>
-  <g data-semantic="state-before">
-    <rect x="150" y="165" width="190" height="70" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
-    <rect id="state-before-safe" data-protect="text" x="168" y="177" width="154" height="46" fill="none" stroke="none"/>
-    <text data-term="state" x="245" y="195" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">state</text>
-    <text x="245" y="221" text-anchor="middle" font-size="20" fill="#303849">已填写 2 组</text>
-  </g>
-  <g data-semantic="render-before">
-    <rect x="510" y="122" width="120" height="72" rx="36" fill="#fff8df" stroke="#dfbf68"/>
-    <rect id="render-before-safe" data-protect="text" x="530" y="138" width="80" height="40" fill="none" stroke="none"/>
-    <text data-term="render" x="570" y="165" text-anchor="middle" font-size="20" font-weight="700" fill="#8a5b00">render</text>
-  </g>
-  <g data-semantic="view-before">
-    <rect x="760" y="112" width="130" height="92" rx="14" fill="#fff" stroke="#cbd1dd"/>
-    <rect id="view-before-safe" data-protect="text" x="778" y="126" width="94" height="62" fill="none" stroke="none"/>
-    <text data-term="View" x="825" y="148" text-anchor="middle" font-size="20" font-weight="700" fill="#1d2433">View</text>
-    <text x="825" y="178" text-anchor="middle" font-size="22" font-weight="700" fill="#4f46e5">2 / 4</text>
-  </g>
-  <line data-connector="before-props-render" x1="340" y1="115" x2="500" y2="145" stroke="#667085" stroke-width="3" marker-end="url(#arrow-state)"/>
-  <line data-connector="before-state-render" x1="340" y1="200" x2="500" y2="175" stroke="#667085" stroke-width="3" marker-end="url(#arrow-state)"/>
-  <line data-connector="before-render-view" x1="630" y1="158" x2="750" y2="158" stroke="#667085" stroke-width="3" marker-end="url(#arrow-state)"/>
-
-  <line x1="48" y1="265" x2="912" y2="265" stroke="#dfe3ea" stroke-width="2"/>
-  <text x="48" y="318" font-size="20" font-weight="700" fill="#176348">再填写 1 组</text>
-  <g data-semantic="props-after">
-    <rect x="150" y="290" width="190" height="70" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
-    <rect id="props-after-safe" data-protect="text" x="168" y="302" width="154" height="46" fill="none" stroke="none"/>
-    <text data-term="props" x="245" y="320" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">props</text>
-    <text x="245" y="346" text-anchor="middle" font-size="20" fill="#303849">仍要求 4 组</text>
-  </g>
-  <g data-semantic="state-after">
-    <rect x="150" y="375" width="190" height="70" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
-    <rect id="state-after-safe" data-protect="text" x="168" y="387" width="154" height="46" fill="none" stroke="none"/>
-    <text data-term="state" x="245" y="405" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">state</text>
-    <text x="245" y="431" text-anchor="middle" font-size="20" fill="#303849">已填写 3 组</text>
-  </g>
-  <g data-semantic="render-after">
-    <rect x="510" y="332" width="120" height="72" rx="36" fill="#fff8df" stroke="#dfbf68"/>
-    <rect id="render-after-safe" data-protect="text" x="530" y="348" width="80" height="40" fill="none" stroke="none"/>
-    <text data-term="render" x="570" y="375" text-anchor="middle" font-size="20" font-weight="700" fill="#8a5b00">render</text>
-  </g>
-  <g data-semantic="view-after">
-    <rect x="760" y="322" width="130" height="92" rx="14" fill="#fff" stroke="#cbd1dd"/>
-    <rect id="view-after-safe" data-protect="text" x="778" y="336" width="94" height="62" fill="none" stroke="none"/>
-    <text data-term="View" x="825" y="358" text-anchor="middle" font-size="20" font-weight="700" fill="#1d2433">View</text>
-    <text x="825" y="388" text-anchor="middle" font-size="22" font-weight="700" fill="#176348">3 / 4</text>
-  </g>
-  <line data-connector="after-props-render" x1="340" y1="325" x2="500" y2="355" stroke="#667085" stroke-width="3" marker-end="url(#arrow-state)"/>
-  <line data-connector="after-state-render" x1="340" y1="410" x2="500" y2="385" stroke="#667085" stroke-width="3" marker-end="url(#arrow-state)"/>
-  <line data-connector="after-render-view" x1="630" y1="368" x2="750" y2="368" stroke="#667085" stroke-width="3" marker-end="url(#arrow-state)"/>
-  <text x="150" y="476" font-size="20" fill="#667085">关键：View 更新说明界面重算了；是否已保存到服务器，要看后端请求结果。</text>
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="software-engineering-two-hour-primer-20260913--state-to-view-title software-engineering-two-hour-primer-20260913--state-to-view-desc" data-figure-id="state-to-view" data-renderer="learning-figure-v2" viewBox="0 0 824 634" width="824" height="634" style="font-family:&quot;Noto Sans CJK SC&quot;, Arial, sans-serif;background:#fff">
+<title id="software-engineering-two-hour-primer-20260913--state-to-view-title">计划仍是 4 组，为什么界面从 2／4 变成 3／4？</title><desc id="software-engineering-two-hour-primer-20260913--state-to-view-desc">外部计划保持不变，本地填写进度变化，重新渲染后显示结果随之变化。</desc>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-panel-before" data-node-id="panel-before" data-parent="" data-role="panel" x="32" y="30" width="360" height="572" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-before-props" data-node-id="before-props" data-parent="panel-before" data-role="event" x="52" y="114" width="320" height="96" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-before-state" data-node-id="before-state" data-parent="panel-before" data-role="event" x="52" y="234" width="320" height="96" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-before-render" data-node-id="before-render" data-parent="panel-before" data-role="event" x="52" y="354" width="320" height="96" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-before-View" data-node-id="before-View" data-parent="panel-before" data-role="event" x="52" y="474" width="320" height="96" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-panel-after" data-node-id="panel-after" data-parent="" data-role="panel" x="432" y="30" width="360" height="572" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-after-props" data-node-id="after-props" data-parent="panel-after" data-role="event" x="452" y="114" width="320" height="96" rx="10" fill="#f8fafc" stroke="#475467" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-after-state" data-node-id="after-state" data-parent="panel-after" data-role="event" x="452" y="234" width="320" height="96" rx="10" fill="#edf8f2" stroke="#16704a" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-after-render" data-node-id="after-render" data-parent="panel-after" data-role="event" x="452" y="354" width="320" height="96" rx="10" fill="#edf8f2" stroke="#16704a" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--state-to-view-after-View" data-node-id="after-View" data-parent="panel-after" data-role="event" x="452" y="474" width="320" height="96" rx="10" fill="#edf8f2" stroke="#16704a" stroke-width="1.5"/>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-panel-before-title" data-label-id="panel-before-title" data-owner="panel-before" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="52" y="72">① 再填一组之前</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-before-props-text" data-label-id="before-props-text" data-owner="before-props" data-role="node" data-terms="props" font-size="20" fill="#1d2939"><tspan x="72" y="156">计划要求 · props</tspan><tspan x="72" y="188">要求 4 组</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-before-state-text" data-label-id="before-state-text" data-owner="before-state" data-role="node" data-terms="state" font-size="20" fill="#1d2939"><tspan x="72" y="276">已填写 · state</tspan><tspan x="72" y="308">已填写 2 组</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-before-render-text" data-label-id="before-render-text" data-owner="before-render" data-role="node" data-terms="render" font-size="20" fill="#1d2939"><tspan x="72" y="396">计算界面 · render</tspan><tspan x="72" y="428">根据 4 和 2 计算</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-before-View-text" data-label-id="before-View-text" data-owner="before-View" data-role="node" data-terms="View" font-size="20" fill="#1d2939"><tspan x="72" y="516">显示结果 · View</tspan><tspan x="72" y="548">已填写 2／4 组</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-panel-after-title" data-label-id="panel-after-title" data-owner="panel-after" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="452" y="72">② 再填一组之后</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-after-props-text" data-label-id="after-props-text" data-owner="after-props" data-role="node" data-terms="props" font-size="20" fill="#1d2939"><tspan x="472" y="156">计划要求 · props</tspan><tspan x="472" y="188">要求 4 组</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-after-state-text" data-label-id="after-state-text" data-owner="after-state" data-role="node" data-terms="state" font-size="20" fill="#1d2939"><tspan x="472" y="276">已填写 · state</tspan><tspan x="472" y="308">已填写 3 组（变化）</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-after-render-text" data-label-id="after-render-text" data-owner="after-render" data-role="node" data-terms="render" font-size="20" fill="#1d2939"><tspan x="472" y="396">计算界面 · render</tspan><tspan x="472" y="428">根据 4 和 3 重新计算</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--state-to-view-after-View-text" data-label-id="after-View-text" data-owner="after-View" data-role="node" data-terms="View" font-size="20" fill="#1d2939"><tspan x="472" y="516">显示结果 · View</tspan><tspan x="472" y="548">已填写 3／4 组</tspan></text>
 </svg>

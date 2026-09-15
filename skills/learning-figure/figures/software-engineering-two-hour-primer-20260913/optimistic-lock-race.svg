@@ -1,45 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" role="img" data-figure-id="optimistic-lock-race" aria-labelledby="race-title race-desc" viewBox="0 0 960 520">
-  <title id="race-title">两个基于 version 7 的并发保存为什么只有一个能成功</title>
-  <desc id="race-desc">教练 A 和教练 B 都先读到版本七。A 先保存使服务器进入版本八。B 后续携带期望版本七保存时，服务器发现版本不匹配并返回冲突。</desc>
-  <defs>
-    <marker id="arrow-race" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#667085"/></marker>
-  </defs>
-  <rect x="20" y="20" width="920" height="480" rx="22" fill="#fbfcff" stroke="#dfe3ea"/>
-  <text x="48" y="60" font-size="22" font-weight="700" fill="#1d2433">乐观并发控制：不是“谁最后写谁赢”</text>
-
-  <g data-semantic="coach-a">
-    <rect x="60" y="86" width="220" height="64" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
-    <rect id="coach-a-safe" data-protect="text" x="78" y="100" width="184" height="34" fill="none" stroke="none"/>
-    <text x="170" y="126" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">教练 A</text>
-  </g>
-  <g data-semantic="server">
-    <rect x="370" y="86" width="220" height="64" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
-    <rect id="server-safe" data-protect="text" x="388" y="100" width="184" height="34" fill="none" stroke="none"/>
-    <text x="480" y="126" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">服务器计划记录</text>
-  </g>
-  <g data-semantic="coach-b">
-    <rect x="680" y="86" width="220" height="64" rx="14" fill="#eef2ff" stroke="#aeb5f7"/>
-    <rect id="coach-b-safe" data-protect="text" x="698" y="100" width="184" height="34" fill="none" stroke="none"/>
-    <text x="790" y="126" text-anchor="middle" font-size="20" font-weight="700" fill="#39348d">教练 B</text>
-  </g>
-
-  <text data-term="version" x="480" y="190" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">服务器 version = 7</text>
-  <line data-connector="read-a" x1="370" y1="220" x2="290" y2="220" stroke="#667085" stroke-width="3" marker-end="url(#arrow-race)"/>
-  <text data-term="version" x="330" y="207" text-anchor="middle" font-size="20" fill="#303849">读到 v7</text>
-  <line data-connector="read-b" x1="590" y1="250" x2="670" y2="250" stroke="#667085" stroke-width="3" marker-end="url(#arrow-race)"/>
-  <text data-term="version" x="630" y="237" text-anchor="middle" font-size="20" fill="#303849">读到 v7</text>
-
-  <line data-connector="write-a" x1="280" y1="310" x2="360" y2="310" stroke="#4f46e5" stroke-width="4" marker-end="url(#arrow-race)"/>
-  <text data-term="version" x="320" y="296" text-anchor="middle" font-size="20" fill="#39348d">保存 expected=7</text>
-  <rect x="390" y="278" width="180" height="70" rx="14" fill="#eef8f2" stroke="#9dcfb8"/>
-  <rect id="server-v8-safe" data-protect="text" x="410" y="292" width="140" height="38" fill="none" stroke="none"/>
-  <text data-term="version" x="480" y="319" text-anchor="middle" font-size="20" font-weight="700" fill="#176348">成功 → version = 8</text>
-
-  <line data-connector="write-b" x1="680" y1="390" x2="600" y2="390" stroke="#a33129" stroke-width="4" marker-end="url(#arrow-race)"/>
-  <text data-term="version" x="640" y="376" text-anchor="middle" font-size="20" fill="#a33129">仍保存 expected=7</text>
-  <rect x="390" y="360" width="180" height="70" rx="14" fill="#fff2f0" stroke="#df9b95"/>
-  <rect id="conflict-safe" data-protect="text" x="410" y="374" width="140" height="38" fill="none" stroke="none"/>
-  <text x="480" y="401" text-anchor="middle" font-size="20" font-weight="700" fill="#a33129">拒绝：409 冲突</text>
-
-  <text x="90" y="468" font-size="20" fill="#667085">B 必须先拿到 v8，再决定比较、合并或重新编辑；不能静默覆盖 A 的结果。</text>
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="software-engineering-two-hour-primer-20260913--optimistic-lock-race-title software-engineering-two-hour-primer-20260913--optimistic-lock-race-desc" data-figure-id="optimistic-lock-race" data-renderer="learning-figure-v2" viewBox="0 0 904 1230" width="904" height="1230" style="font-family:&quot;Noto Sans CJK SC&quot;, Arial, sans-serif;background:#fff">
+<title id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-title">两人都读到版本 7，为什么只有一个保存成功？</title><desc id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-desc">服务器原子地比较期望版本与当前版本；版本已经改变，就拒绝旧修改，不静默覆盖。</desc>
+<line data-guide-id="coach-a" x1="152" x2="152" y1="94" y2="1198" stroke="#667085" stroke-width="1" stroke-dasharray="4 7"/>
+<line data-guide-id="server" x1="452" x2="452" y1="94" y2="1198" stroke="#667085" stroke-width="1" stroke-dasharray="4 7"/>
+<line data-guide-id="coach-b" x1="752" x2="752" y1="94" y2="1198" stroke="#667085" stroke-width="1" stroke-dasharray="4 7"/>
+<line id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-read-a" data-edge-id="read-a" data-role="message" data-from="server" data-to="coach-a" x1="452" y1="208" x2="152" y2="208" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-read-a-head" data-head-for="read-a" points="152,208 162,203 162,213" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-read-b" data-edge-id="read-b" data-role="message" data-from="server" data-to="coach-b" x1="452" y1="330" x2="752" y2="330" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-read-b-head" data-head-for="read-b" points="752,330 742,325 742,335" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-save-a" data-edge-id="save-a" data-role="message" data-from="coach-a" data-to="server" x1="152" y1="452" x2="452" y2="452" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-save-a-head" data-head-for="save-a" points="452,452 442,447 442,457" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reply-a" data-edge-id="reply-a" data-role="message" data-from="server" data-to="coach-a" x1="452" y1="734" x2="152" y2="734" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reply-a-head" data-head-for="reply-a" points="152,734 162,729 162,739" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-save-b" data-edge-id="save-b" data-role="message" data-from="coach-b" data-to="server" x1="752" y1="856" x2="452" y2="856" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-save-b-head" data-head-for="save-b" points="452,856 462,851 462,861" fill="#475467"/>
+<line id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reply-b" data-edge-id="reply-b" data-role="message" data-from="server" data-to="coach-b" x1="452" y1="1170" x2="752" y2="1170" stroke="#475467" stroke-width="2"/>
+<polygon id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reply-b-head" data-head-for="reply-b" points="752,1170 742,1165 742,1175" fill="#475467"/>
+<rect id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-coach-a" data-node-id="coach-a" data-parent="" data-role="actor" x="32" y="28" width="240" height="66" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-server" data-node-id="server" data-parent="" data-role="actor" x="332" y="28" width="240" height="66" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-coach-b" data-node-id="coach-b" data-parent="" data-role="actor" x="632" y="28" width="240" height="66" rx="10" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-commit-a" data-node-id="commit-a" data-parent="" data-role="event" x="332" y="496" width="240" height="128" rx="10" fill="#edf8f2" stroke="#16704a" stroke-width="1.5"/>
+<rect id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reject-b" data-node-id="reject-b" data-parent="" data-role="event" x="332" y="900" width="240" height="160" rx="10" fill="#fff4f2" stroke="#b42318" stroke-width="1.5"/>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-coach-a-text" data-label-id="coach-a-text" data-owner="coach-a" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="52" y="70">教练 A</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-server-text" data-label-id="server-text" data-owner="server" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="352" y="70">服务器</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-coach-b-text" data-label-id="coach-b-text" data-owner="coach-b" data-role="node" data-terms="" font-size="20" fill="#1d2939"><tspan x="652" y="70">教练 B</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-read-a-label" data-label-id="read-a-label" data-owner="read-a" data-role="message" data-terms="version" font-size="20" fill="#1d2939"><tspan x="184" y="156">读取计划</tspan><tspan x="184" y="188">当前版本：7</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-read-b-label" data-label-id="read-b-label" data-owner="read-b" data-role="message" data-terms="version" font-size="20" fill="#1d2939"><tspan x="484" y="278">读取计划</tspan><tspan x="484" y="310">当前版本：7</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-save-a-label" data-label-id="save-a-label" data-owner="save-a" data-role="message" data-terms="expected_version" font-size="20" fill="#1d2939"><tspan x="184" y="400">提交修改</tspan><tspan x="184" y="432">期望版本：7</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-commit-a-text" data-label-id="commit-a-text" data-owner="commit-a" data-role="node" data-terms="version" font-size="20" fill="#1d2939"><tspan x="352" y="538">原子比较与写入</tspan><tspan x="352" y="570">期望：7；当前：7</tspan><tspan x="352" y="602">匹配，原子写入 → 8</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reply-a-label" data-label-id="reply-a-label" data-owner="reply-a" data-role="message" data-terms="" font-size="20" fill="#1d2939"><tspan x="184" y="682">返回保存结果</tspan><tspan x="184" y="714">200 · 已提交</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-save-b-label" data-label-id="save-b-label" data-owner="save-b" data-role="message" data-terms="expected_version" font-size="20" fill="#1d2939"><tspan x="484" y="804">仍提交旧版修改</tspan><tspan x="484" y="836">期望版本：7</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reject-b-text" data-label-id="reject-b-text" data-owner="reject-b" data-role="node" data-terms="version" font-size="20" fill="#1d2939"><tspan x="352" y="942">再次原子比较版本</tspan><tspan x="352" y="974">期望：7；当前：8</tspan><tspan x="352" y="1006">不匹配，拒绝写入</tspan><tspan x="352" y="1038">当前版本保持 8</tspan></text>
+<text id="software-engineering-two-hour-primer-20260913--optimistic-lock-race-reply-b-label" data-label-id="reply-b-label" data-owner="reply-b" data-role="message" data-terms="" font-size="20" fill="#1d2939"><tspan x="484" y="1118">返回结果，不覆盖 A</tspan><tspan x="484" y="1150">409 · 版本冲突</tspan></text>
 </svg>

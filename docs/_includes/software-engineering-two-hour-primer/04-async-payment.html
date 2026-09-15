@@ -34,17 +34,21 @@
 <pre><code>business_key = athlete_id + local_log_uuid</code></pre>
 <p>这句话读成：<strong>“一条训练记录的业务身份，由运动员身份 + 本地唯一记录号共同决定。”</strong> 手机重试 5 次都复用同一个 <code>local_log_uuid</code>，数据库对这个业务键做唯一约束，就能避免生成 5 条重复记录。</p>
 <h3>4. Webhook 为什么不能假设只来一次</h3>
-<p>支付平台发来成功通知，你必须考虑重复、延迟、乱序、网络超时。一个稳健流程是：</p>
-<pre><code>收到 Webhook
-→ 验签
-→ 读取 event_id
-→ 尝试写入唯一事件记录
-→ 若 event_id 已存在：直接返回“已处理”
-→ 若首次出现：开启数据库事务
-→ 写 Payment / Ledger / Quota 变化
-→ COMMIT
-→ 返回 2xx</code></pre>
-<p><strong>验签</strong>就是验证这条通知确实来自可信平台，而不是别人伪造的 HTTP 请求。</p>
+<p>先验签并核对支付交易、金额、币种，再处理业务。<strong>验签</strong>确认通知来自可信平台；下面的数据库事务把唯一业务占位、账本分录、余额变化一起提交。不能先单独写“已处理”，随后才尝试入账。</p>
+<pre><code>接收并验证通知
+→ 在同一事务内判定是否已提交该业务效果
+→ 首次：唯一占位 + 写账本 + 改余额一起提交
+→ 重复且已提交：不再入账
+→ 提交成功后返回结果</code></pre>
+<p>提交前故障不能吞掉重试；提交后响应丢失不能重复记账。真实异步系统还需区分“已持久接收”和“业务已完成”；这里仅展示一个受控的同步事务例子。</p>
+<div class="lf-bindings">
+<p id="lf-def-event-id"><strong>通知编号（<code>event_id</code>）</strong>：支付平台此次通知事件的标识，不等于支付交易编号。来源：支付平台提供；例子：evt_42。</p>
+<p id="lf-def-business-key"><strong>业务键（<code>business_key</code>）</strong>：渠道、交易、业务效果共同标识的一次入账意图。来源：按渠道与业务规则派生；例子：pay_42_credit。</p>
+<p id="lf-def-balance"><strong>余额（<code>balance</code>）</strong>：示例账户当前可用金额，单位元。来源：数据库事务维护；例子：0 → 100 元。</p>
+<p id="lf-def-ledger"><strong>账本（<code>Ledger</code>）</strong>：逐笔保存金额变化和原因的记录。来源：与余额同事务提交；例子：增加一笔 100 元分录。</p>
+</div>
+<p id="lf-slot-idempotent-webhook">下面按具体值读图。图是教学示例，不是生产系统运行记录。</p>
+{% include learning-figure.html lesson=page.lesson figure="idempotent-webhook" %}
 <h3>5. “先 SELECT 再 if”为什么仍然会多加钱</h3>
 <pre><code>请求 A: SELECT processed = false
 请求 B: SELECT processed = false
