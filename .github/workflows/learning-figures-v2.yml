@@ -39,6 +39,7 @@ jobs:
         run: |
           python tools/test-learning-contract-regressions.py
           python tools/test-learning-figure-regressions.py
+          python tools/test-learning-page-flow-regressions.py
           python skills/learning-figure/scripts/test-render-chart.py
       - name: Build candidate without touching deployment settings
         run: jekyll build --source docs --destination /tmp/learning-figure-site --baseurl /Study_Skills
