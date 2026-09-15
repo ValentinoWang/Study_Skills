@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://valentinowang.github.io/Study_Skills/schema/page-flow-v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "kind",
+    "question",
+    "takeaway",
+    "reading_order",
+    "boundary",
+    "evidence_type",
+    "steps"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "kind": {"const": "pipeline"},
+    "question": {"type": "string", "minLength": 1},
+    "takeaway": {"type": "string", "minLength": 1},
+    "reading_order": {"type": "string", "minLength": 1},
+    "boundary": {"type": "string", "minLength": 1},
+    "evidence_type": {"enum": ["teaching-example", "schematic"]},
+    "steps": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "detail", "tone"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "label": {"type": "string", "minLength": 1},
+          "detail": {"type": "string", "minLength": 1},
+          "tone": {"enum": ["neutral", "info", "success", "warn", "risk"]}
+        }
+      }
+    }
+  }
+}
