@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Synchronize lessons and v2 measured figures from their canonical sources.
+"""Synchronize lessons, v2 SVG figures, and Pages-native flow figures.
 
 Layouts, supplements and figures share lesson-manifest.json. A rebuild must not
-regress the expanded wrapper or move figures through client-side JavaScript.
+regress wrappers, move figures through client-side JavaScript, or leave a
+canonical page-flow model unmirrored into Jekyll data.
 """
 from __future__ import annotations
 import json
@@ -74,6 +75,13 @@ def mirror_figures(manifest,check_only):
     for problem in problems:print('  '+problem)
     return not problems
 
+def mirror_page_flows(manifest,check_only):
+    if not any(cfg.get('page_figures') for cfg in manifest.values()):return True
+    from learning_figures.page_flows import synchronize,static_check
+    problems=synchronize(manifest,ROOT,check=check_only)+static_check(manifest,ROOT)
+    for problem in problems:print('  '+problem)
+    return not problems
+
 def main():
     check_only='--check' in sys.argv;manifest=load_manifest()
     sources=sorted(SOURCE_DIR.glob('*.json'))
@@ -81,8 +89,9 @@ def main():
     if not TERM_SOURCE.is_file():raise SystemExit(f'缺少术语首现注册表：{TERM_SOURCE}')
     source_slugs={p.stem for p in sources};unknown=sorted(set(manifest)-source_slugs);ok=not unknown
     if unknown:print('manifest entries without canonical lesson:',', '.join(unknown))
-    # Validate/generate figures before writing any mirrors. Missing runtime blocks.
+    # Validate/generate figures before writing any lesson mirrors. Missing runtime blocks.
     ok &= mirror_figures(manifest,check_only)
+    ok &= mirror_page_flows(manifest,check_only)
     if not ok:return 1
     print('lesson data mirrors')
     for src in sources:ok &= sync_file(src,PAGES_DATA_DIR/src.name,check_only)
