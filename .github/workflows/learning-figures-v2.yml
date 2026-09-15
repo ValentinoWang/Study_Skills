@@ -1,4 +1,4 @@
-name: Learning Figure v2 validation
+name: Learning Figure validation
 on:
   push:
     branches: [main]
@@ -39,6 +39,7 @@ jobs:
         run: |
           python tools/test-learning-contract-regressions.py
           python tools/test-learning-figure-regressions.py
+          python skills/learning-figure/scripts/test-render-chart.py
       - name: Build candidate without touching deployment settings
         run: jekyll build --source docs --destination /tmp/learning-figure-site --baseurl /Study_Skills
       - name: Validate actual built HTML
@@ -46,12 +47,15 @@ jobs:
           python tools/check-term-gate.py --built-site /tmp/learning-figure-site
           python tools/check-math-render-safety.py --built-site /tmp/learning-figure-site
           python tools/check-learning-figures-render.py --built-site /tmp/learning-figure-site --output /tmp/learning-figure-evidence
+          python tools/check-learning-page-flows-render.py --built-site /tmp/learning-figure-site --output /tmp/learning-page-flow-evidence
       - name: Preserve evidence, including failures
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: learning-figure-v2-evidence
-          path: /tmp/learning-figure-evidence
+          name: learning-figure-evidence
+          path: |
+            /tmp/learning-figure-evidence
+            /tmp/learning-page-flow-evidence
           if-no-files-found: warn
       - name: State enforcement boundary
         if: always()
