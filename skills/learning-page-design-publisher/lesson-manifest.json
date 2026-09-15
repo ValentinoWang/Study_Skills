@@ -1,6 +1,13 @@
 {
   "agent-development-mcp-memory-constrained-tools-20260915": {
-    "term_source": "lesson"
+    "term_source": "lesson",
+    "page_figures": [
+      {
+        "id": "agent-runtime-loop",
+        "model": "skills/learning-figure/page-figures/agent-development-mcp-memory-constrained-tools-20260915/agent-runtime-loop.flow.json",
+        "slot": "after-map"
+      }
+    ]
   },
   "frontend-page-layout-terminology-20260912": {
     "term_source": "lesson"
@@ -170,5 +177,23 @@
         "SHA-256"
       ]
     }
+  },
+  "sub2api-hong-kong-ingress-network-path-20260910": {
+    "page_figures": [
+      {
+        "id": "hk-ingress-path",
+        "model": "skills/learning-figure/page-figures/sub2api-hong-kong-ingress-network-path-20260910/hk-ingress-path.flow.json",
+        "slot": "after-orient"
+      }
+    ]
+  },
+  "tencent-cloud-dns-icp-mainland-origin-20260831": {
+    "page_figures": [
+      {
+        "id": "domain-request-gates",
+        "model": "skills/learning-figure/page-figures/tencent-cloud-dns-icp-mainland-origin-20260831/domain-request-gates.flow.json",
+        "slot": "after-orient"
+      }
+    ]
   }
 }
