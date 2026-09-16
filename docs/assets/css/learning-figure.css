@@ -1,3 +1,5 @@
+@import url("./learning-math.css");
+
 /* Learning Figure v2. Scope all rules; do not alter other lesson layouts. */
 .lf-v2{margin:28px 0;padding:18px;border:1px solid #cbd5e1;border-radius:16px;background:#fff;scroll-margin-top:24px;min-width:0}
 .lf-v2>figcaption{display:grid;gap:6px;font-size:1.14rem;line-height:1.55;color:#1d2939}
@@ -40,21 +42,3 @@
 .lpf-takeaway{margin:16px 0 10px;padding:12px 14px;border-left:3px solid #4f46e5;border-radius:0 8px 8px 0;background:#eef2ff;color:#1d2939;line-height:1.72}
 @media(max-width:820px){.lpf-v1{padding:14px}.lpf-track{display:grid;grid-template-columns:1fr;gap:8px}.lpf-arrow{min-height:24px;font-size:0}.lpf-arrow:after{content:'↓';font-size:1.3rem}.lpf-step>p{font-size:1rem}}
 @media print{.lpf-v1{border:0;border-top:1px solid #cbd5e1;border-radius:0;padding:10px 0;break-inside:auto}.lpf-track{display:block}.lpf-step{break-inside:avoid;margin:7px 0;background:#fff!important}.lpf-arrow{display:none}.lpf-v1>figcaption,.lpf-reading{break-after:avoid}.lpf-takeaway,.lpf-boundary{break-inside:avoid;background:#fff}}
-
-/* Semantic HTML math contract.
-   Math is an inline typographic language, not a row of flex-box tokens.
-   <code> is reserved for executable/code identifiers; equations use
-   .math-inline / .math-display with real sub/sup elements. */
-.math-inline,.math-display{font-family:"STIX Math","Cambria Math","STIXGeneral","Times New Roman",serif;color:#1d2433;font-style:normal;font-variant-numeric:lining-nums;letter-spacing:0}
-.math-inline{display:inline;white-space:nowrap;font-size:1.08em;background:transparent!important;padding:0!important;border-radius:0!important}
-.math-inline var,.math-display var{font-family:inherit;font-style:italic}
-.math-inline sub,.math-display sub{font-size:.68em;line-height:0;vertical-align:-.28em}
-.math-inline sup,.math-display sup{font-size:.68em;line-height:0;vertical-align:.55em}
-.math-display{display:block;width:max-content;min-width:100%;white-space:nowrap;text-align:center;font-size:1.36rem;line-height:1.65}
-.math-display .rel{display:inline-block;margin:0 .20em}
-.math-display .sep{display:inline-block;margin-right:.34em}
-.math-display .word{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:.82em;font-style:normal;font-weight:700;margin:0 .42em}
-.math-display .word:first-child{margin-left:0}
-.table .math-inline{font-size:1.12em}
-@media(max-width:820px){.math-display{min-width:max-content;text-align:left;font-size:1.12rem}.table .math-inline{font-size:1.05em}}
-@media print{.math-display{font-size:10.5pt;min-width:0;width:auto;text-align:center}.math-inline{font-size:1em}.formula-scroll{overflow:visible!important}}
