@@ -2,7 +2,7 @@
 name: learning-page-design-publisher
 description: >
   将已完成或基本完成的学习内容、讲义、案例、题目、技术说明和教学图转换成结构清楚、响应式、
-  可打印、可交互的学习网页；负责术语/变量/图中标签首现、内容拆块、figure source/public mirror、
+  可打印、可交互的学习网页；负责术语/变量首现、数学与代码表达契约、figure source/public mirror、
   GitHub Pages 构建、浏览器 QA、归档和发布。
 ---
 
@@ -20,10 +20,10 @@ learning-figure
   决定：图型、矢量源、视觉层级、几何安全区和 figure QA
                     ↓
 learning-page-design-publisher
-  决定：定义和图先在哪里出现、如何生成、怎样响应式、如何 QA、如何发布和读回
+  决定：内容怎样进入页面、数学/代码怎样区分、怎样响应式、怎样 QA、怎样发布和读回
 ```
 
-Publisher 不得为了模板方便、文件缩小或提交省事，把完整讲义换成缩略稿；也不得为了“更好看”把教学图变成与正文脱节的装饰资产。
+Publisher 不能用排版掩盖内容缺口，也不能为了“统一风格”把数学表达式当代码渲染，或把数学符号拆成 flex/grid token。
 
 ---
 
@@ -43,23 +43,22 @@ skills/learning-page-design-publisher/term-overrides.yml
       docs/lessons/<slug>.html
 ```
 
-长讲义、特殊布局和教学图必须显式登记在：
+长讲义、特殊布局、教学图和数学模式统一登记：
 
 ```text
 skills/learning-page-design-publisher/lesson-manifest.json
 ```
 
-manifest 可以声明：
+manifest 可声明：
 
 - `layout`：Jekyll layout；
 - `term_source`：术语来自 registry 还是 lesson；
-- `math_mode`：公式发布模式；新课简单公式优先 `portable_html`；
+- `math_mode`：数学表达合同；当前简单数学课程使用 `portable_html`；
 - `supplement_source_dir` / `supplement_pages_dir`：长章节 canonical/mirror；
-- `global_prerequisites`：全课变量/符号预备；
-- `section_prerequisites`：每章在推理前必须出现的术语、变量和 ID；
-- `figures` / `page_figures`：教学图契约、源文件、公开路径、依赖术语和插入位置。
+- `global_prerequisites` / `section_prerequisites`：术语、变量、ID 的首现约束；
+- `figures` / `page_figures`：教学图模型、位置和依赖。
 
-**生成器、consistency、term gate、term depth、figure gate、math gate 都读取同一 manifest。**
+生成器、consistency、term gate、figure gate、math gate 必须读取同一 manifest。
 
 ---
 
@@ -71,19 +70,14 @@ Publisher 接收内容时至少确认：
 目标读者已知什么
 每章学习目标
 每章前置概念
-每章新增术语 / 变量 / 字段 / ID / 状态取值
+新增术语 / 变量 / 字段 / ID / 状态取值
 定义出现位置
 完整例子 / trace
+数学对象与代码标识符的区分
 教学图合同（若有）
 练习与答案
-建议学习时长及活动构成（若有时长）
+建议学习时长
 ```
-
-若这些内容缺失，Publisher 不能用排版或图片掩盖教学缺口。
-
----
-
-# 3. 术语、变量与图中标签首现守门
 
 入门课必须满足：
 
@@ -91,194 +85,185 @@ Publisher 接收内容时至少确认：
 definition_position(x) < first_reasoning_use(x)
 ```
 
-这里 `x` 包括：
+这里 `x` 包括缩写、工程概念、变量、函数参数、`xxx_id`、状态、单位、公式符号和图中技术标签。
 
-- 缩写与工程概念；
-- 变量、函数名和参数；
-- `xxx_id` 字段；
-- 状态取值；
-- SQL 占位符；
-- 公式符号；
-- 单位和性能指标；
-- **教学图中带技术语义的标签**。
+---
 
-长讲义默认阅读顺序：
+# 3. 数学、代码、正文是三种不同语言
+
+## 3.1 核心分类
 
 ```text
-Hero
-→ 全局核心术语
-→ 全景 / 知识地图
-→ 必要的“怎么读变量 / 伪代码”
-→ 每章自己的先认词 / 先认变量
-→ 教学图 / 机制 / trace / 反例
-→ 小题
-→ 综合题 / 提示 / 答案
+真实代码标识符 / CLI / JSON / regex / path  → <code> / <pre><code>
+行内数学对象与关系                        → .math-inline
+块级简单公式                              → .math-display + .formula-scroll
+复杂二维数学（分式/矩阵/根式/积分等）     → MathML / 受控 LaTeX renderer
+普通解释                                  → 正文
 ```
 
-图的 alt、SVG title/desc、tooltip 都不能替代正文中的关键定义。
+**数学表达式禁止仅因“技术感”被放进 `<code>`。**
 
----
+错误：
 
-# 4. 多章节课程的统一来源
-
-长课程允许拆成多个源文件，但必须满足：
-
-```text
-canonical supplement source
-      == byte mirror ==
-Pages include source
+```html
+<code>πθ(a|c,g)</code>
+<code>A_exec ⊂ A</code>
 ```
 
-普通运行：
+这会继承 monospace、灰底、padding 和代码换行策略，最终变成“灰色药丸”。
 
-```bash
-python3 tools/build-lessons.py
+正确：
+
+```html
+<span class="math-inline">
+  π<sub>θ</sub>(<var>a</var> | <var>c</var>, <var>g</var>)
+</span>
 ```
 
-不得把 manifest 声明的特殊 layout 重新覆盖成默认 `lesson`。
+真正的代码仍使用：
 
-`build-lessons.py --check` 和 consistency 必须能发现 wrapper、supplement、layout 漂移。
-
----
-
-# 5. Teaching Figure v2 发布合同
-
-图的唯一人工来源是 `skills/learning-figure/figures/<lesson>/<id>.figure.json`，不是派生SVG。
-manifest.figures只登记 id、model、section_id、after_id。模型保存问题、结论、绑定、状态和值。
-构建器、检查器和测试统一读取 tools/learning_figures，不各自硬编码标签与坐标。
-
-生成器同步：模型旁SVG、docs/assets/figures SVG、docs/_includes/learning-figures SVG、
-docs/_data/learning_figures数据。任一漂移必须重建。不能只改public图或手工维护两套事实。
-
-章节定义区之后放稳定带ID的段落，紧接共享 `learning-figure.html` include。
-缺锚点或重复图必须失败；禁止document.currentScript按h3文案搬图。无JS也保持基础阅读位置。
-
-受控inline SVG使用完整对象清单和课程/图/变体前缀。任意导入SVG的脚本、外部资源、mask等不能直接拼接。
-宽屏显示图，窄屏和打印显示同模型步骤；手机可用原生details查看完整图。颜色与文字冗余允许。
-
-# 6. 图的验收不等于文件存在
-
-先静态检查模型/派生身份与插入点，再对真实构建HTML检查实际文字、归属、连线、箭头头部、字号与间距。
-`check-learning-figures.py`只报告静态层；render入口才报告浏览器范围。不得以术语token存在或保护框无相交代替可读性。
-
-必须保留历史遮字SVG红例，以及正常包含、长文字、漏标、删字、隐藏、path逃逸、变换、箭头加粗等测试。
-默认Chromium包含桌面、390/320窄屏、后备字体、无JS、打印媒体；打印媒体不等于分页PDF验收。
-
-环境禁止导航可明确使用 --offline，报告实际是离线artifact DOM；公开URL读回和WebKit未做时单独记BLOCKED/NOT_RUN。
-视觉审阅与分页打印结果独立记录，机器测试不自动给PASS。封存入口只检查精确报告/审阅/产物身份，不伪造人工接受。
-
-当前validation workflow独立于原生Pages，不能声称它已经在部署前阻止所有坏图。保留失败任务和原因。
-详见 `skills/learning-figure/references/qa-and-release.md`。
-
----
-
-# 7. 可见教学文本长度与时长
-
-使用 Visible Learning Text Length (VLTL) 衡量用户真正看到的教学自然语言。
-
-图题、figcaption、读图说明和文字替代计入教学文本；SVG 源码和坐标不计入。
-
-不以 HTML/CSS/JS 字节数、图片数量、文件大小或标题数量估算学习时长。
-
----
-
-# 8. 信息结构决定表达形式
-
-```text
-关系 / 过程      → Mermaid / Graphviz / D2 / SVG
-比较 / 矩阵      → table
-单一结论         → callout
-简单数学关系     → portable HTML equation（span/sub/sup + role=math）
-复杂数学结构     → 原生 MathML / 受控 LaTeX renderer
-代码执行语义     → <pre><code>
-解释 / 因果      → 正文 + 步骤
+```html
+<code>read_file</code>
+<code>operation_id</code>
+<code>project://rules</code>
 ```
 
-教学图不是装饰 KPI。图必须多解释一层关系、顺序、边界或状态变化。
-
----
-
-# 9. 公式与代码呈现
-
-## 9.1 默认：简单公式使用 Portable HTML
-
-单行代数、集合交并、状态转移、带上下标变量等简单公式，不再默认使用浏览器原生 MathML。
-原因不是数学语义不足，而是 Pages 面向的浏览器/系统字体组合可能对原生 MathML 出现重复 token、fallback 层或排版差异。
+## 3.2 简单块公式：正常排版流，不做 token 布局
 
 默认结构：
 
 ```html
 <div class="formula-scroll">
-  <div class="portable-equation" role="math"
+  <div class="math-display" role="math"
        aria-label="A exec 等于 A schema 与 A auth 的交集">
-    <span class="eq-term"><span class="eq-var">A</span><sub>exec</sub></span>
-    <span class="eq-op">=</span>
-    <span class="eq-term"><span class="eq-var">A</span><sub>schema</sub></span>
-    <span class="eq-op">∩</span>
-    <span class="eq-term"><span class="eq-var">A</span><sub>auth</sub></span>
+    <var>A</var><sub>exec</sub>
+    <span class="rel">=</span>
+    <var>A</var><sub>schema</sub>
+    ∩
+    <var>A</var><sub>auth</sub>
   </div>
 </div>
 ```
 
 硬规则：
 
-- `.portable-equation` 必须位于 `.formula-scroll` 内；
-- 必须 `role="math"` 且有说明公式语义的 `aria-label`；
-- 可见公式只有一层，不得同时保留一个可见 MathML / plaintext fallback；
-- token 使用普通 HTML `span/sub/sup`，不依赖 JS 才能出现；
-- 横向溢出归 `.formula-scroll`，公式本身 `white-space: nowrap`；
-- 手机可以横向滚动，但不得把变量拆成多行散落；
-- 打印必须仍只有一份可见公式。
+- `.math-display` 必须使用浏览器正常 inline formatting context；
+- **禁止 `display:flex / inline-flex / grid`；**
+- **禁止用 `gap` 给每一个括号、逗号、运算符做 spacing；**
+- 只给真正的关系符（如 `=`、`∼`）通过 `.rel` 少量留白；
+- 括号、逗号应跟随正常数学排版，不单独变成布局单元；
+- `var/sub/sup` 保持语义与可复制文本；
+- `.math-display` 必须在 `.formula-scroll` 内；
+- 必须有 `role="math"` 和可读的 `aria-label`；
+- 不依赖 JS 才能看到公式；
+- 不得再显示第二份 plaintext / MathML fallback。
 
-对需要强制使用此路线的课程，在 manifest 声明：
+历史失败模式：
 
-```json
-{"math_mode":"portable_html"}
+```css
+.portable-equation {
+  display: flex;
+  gap: .34em;
+}
 ```
 
-`check-math-render-safety.py` 会禁止该课程重新出现原生 `<math>`。
+这种实现会把 `(`、`)`、`,`、`=` 等每个 token 当 flex item，强行拉开数学间距。**该 renderer 已废弃，门禁必须拒绝 `.portable-equation`。**
 
-## 9.2 何时允许原生 MathML / LaTeX Renderer
+## 3.3 行内数学
 
-只有当公式包含分式、矩阵、根式、积分、多层上下标等，portable HTML 会明显损失数学结构时，才使用 MathML 或受控 LaTeX renderer。
+行内数学使用：
 
-MathML 根节点不能被普通布局接管；横向滚动必须由外层 wrapper 承担。若使用原生 MathML，必须把 Chromium 与至少一个不同渲染引擎（优先 WebKit/Safari）的实际公式显示作为独立 render 证据；没有对应环境时标记 BLOCKED / NOT_RUN，不得用源代码正确代替跨浏览器正确。
+```html
+<span class="math-inline">
+  <var>s</var><sub>t+1</sub> = <var>T</var>(<var>s</var><sub>t</sub>, <var>a</var><sub>t</sub>)
+</span>
+```
 
-## 9.3 已知失败模式
+要求：
 
-以下必须失败：
+- 无灰底；
+- 无 code padding；
+- 数学变量可斜体；
+- 下标、上标按数学字号缩放；
+- 不得把 `.math-inline` 挂在 `<code>` 上。
 
-- 一个公式同时显示 MathML 和可见 fallback 文本；
-- 原生 MathML 在正文下方再次出现 `mi/mtext` token；
-- CSS 直接给 `math` 根节点设置 `display:flex/grid/block` 或 overflow；
-- portable 公式缺 `role=math` / `aria-label`；
-- portable 公式脱离 `.formula-scroll`；
-- 打印后同一公式出现两份。
+## 3.4 Math-heavy table
 
-代码块出现前必须确认其中承担推理作用的变量、参数、字段和占位符已经解释。代码块不是定义区。
-关键变量不能只在图中含混出现；图旁默认可见的绑定说明可以承担定义，alt/desc/tooltip 不可以。
+数学表格不能为了适配手机把符号列压到不可读。
+
+使用：
+
+```html
+<div class="table math-table">
+  <table>...</table>
+</div>
+```
+
+规则：
+
+- table 保留最小可读宽度；
+- `.table` wrapper 负责横向滚动；
+- 手机端宁可滚动，也不通过极小字体、单字符换行或窄列破坏公式；
+- 打印时再解除最小宽度限制。
 
 ---
 
-# 10. 三层证据
+# 4. 复杂数学结构
 
-## 10.1 Artifact Identity
+只有分式、矩阵、根式、积分、多层上下标等会被简单 HTML 明显损坏的结构，才使用原生 MathML 或受控 LaTeX renderer。
 
-回答：两份产物是不是同一份字节？
+MathML 规则：
 
-证据：blob OID、SHA、digest、mirror byte equality。
+- 横向滚动只能放外层 wrapper；
+- 不得给 `math` 根节点设置 `display:flex/grid/block` 或 overflow；
+- 不得同时显示 MathML 与可见 fallback；
+- 必须把 Chromium 与至少一个独立渲染引擎（优先 WebKit/Safari）的真实显示作为独立证据；
+- 没有对应环境时记 `BLOCKED / NOT_RUN`，不能拿源码正确代替跨浏览器正确。
 
-## 10.2 Semantic Correctness
+---
 
-回答：结构、教学合同、图意是否正确？
+# 5. Teaching Figure v2 发布合同
 
-证据：schema、consistency、term gate、figure gate、math mode gate、业务/内容审阅。
+图的唯一人工来源是：
 
-## 10.3 Rendered Correctness
+```text
+skills/learning-figure/figures/<lesson>/<id>.figure.json
+```
 
-回答：最终浏览器真正显示和执行是否正确？
+不是派生 SVG。
 
-证据：GitHub Pages artifact + 浏览器 render、DOM、交互、图/公式的最终尺寸和打印 readback。
+manifest 只登记图 id、model、section/slot/after_id；构建器同步模型旁 SVG、`docs/assets/figures`、includes 和数据。任一漂移必须重建。
+
+图的 QA 与数学 QA 分开：
+
+```text
+learning-figure.css → 图 / 页面流程图
+learning-math.css   → 数学排版
+```
+
+不得再让 figure stylesheet 隐式承担数学 renderer 职责；lesson 样式链可以 import 两者，但职责必须独立。
+
+---
+
+# 6. 三层证据
+
+## Artifact Identity
+
+回答“源码和 mirror 是否同一份字节”。
+
+证据：blob SHA、digest、byte equality。
+
+## Semantic Correctness
+
+回答“内容、定义、数学/代码分类、图意是否正确”。
+
+证据：schema、consistency、term gate、figure gate、math gate、内容审阅。
+
+## Rendered Correctness
+
+回答“最终浏览器里到底显示成什么”。
+
+证据：Pages artifact + 浏览器 DOM / screenshot / print readback。
 
 ```text
 same bytes
@@ -288,167 +273,131 @@ same bytes
 
 ---
 
-# 11. 默认 `/full` 闭环
+# 7. 默认 `/full` 闭环
 
 ```text
 内容审计
-→ 上游学习合同检查
-→ 术语 / 变量 / figure prerequisite gate
-→ 页面拆块与 figure / formula contract
-→ canonical lesson + manifest + supplements + figure sources
+→ 术语 / 变量 / 数学对象 / figure prerequisite
+→ canonical lesson + manifest
 → build-lessons 同步
-→ consistency / term-depth / term-gate / figure-gate / math-safety
-→ 候选构建与桌面 / 手机 / 打印预检
-→ remote main（仅证明源码提交）
+→ consistency / term / figure / math gates
+→ 候选 Jekyll build
+→ 桌面 / 390px / 打印 render QA
+→ remote main
 → GitHub Pages build / deploy
-→ 同一提交的最终 artifact 检查与公开页面读回
+→ 同一 commit artifact readback
+→ 公开页面 readback
 ```
 
-只给 HTML、只看源码、只看到 deployment success，都不算 `/full` 完成。
+只看到“源码已提交”或“Pages deployment success”都不能等价成 rendered correctness。
 
 ---
 
-# 12. 构建与门禁
+# 8. 门禁
 
-默认执行：
+默认运行：
 
 ```bash
-python3 tools/backwash-term-gates.py --check
 python3 tools/build-lessons.py --check
 python3 tools/check-lesson-consistency.py
 python3 tools/check-term-depth.py
 python3 tools/check-term-gate.py
 python3 tools/check-learning-figures.py
+python3 tools/check-math-render-safety.py
 python3 tools/test-learning-contract-regressions.py
 python3 tools/test-learning-figure-regressions.py
-python3 tools/check-math-render-safety.py
 ```
 
-`check-math-render-safety.py` 同时检查：
-
-- legacy/mixed MathML 根节点布局安全；
-- manifest 声明 `portable_html` 的课程中不存在 `<math>`；
-- `.portable-equation` 的 wrapper / role / aria-label；
-- 禁止可见 `.math-fallback` / `.formula-fallback` 双层公式。
-
-拿到 `_site` / Pages artifact 后继续：
+拿到 `_site` 后再运行：
 
 ```bash
-python3 tools/check-learning-figures-render.py --built-site /path/to/_site --output /path/to/evidence
 python3 tools/check-term-gate.py --built-site /path/to/_site
 python3 tools/check-math-render-safety.py --built-site /path/to/_site
+python3 tools/check-learning-figures-render.py --built-site /path/to/_site --output /path/to/evidence
 ```
 
-静态检查只能证明可机械验证条件，不能单独证明“读者一定看懂”或“所有浏览器都显示一致”。
+`check-math-render-safety.py` 对 `math_mode: portable_html` 必须至少阻止：
+
+1. 原生 block MathML 回流；
+2. 废弃 `.portable-equation` flex-token renderer；
+3. `.math-display` 脱离 `.formula-scroll`；
+4. 缺 `role=math` / `aria-label`；
+5. `.math-inline/.math-display` 挂在 `<code>`；
+6. 明显数学表达式被写成 inline `<code>` 灰色 pill；
+7. `.math-display` 使用 flex/grid/gap；
+8. 可见双层 fallback；
+9. math stylesheet 缺少数学表格可读宽度策略。
+
+必须保留历史 red cases：
+
+```text
+公式 token 被 flex gap 拉散
+数学对象变成灰色 code pill
+手机数学表格被压成单字符窄列
+MathML + fallback 重复显示
+公式脱离 scroll wrapper
+```
 
 ---
 
-# 13. 发布状态必须分层
-
-| 状态 | 证据 |
-|---|---|
-| 源码已提交 | remote main 包含目标 commit |
-| 构建已完成 | 对应 commit Pages build 成功 |
-| 部署已完成 | 对应 artifact deploy 成功 |
-| 页面内容已核实 | 公开页面 / 构建 artifact 包含预期章节、图和公式结构 |
-| 页面交互已验证 | 浏览器中的折叠、作答、移动端、图形/公式尺寸、打印等检查 |
-
-不能把“图/公式源码在 main”写成“最终页面已经正确显示”。
-
----
-
-# 14. 响应式与浏览器 QA
+# 9. 响应式与浏览器 QA
 
 至少验证：
 
-1. Pages build success；
-2. 桌面约 1280px；
-3. 手机约 390px；
-4. A4 打印；
-5. 页面根元素无意外横向滚动；
-6. 表格、代码、图、公式只在自己的容器滚动；
-7. 长中文标题不溢出；
-8. 术语 / 变量 / 图中标签定义早于推理；
-9. 图在最终尺寸下文字可读；
-10. 图中箭头不穿过关键文字；
-11. manifest 声明的所有图都存在于最终页面；
-12. Hint Ladder 与 Final Answer 正确；
-13. `portable_html` 课程最终页面无原生 `<math>`；
-14. 每个 `.portable-equation` 只出现一份可见公式，变量/下标不在下一行重复；
-15. 公式在桌面、390px 和打印下可读；使用原生 MathML 时额外做跨引擎验证；
-16. identity、semantic、render 三类证据分开记录。
+1. 桌面约 1280px；
+2. 手机约 390px；
+3. A4 print；
+4. 页面根元素无意外横向滚动；
+5. 长块公式只在 `.formula-scroll` 内滚动；
+6. 数学表格只在 `.table` 内滚动；
+7. 数学变量、下标、括号、逗号没有异常大间距；
+8. 行内数学没有灰色 code 背景；
+9. 手机端公式不被拆成散落 token；
+10. 手机端数学表格不通过压缩字体/列宽换取“无滚动”；
+11. 图中文字可读、connector 不穿字；
+12. Hint / Answer 交互可用；
+13. identity / semantic / render 证据分开记录。
 
 ---
 
-# 15. 存量课程回洗
-
-Skill、manifest、layout、figure contract 或公式合同升级后：
-
-```text
-扫描 canonical lessons
-→ build-lessons --check
-→ consistency
-→ term / prerequisite depth
-→ term / prerequisite gate
-→ figure gate
-→ math mode / math safety
-→ Pages build
-→ 最终 artifact readback
-```
-
-必须保留四个核心回归条件：
-
-1. 未定义变量 / ID 不能被误判为通过；
-2. rebuild 不能让长讲义退回默认 layout 或丢 supplement；
-3. figure source/public 漂移、图中未声明技术标签、connector 穿字必须能被守门；
-4. `portable_html` 课程重新引入原生 MathML、双层 fallback、缺 aria-label 或脱离 scroll wrapper 必须失败。
-
----
-
-# 16. 禁止行为
+# 10. 禁止行为
 
 禁止：
 
-1. 先堆黑话后补词典；
-2. 公式 / 伪代码 / 技术图先出现，变量定义后出现；
-3. 用图片替代必要的机制解释；
-4. 只改 public SVG，不改 canonical figure source；
-5. 图中新增技术标签却不更新 prerequisites；
-6. 生成器忽略 lesson manifest；
-7. 用 blob/hash 一致宣称教学正确；
-8. 只看到 Pages deployment success 就宣布完成；
-9. 为了好看缩小图中文字到不可读；
-10. 用模拟数据图暗示真实测量结论；
-11. 对简单单行公式默认使用原生 MathML，却不做跨浏览器 render 证据；
-12. 同时显示 MathML 和 plaintext/HTML fallback 两份公式；
-13. 用 JS 在加载后搬运/复制公式，导致无 JS、打印或辅助技术读到另一份结构。
+1. 先堆黑话后补定义；
+2. 数学公式、代码、图先出现，变量定义后出现；
+3. 用 `<code>` 给数学表达“加样式”；
+4. 用 flex/grid + gap 排每一个数学 token；
+5. 为了手机无滚动把数学表格压到不可读；
+6. 同时显示两份公式 fallback；
+7. 只改 public SVG，不改 canonical figure source；
+8. 用 blob/hash 一致宣称页面视觉正确；
+9. 只看到 Pages deployment success 就宣布完成；
+10. 用 JS 搬运/复制公式导致无 JS、打印或辅助技术读到另一套结构。
 
 ---
 
-# 17. 成功标准
+# 11. 成功标准
 
 ## 教学成功
 
-- 第一次看到术语、变量、ID 和图中标签就知道它在当前系统里指什么；
-- 代码块、公式和图都能翻译回业务含义；
-- 图帮助学习者看见一次调用、一次状态变化、一次冲突或一个边界；
-- 公式在正文中只出现一次、变量与下标清晰，并可复制/打印；
-- 学习者可以追踪真实状态变化并自己排错。
+- 第一次看到术语、变量和符号就知道含义；
+- 数学看起来像数学，代码看起来像代码；
+- 表格、公式、图可以翻译回业务语义；
+- 学习者能追踪真实状态变化并自己排错。
 
 ## 工程成功
 
-- canonical lesson / supplement / figure / manifest / Pages mirror 一致；
-- wrapper layout 与 manifest 一致；
-- formula mode 与 manifest 一致；
+- canonical lesson / mirror / supplement / figure / manifest 一致；
+- layout 和 manifest 一致；
+- math mode 与实际 DOM 一致；
 - remote main、Pages artifact、公开页面可追溯到同一候选；
 - 最终 artifact 通过真实浏览器 readback。
 
 一句话：
 
-> **上游定义“学什么”；learning-figure 把关键关系画成可见推理；Publisher 保证图与公式不会在生成、响应式和发布环节失真。**
-
+> **Publisher 不只是“把内容放上网页”，而是保证术语、图、数学、代码在生成、响应式和发布后仍保持各自正确的语义与视觉语言。**
 
 ## v2 输出边界补充
 
-任何旧文中“canonical SVG”用于v2图时均指JSON模型派生SVG，模型才是人工唯一来源。
-静态PASS、浏览器PASS、视觉接受、分页打印和公开读回分别记录；不得合成无范围的“全部完成”。
+v2 图中 JSON model 是人工唯一来源，SVG 是派生物。静态 PASS、浏览器 PASS、视觉接受、分页打印、公开读回分别记录，不合并成无范围的“全部完成”。
