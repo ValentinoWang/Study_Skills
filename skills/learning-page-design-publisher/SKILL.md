@@ -53,12 +53,13 @@ manifest 可以声明：
 
 - `layout`：Jekyll layout；
 - `term_source`：术语来自 registry 还是 lesson；
+- `math_mode`：公式发布模式；新课简单公式优先 `portable_html`；
 - `supplement_source_dir` / `supplement_pages_dir`：长章节 canonical/mirror；
 - `global_prerequisites`：全课变量/符号预备；
 - `section_prerequisites`：每章在推理前必须出现的术语、变量和 ID；
-- `figures`：教学图契约、源文件、公开路径、依赖术语和移动策略。
+- `figures` / `page_figures`：教学图契约、源文件、公开路径、依赖术语和插入位置。
 
-**生成器、consistency、term gate、term depth、figure gate 都读取同一 manifest。**
+**生成器、consistency、term gate、term depth、figure gate、math gate 都读取同一 manifest。**
 
 ---
 
@@ -187,7 +188,8 @@ docs/_data/learning_figures数据。任一漂移必须重建。不能只改publi
 关系 / 过程      → Mermaid / Graphviz / D2 / SVG
 比较 / 矩阵      → table
 单一结论         → callout
-数学关系         → 原生 MathML / LaTeX renderer
+简单数学关系     → portable HTML equation（span/sub/sup + role=math）
+复杂数学结构     → 原生 MathML / 受控 LaTeX renderer
 代码执行语义     → <pre><code>
 解释 / 因果      → 正文 + 步骤
 ```
@@ -198,10 +200,62 @@ docs/_data/learning_figures数据。任一漂移必须重建。不能只改publi
 
 # 9. 公式与代码呈现
 
-MathML 根节点不能被普通布局接管。需要横向滚动时滚动外层 wrapper。
+## 9.1 默认：简单公式使用 Portable HTML
+
+单行代数、集合交并、状态转移、带上下标变量等简单公式，不再默认使用浏览器原生 MathML。
+原因不是数学语义不足，而是 Pages 面向的浏览器/系统字体组合可能对原生 MathML 出现重复 token、fallback 层或排版差异。
+
+默认结构：
+
+```html
+<div class="formula-scroll">
+  <div class="portable-equation" role="math"
+       aria-label="A exec 等于 A schema 与 A auth 的交集">
+    <span class="eq-term"><span class="eq-var">A</span><sub>exec</sub></span>
+    <span class="eq-op">=</span>
+    <span class="eq-term"><span class="eq-var">A</span><sub>schema</sub></span>
+    <span class="eq-op">∩</span>
+    <span class="eq-term"><span class="eq-var">A</span><sub>auth</sub></span>
+  </div>
+</div>
+```
+
+硬规则：
+
+- `.portable-equation` 必须位于 `.formula-scroll` 内；
+- 必须 `role="math"` 且有说明公式语义的 `aria-label`；
+- 可见公式只有一层，不得同时保留一个可见 MathML / plaintext fallback；
+- token 使用普通 HTML `span/sub/sup`，不依赖 JS 才能出现；
+- 横向溢出归 `.formula-scroll`，公式本身 `white-space: nowrap`；
+- 手机可以横向滚动，但不得把变量拆成多行散落；
+- 打印必须仍只有一份可见公式。
+
+对需要强制使用此路线的课程，在 manifest 声明：
+
+```json
+{"math_mode":"portable_html"}
+```
+
+`check-math-render-safety.py` 会禁止该课程重新出现原生 `<math>`。
+
+## 9.2 何时允许原生 MathML / LaTeX Renderer
+
+只有当公式包含分式、矩阵、根式、积分、多层上下标等，portable HTML 会明显损失数学结构时，才使用 MathML 或受控 LaTeX renderer。
+
+MathML 根节点不能被普通布局接管；横向滚动必须由外层 wrapper 承担。若使用原生 MathML，必须把 Chromium 与至少一个不同渲染引擎（优先 WebKit/Safari）的实际公式显示作为独立 render 证据；没有对应环境时标记 BLOCKED / NOT_RUN，不得用源代码正确代替跨浏览器正确。
+
+## 9.3 已知失败模式
+
+以下必须失败：
+
+- 一个公式同时显示 MathML 和可见 fallback 文本；
+- 原生 MathML 在正文下方再次出现 `mi/mtext` token；
+- CSS 直接给 `math` 根节点设置 `display:flex/grid/block` 或 overflow；
+- portable 公式缺 `role=math` / `aria-label`；
+- portable 公式脱离 `.formula-scroll`；
+- 打印后同一公式出现两份。
 
 代码块出现前必须确认其中承担推理作用的变量、参数、字段和占位符已经解释。代码块不是定义区。
-
 关键变量不能只在图中含混出现；图旁默认可见的绑定说明可以承担定义，alt/desc/tooltip 不可以。
 
 ---
@@ -218,13 +272,13 @@ MathML 根节点不能被普通布局接管。需要横向滚动时滚动外层 
 
 回答：结构、教学合同、图意是否正确？
 
-证据：schema、consistency、term gate、figure gate、业务/内容审阅。
+证据：schema、consistency、term gate、figure gate、math mode gate、业务/内容审阅。
 
 ## 10.3 Rendered Correctness
 
 回答：最终浏览器真正显示和执行是否正确？
 
-证据：GitHub Pages artifact + 浏览器 render、DOM、交互、图的最终尺寸和打印 readback。
+证据：GitHub Pages artifact + 浏览器 render、DOM、交互、图/公式的最终尺寸和打印 readback。
 
 ```text
 same bytes
@@ -240,7 +294,7 @@ same bytes
 内容审计
 → 上游学习合同检查
 → 术语 / 变量 / figure prerequisite gate
-→ 页面拆块与 figure contract
+→ 页面拆块与 figure / formula contract
 → canonical lesson + manifest + supplements + figure sources
 → build-lessons 同步
 → consistency / term-depth / term-gate / figure-gate / math-safety
@@ -270,6 +324,13 @@ python3 tools/test-learning-figure-regressions.py
 python3 tools/check-math-render-safety.py
 ```
 
+`check-math-render-safety.py` 同时检查：
+
+- legacy/mixed MathML 根节点布局安全；
+- manifest 声明 `portable_html` 的课程中不存在 `<math>`；
+- `.portable-equation` 的 wrapper / role / aria-label；
+- 禁止可见 `.math-fallback` / `.formula-fallback` 双层公式。
+
 拿到 `_site` / Pages artifact 后继续：
 
 ```bash
@@ -278,7 +339,7 @@ python3 tools/check-term-gate.py --built-site /path/to/_site
 python3 tools/check-math-render-safety.py --built-site /path/to/_site
 ```
 
-静态检查只能证明可机械验证条件，不能单独证明“读者一定看懂”。
+静态检查只能证明可机械验证条件，不能单独证明“读者一定看懂”或“所有浏览器都显示一致”。
 
 ---
 
@@ -289,10 +350,10 @@ python3 tools/check-math-render-safety.py --built-site /path/to/_site
 | 源码已提交 | remote main 包含目标 commit |
 | 构建已完成 | 对应 commit Pages build 成功 |
 | 部署已完成 | 对应 artifact deploy 成功 |
-| 页面内容已核实 | 公开页面 / 构建 artifact 包含预期章节和图 |
-| 页面交互已验证 | 浏览器中的折叠、作答、移动端、图形尺寸、打印等检查 |
+| 页面内容已核实 | 公开页面 / 构建 artifact 包含预期章节、图和公式结构 |
+| 页面交互已验证 | 浏览器中的折叠、作答、移动端、图形/公式尺寸、打印等检查 |
 
-不能把“图文件在 main”写成“图已经出现在课程页”。
+不能把“图/公式源码在 main”写成“最终页面已经正确显示”。
 
 ---
 
@@ -312,13 +373,16 @@ python3 tools/check-math-render-safety.py --built-site /path/to/_site
 10. 图中箭头不穿过关键文字；
 11. manifest 声明的所有图都存在于最终页面；
 12. Hint Ladder 与 Final Answer 正确；
-13. identity、semantic、render 三类证据分开记录。
+13. `portable_html` 课程最终页面无原生 `<math>`；
+14. 每个 `.portable-equation` 只出现一份可见公式，变量/下标不在下一行重复；
+15. 公式在桌面、390px 和打印下可读；使用原生 MathML 时额外做跨引擎验证；
+16. identity、semantic、render 三类证据分开记录。
 
 ---
 
 # 15. 存量课程回洗
 
-Skill、manifest、layout、figure contract 或门禁升级后：
+Skill、manifest、layout、figure contract 或公式合同升级后：
 
 ```text
 扫描 canonical lessons
@@ -327,16 +391,17 @@ Skill、manifest、layout、figure contract 或门禁升级后：
 → term / prerequisite depth
 → term / prerequisite gate
 → figure gate
-→ math safety
+→ math mode / math safety
 → Pages build
 → 最终 artifact readback
 ```
 
-必须保留三个核心回归条件：
+必须保留四个核心回归条件：
 
 1. 未定义变量 / ID 不能被误判为通过；
 2. rebuild 不能让长讲义退回默认 layout 或丢 supplement；
-3. figure source/public 漂移、图中未声明技术标签、connector 穿字必须能被守门。
+3. figure source/public 漂移、图中未声明技术标签、connector 穿字必须能被守门；
+4. `portable_html` 课程重新引入原生 MathML、双层 fallback、缺 aria-label 或脱离 scroll wrapper 必须失败。
 
 ---
 
@@ -353,7 +418,10 @@ Skill、manifest、layout、figure contract 或门禁升级后：
 7. 用 blob/hash 一致宣称教学正确；
 8. 只看到 Pages deployment success 就宣布完成；
 9. 为了好看缩小图中文字到不可读；
-10. 用模拟数据图暗示真实测量结论。
+10. 用模拟数据图暗示真实测量结论；
+11. 对简单单行公式默认使用原生 MathML，却不做跨浏览器 render 证据；
+12. 同时显示 MathML 和 plaintext/HTML fallback 两份公式；
+13. 用 JS 在加载后搬运/复制公式，导致无 JS、打印或辅助技术读到另一份结构。
 
 ---
 
@@ -364,18 +432,20 @@ Skill、manifest、layout、figure contract 或门禁升级后：
 - 第一次看到术语、变量、ID 和图中标签就知道它在当前系统里指什么；
 - 代码块、公式和图都能翻译回业务含义；
 - 图帮助学习者看见一次调用、一次状态变化、一次冲突或一个边界；
+- 公式在正文中只出现一次、变量与下标清晰，并可复制/打印；
 - 学习者可以追踪真实状态变化并自己排错。
 
 ## 工程成功
 
 - canonical lesson / supplement / figure / manifest / Pages mirror 一致；
 - wrapper layout 与 manifest 一致；
+- formula mode 与 manifest 一致；
 - remote main、Pages artifact、公开页面可追溯到同一候选；
 - 最终 artifact 通过真实浏览器 readback。
 
 一句话：
 
-> **上游定义“学什么”；learning-figure 把关键关系画成可见推理；Publisher 保证这些图不会在生成、响应式和发布环节失真。**
+> **上游定义“学什么”；learning-figure 把关键关系画成可见推理；Publisher 保证图与公式不会在生成、响应式和发布环节失真。**
 
 
 ## v2 输出边界补充
