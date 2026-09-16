@@ -1,6 +1,7 @@
 {
   "agent-development-mcp-memory-constrained-tools-20260915": {
     "term_source": "lesson",
+    "math_mode": "portable_html",
     "page_figures": [
       {
         "id": "agent-runtime-loop",
