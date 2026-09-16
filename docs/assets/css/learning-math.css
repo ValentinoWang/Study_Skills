@@ -70,6 +70,10 @@
 
 .table .math-inline{font-size:1.12em}
 
+/* Math-heavy comparison tables must stay readable. Do not crush a symbolic
+   column into a phone-width cell; the existing .table wrapper owns scrolling. */
+.math-table table{min-width:680px}
+
 @media(max-width:820px){
   .math-display{
     min-width:max-content;
@@ -77,6 +81,7 @@
     font-size:1.12rem;
   }
   .table .math-inline{font-size:1.05em}
+  .math-table table{min-width:640px}
 }
 
 @media print{
@@ -87,5 +92,6 @@
     text-align:center;
   }
   .math-inline{font-size:1em}
+  .math-table table{min-width:0}
   .formula-scroll{overflow:visible!important}
 }
