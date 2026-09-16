@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import pathlib
+import re
 import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -130,6 +131,14 @@ def test_math_css_rejects_flex_gap_token_layout() -> None:
     assert not failures, failures
 
 
+def test_math_tables_preserve_readable_width() -> None:
+    css = (ROOT / "docs/assets/css/learning-math.css").read_text(encoding="utf-8")
+    match = re.search(r"\.math-table\s+table\s*\{([^}]*)\}", css, re.S)
+    assert match, "math-heavy tables need an explicit readable-width contract"
+    width = re.search(r"min-width\s*:\s*(\d+)px", match.group(1))
+    assert width and int(width.group(1)) >= 600, "math table min-width is too small to remain readable"
+
+
 def main() -> int:
     test_layout_manifest_prevents_wrapper_regression()
     test_identifier_used_after_primer_is_rejected()
@@ -137,6 +146,7 @@ def main() -> int:
     test_math_display_requires_wrapper_role_and_label()
     test_math_must_not_be_rendered_as_inline_code_pills()
     test_math_css_rejects_flex_gap_token_layout()
+    test_math_tables_preserve_readable_width()
     print("PASS: learning-contract regression tests")
     return 0
 
