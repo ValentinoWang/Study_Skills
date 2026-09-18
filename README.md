@@ -12,18 +12,24 @@ GitHub Pages publishes `main/docs`:
 
 ### `math-cs-concept-tutor`
 
-For mathematics-background learners studying computer science and software engineering.
+For mathematics-background learners building independent computer-science and software-engineering judgment.
 
 Key rules:
 
-- separate abstraction hierarchy from learning prerequisites;
-- **define unfamiliar terminology before it is used for reasoning**;
-- explain intuition → mechanism → mathematical model → real engineering case;
-- use the representation that matches the information structure rather than maximizing diagrams;
-- keep formulas native/copyable instead of turning them into images;
-- finish with a reasoning-based scenario question and reference answer.
+- default to one observable judgment goal per interactive lesson;
+- define necessary objects, unfamiliar terminology, ownership and concrete values before reasoning;
+- work through one example, change exactly one condition, ask for a prediction and reason, then **stop and wait**;
+- diagnose one specific confusion at a time; give the smallest useful hint or repair rather than another lecture;
+- gradually remove scaffolding and distinguish exposure, prompted success and independent evidence;
+- separate concept classification from learning prerequisites, connecting small judgments into reusable abilities;
+- use figures and mathematics only when they help the current judgment; do not reveal a pending answer in a diagram or attachment;
+- provide complete explanations or reference documents when explicitly requested, with exercises and answers separated;
+- complete practical work requests directly instead of forcing them into a quiz.
 
 Path: `skills/math-cs-concept-tutor/SKILL.md`
+
+Teaching examples and continuation template: `skills/math-cs-concept-tutor/references/interactive-tutoring.md`.
+Behavioral acceptance cases: `skills/math-cs-concept-tutor/references/acceptance-cases.md`.
 
 ### `learning-page-design-publisher`
 
@@ -99,7 +105,10 @@ This prevents lessons from using terms such as `Runtime`, `HMR`, `E2E`, `readbac
 Study_Skills/
 ├── skills/
 │   ├── math-cs-concept-tutor/
-│   │   └── SKILL.md
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── interactive-tutoring.md
+│   │       └── acceptance-cases.md
 │   └── learning-page-design-publisher/
 │       ├── SKILL.md
 │       ├── term-overrides.yml
