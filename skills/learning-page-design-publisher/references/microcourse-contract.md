@@ -4,7 +4,9 @@ This is a content/rendering extension, not a change to either SKILL's teaching p
 
 ## Identity
 
-The sole course source remains `lessons/<slug>.json`. `tools/build-lessons.py` mirrors the same bytes into `docs/_data/lessons`, creates the standard three-line lesson wrapper, and reads `lesson-manifest.json`. Declare `layout: lesson-microcourse`, `term_source: lesson`, and `math_mode: portable_html`. Do not maintain a second manuscript inside JavaScript or an isolated standalone page.
+The sole course source remains `lessons/<slug>.json`. `tools/build-lessons.py` mirrors the same bytes into `docs/_data/lessons`, creates the standard lesson wrapper, and reads `lesson-manifest.json`. Declare `layout: lesson-microcourse` and `term_source: lesson`. Courses with no rendered equations need not declare a mathematical rendering mode. If a course contains displayed mathematics, declare the publisher's applicable math contract (such as `portable_html`) and satisfy its equation and layout gates. Do not add decorative equations to satisfy an inapplicable mode.
+
+Do not maintain a second manuscript inside JavaScript or an isolated standalone page.
 
 ## Data
 
@@ -17,7 +19,7 @@ Existing metadata (`TITLE`, `SUBTITLE`, `META_DESCRIPTION`, `DOMAIN`, `MODE`, `D
 - `CORRECTIONS`: reviewed model corrections, not a learner weakness record.
 - `GLOSSARY`: `category`, `unit`, `text`; a lookup index, not prerequisites to read all at once.
 - `LABS`: `title`, `before`, `code`, `after`; explicitly authorized, bounded experiments.
-- `SOURCES`: `id`, `title`, `url`, `scope`; source claims are separated from teaching assumptions and fabricated sample numbers are forbidden.
+- `SOURCES`: `id`, `title`, `url`, `scope`; source claims are separated from teaching assumptions. Sample numbers must be labeled teaching settings, never fabricated measurements.
 
 Plain text is escaped in the layout. Only the already-reviewed `TERMS_HTML` and `SYNTHESIS_HTML` are rendered as HTML. Actual commands use `<pre><code>`; mathematical expressions must follow the publisher's math contract.
 
