@@ -1,2 +1,0 @@
-# Optional build-time dependency; never loaded by a Pages visitor.
-matplotlib==3.10.8
