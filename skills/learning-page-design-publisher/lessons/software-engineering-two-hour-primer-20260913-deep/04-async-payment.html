@@ -1,0 +1,64 @@
+<div class="k">Deep Dive 04 · 约 18–22 分钟</div>
+<h2>深挖四：异步、Webhook、幂等与支付，为什么会成为生产级难点</h2>
+<h3>0. 本节先认词 / 先认变量</h3>
+<div class="table"><table><thead><tr><th>词或变量</th><th>中文直觉</th><th>例子</th></tr></thead><tbody>
+<tr><td>Synchronous · 同步</td><td>当前步骤没结束，调用方就继续等。</td><td>用户点保存，等数据库写完再返回。</td></tr>
+<tr><td>Asynchronous · 异步</td><td>核心动作完成后，后续工作可以慢慢做，不让用户一直等。</td><td>发布计划成功后，通知 300 个运动员可以后台发送。</td></tr>
+<tr><td>Queue · 队列</td><td>等待后台处理的任务列表。</td><td>“给运动员发推送”先进入队列。</td></tr>
+<tr><td>Worker</td><td>后台真正拿任务来执行的进程。</td><td>从 Queue 取一条通知任务并发送。</td></tr>
+<tr><td>Retry · 重试</td><td>失败或超时后重新执行。</td><td>推送接口暂时失败，过一会再试。</td></tr>
+<tr><td>Webhook</td><td>外部平台主动调用你的 HTTP 接口来通知事件。</td><td>支付平台通知“这笔付款成功了”。</td></tr>
+<tr><td><code>event_id</code></td><td>某个外部事件的唯一编号。</td><td>用它判断“这个 Webhook 我是不是已经处理过”。</td></tr>
+<tr><td>Idempotency · 幂等</td><td>同一个业务意图重复到达，最终副作用只发生一次。</td><td>支付成功通知来 5 次，余额也只加一次。</td></tr>
+<tr><td><code>idempotency_key</code></td><td>一次业务意图的唯一身份。</td><td>网络重试时复用同一个 key。</td></tr>
+<tr><td><code>balance</code></td><td>账户余额。</td><td><code>balance += 100</code> 表示余额增加 100。</td></tr>
+<tr><td><code>quota</code></td><td>剩余可用额度。</td><td>还有多少 API 次数或服务金额。</td></tr>
+<tr><td>Ledger · 账本</td><td>每次余额/额度变化的可追溯记录。</td><td>不是只保存最终 balance，而是保存每一笔为什么变。</td></tr>
+</tbody></table></div>
+<h3>1. 为什么要异步</h3>
+<p>发布计划时，真正必须同步确认的通常只有核心事实：“这份计划版本是否成功发布”。给 300 个运动员发通知、调用 AI 生成摘要、生成报表，可以放到后台。</p>
+<pre><code>HTTP Request
+→ 核心事务
+→ 写入 Queue
+→ Response 返回给用户
+              ↓
+            Worker
+              ↓
+     Push / AI / Email</code></pre>
+<p>这里 <code>HTTP Request</code> 是用户发来的请求；<code>核心事务</code> 是必须当场确认的数据库变化；<code>Queue</code> 保存待处理任务；<code>Worker</code> 在后台执行。</p>
+<h3>2. 为什么 Retry 会逼出幂等问题</h3>
+<p>系统很难保证每个消息“恰好只送一次”。现实里更常见的是：宁愿重复，也别无声丢失。这类语义常被称为 <strong>at-least-once delivery</strong>，中文可以理解为“至少送达一次，因此可能送达多次”。</p>
+<p>于是业务必须能安全处理重复，这就是幂等。</p>
+<h3>3. 先定义 business key，再谈去重</h3>
+<p>假设手机离线上传训练记录。先定义两个变量：</p><ul><li><code>athlete_id</code>：哪位运动员。</li><li><code>local_log_uuid</code>：手机在本地生成的这条训练记录的唯一编号。</li></ul>
+<pre><code>business_key = athlete_id + local_log_uuid</code></pre>
+<p>这句话读成：<strong>“一条训练记录的业务身份，由运动员身份 + 本地唯一记录号共同决定。”</strong> 手机重试 5 次都复用同一个 <code>local_log_uuid</code>，数据库对这个业务键做唯一约束，就能避免生成 5 条重复记录。</p>
+<h3>4. Webhook 为什么不能假设只来一次</h3>
+<p>先验签并核对支付交易、金额、币种，再处理业务。<strong>验签</strong>确认通知来自可信平台；下面的数据库事务把唯一业务占位、账本分录、余额变化一起提交。不能先单独写“已处理”，随后才尝试入账。</p>
+<pre><code>接收并验证通知
+→ 在同一事务内判定是否已提交该业务效果
+→ 首次：唯一占位 + 写账本 + 改余额一起提交
+→ 重复且已提交：不再入账
+→ 提交成功后返回结果</code></pre>
+<p>提交前故障不能吞掉重试；提交后响应丢失不能重复记账。真实异步系统还需区分“已持久接收”和“业务已完成”；这里仅展示一个受控的同步事务例子。</p>
+<div class="lf-bindings">
+<p id="lf-def-event-id"><strong>通知编号（<code>event_id</code>）</strong>：支付平台此次通知事件的标识，不等于支付交易编号。来源：支付平台提供；例子：evt_42。</p>
+<p id="lf-def-business-key"><strong>业务键（<code>business_key</code>）</strong>：渠道、交易、业务效果共同标识的一次入账意图。来源：按渠道与业务规则派生；例子：pay_42_credit。</p>
+<p id="lf-def-balance"><strong>余额（<code>balance</code>）</strong>：示例账户当前可用金额，单位元。来源：数据库事务维护；例子：0 → 100 元。</p>
+<p id="lf-def-ledger"><strong>账本（<code>Ledger</code>）</strong>：逐笔保存金额变化和原因的记录。来源：与余额同事务提交；例子：增加一笔 100 元分录。</p>
+</div>
+<p id="lf-slot-idempotent-webhook">下面按具体值读图。图是教学示例，不是生产系统运行记录。</p>
+{% include learning-figure.html lesson=page.lesson figure="idempotent-webhook" %}
+<h3>5. “先 SELECT 再 if”为什么仍然会多加钱</h3>
+<pre><code>请求 A: SELECT processed = false
+请求 B: SELECT processed = false
+A: balance += 100
+B: balance += 100</code></pre>
+<p>先解释：<code>processed=false</code> 表示“数据库暂时认为这个事件还没处理”；<code>balance += 100</code> 表示“在原余额基础上再加 100”。</p>
+<p>两个并发请求都可能在任何一个写入之前读到 false，于是两个 if 都通过。真正防重不能只靠应用层查询，而要用数据库 UNIQUE、事务、锁等原子机制。</p>
+<h3>6. Order、Payment、Ledger、Refund 是不同对象</h3>
+<div class="table"><table><thead><tr><th>对象</th><th>它回答什么</th></tr></thead><tbody><tr><td>Order · 订单</td><td>用户想买什么、应付多少钱</td></tr><tr><td>Payment Transaction · 支付交易</td><td>支付渠道实际发生了哪次资金尝试</td></tr><tr><td>Ledger Entry · 账本分录</td><td>系统内部余额为什么变化</td></tr><tr><td>Refund · 退款</td><td>原支付的全部或部分资金如何退回</td></tr><tr><td>Settlement · 结算</td><td>支付机构何时把钱结给商户</td></tr><tr><td>Reconciliation · 对账</td><td>你的记录与支付平台记录是否一致</td></tr></tbody></table></div>
+<h3>7. Timeout 不是 Failure</h3>
+<p>Timeout 只表示“规定时间内没收到 Response”。第一次充值请求可能已经成功，只是响应没回来。所以创建支付/订单这类有副作用的动作，要让重试复用同一个 <code>idempotency_key</code>。</p>
+<div class="q"><strong>练习：</strong>用户连续点三次“购买套餐”。怎样区分“同一次购买的网络重试”和“用户真的想买三次”？</div>
+<p><strong>答案：</strong>一次明确业务意图生成一个 idempotency key；网络重试复用这个 key。用户明确重新发起一次新购买，则生成新的 key。服务端按 key 唯一，而不是简单按“用户+金额”去重。</p>

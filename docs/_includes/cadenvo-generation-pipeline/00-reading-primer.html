@@ -1,0 +1,30 @@
+<section class="sec" id="symbols">
+  <div class="k">Reading prerequisites</div>
+  <h2>先学会读变量、字段和伪代码</h2>
+  <p>后文不是要求你背一串函数名。这一页先给出读代码需要的最小约定；七个阶段再解释每个真实函数的职责。数学符号、教学伪代码与真实源码会分别标明。</p>
+  <h3>建议学习安排，不是实测试读时长</h3>
+  <p>全课建议安排 75–100 分钟：术语与本页预备 15 分钟，七阶段源码追踪 35–45 分钟，独立作答 10–15 分钟，核对答案与迁移判断 15–25 分钟。已经熟悉网络和并发基础的读者，可以先读阶段三至六，再回看阶段一、二、七。</p>
+  <h3>程序中的名字怎么读</h3>
+  <p><strong>Variable（变量）</strong>是给当前值起的名字；<strong>Function（函数）</strong>接收输入并执行一段规则，圆括号中的值是参数。<code>f(x)</code> 表示调用 f 并传入 x，不是把两个字母相乘。<strong>Object（对象或记录）</strong>把字段名与值对应起来；<code>job.id</code> 表示读取 job 记录的 id 字段。<strong>Array（数组）</strong>是一组有顺序的值。字段名不规定真伪，仍需校验内容。</p>
+  <p>在本课的 Python 风格伪代码中，<code>=</code> 表示把右侧结果赋给左侧变量，<code>==</code> 才是比较两个值是否相等；在数学公式中，等号表示数学等式。<code>assert 条件</code> 表示条件不成立就停止并报错。<code>AND</code> 或数学符号 ∧ 表示条件必须同时成立；<code>OR</code> 或 ∨ 表示至少一个成立。<code>true</code> / <code>false</code> 表示真 / 假，代码注释不是运行步骤。</p>
+  <div class="table"><table><thead><tr><th>字段或状态</th><th>在本课里读作什么</th></tr></thead><tbody>
+    <tr><td><code>pageId</code>、<code>manifestId</code></td><td>页面标识、项目清单标识：区分当前究竟在处理哪个页面、哪个项目。标识不是页面标题。</td></tr>
+    <tr><td><code>jobId</code>、<code>job.id</code></td><td>任务标识。请求参数可能叫 jobId，返回的 job 对象内部字段叫 id；它们是不同消息中的字段位置。</td></tr>
+    <tr><td><code>prompt</code>、<code>promptDigest</code></td><td>提示词正文、供界面辨认的提示词摘要。显示用的摘要前缀不能替代服务端保存的完整确认摘要。</td></tr>
+    <tr><td><code>confirmedPromptSha256</code>、<code>confirmedDigest</code></td><td>前者是保存的完整提示词确认指纹；后者是某些公开响应中的确认摘要表示。后文的数学变量 d 专指完整的确认摘要。</td></tr>
+    <tr><td><code>pageContextId</code>、<code>consumerSurfaceDigest</code></td><td>页面上下文身份、当前生成消费者所依赖输入的指纹。后者用于判断生成依据是否已经变化，不是生成图片的指纹。</td></tr>
+    <tr><td><code>revision</code>、<code>selectionEpoch</code></td><td>工作流版本号、浏览器刷新批次号。前者用来发现提交冲突；后者用来辨认迟到响应，不承担业务授权。</td></tr>
+    <tr><td><code>status</code></td><td>任务状态字段；值不是随意的文案，而会影响下一步操作是否允许。</td></tr>
+    <tr><td><code>draft</code> → <code>confirmed</code> → <code>generating</code> → <code>generated</code> / <code>failed</code></td><td>提示词任务的草稿、已确认、生成中、已生成或失败。这里只给主线，实际允许转换由服务端函数检查。</td></tr>
+    <tr><td><code>queued</code>、<code>running</code>、<code>completed</code></td><td>HTML 任务的排队、运行、完成。它们不是“业务已验收”的同义词。</td></tr>
+    <tr><td><code>operationId</code>、<code>httpStatus</code>、<code>referencesDigest</code></td><td>接口操作标识、HTTP 响应状态码、参考资料指纹。相同字段名可能出现在不同消息中，要同时看其所属记录。</td></tr>
+  </tbody></table></div>
+  <h3>后文公式的符号预备</h3>
+  <p>第一组：E 是全部待处理证据，e 是其中一条证据，p 是当前页面；<code>Bound(e,p)</code> 表示该证据确实绑定到当前页，<code>Valid(e)</code> 表示相应校验通过，E<sub>p</sub> 是筛出的页面证据集合。∈ 表示属于集合，花括号表示集合。这些是教学谓词，不是声称源码有同名函数。</p>
+  <p>第二组：N 是递归遍历的输入节点数，K 是收集到的不同字段数量，T 是该段数据处理时间，<code>O(…)</code> 表示随规模增长的上界量级，log 表示对数。这个估计只讨论局部遍历与排序，不包含外部模型和网络等待。</p>
+  <p>第三组：H 是 SHA-256 哈希函数，P 是待校验的提示词文件字节，d 是确认时记录的完整摘要，s 是任务状态。在后面的生成流程模型里，C 表示页面上下文，P 表示提示词文本，I 表示设计图，W 表示网页代码，V 表示浏览器可见画面；文本 P 编码为具体文件字节后才能计算摘要。变量名相同，不意味着可以忽略文本与字节的区别。</p>
+  <h3>伪代码中的函数名是解释，不是让你直接运行的脚本</h3>
+  <p><code>context</code>、<code>source</code>、<code>draft</code>、<code>checked_draft</code> 分别表示上下文、组装后的模型输入、模型草稿、通过检查的草稿。<code>build_page_context</code> 是真实源码中的上下文构造函数；教学写法中省略了它的完整参数。</p>
+  <p><code>deterministic_template</code> 表示按固定模板组装，<code>budgeted_projection</code> 表示在预算内选择数据，<code>text_model</code> 表示调用文本模型，<code>validate_output</code> 表示输出检查，<code>current_input_digest</code> 表示重新读取当前输入指纹，<code>save_draft</code> 表示保存草稿。这组别名是为了把机制分开，不是仓库中可复制调用的完整函数列表。<code>context.input_digest</code> 也属于教学化字段别名。</p>
+  <div class="call"><strong>读每一阶段只追四件事：</strong>输入属于谁，函数把它变成什么，什么条件会拒绝，输出被下一阶段怎样使用。能够回答这四件事，比背住函数名更接近真正读懂算法。</div>
+</section>

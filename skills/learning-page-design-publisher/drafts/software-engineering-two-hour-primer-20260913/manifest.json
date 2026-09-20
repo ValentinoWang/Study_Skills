@@ -1,0 +1,10 @@
+{
+  "lesson_id": "software-engineering-two-hour-primer-20260913",
+  "status": "EXPANDED_LONGFORM_PUBLISHED",
+  "canonical_path": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913.json",
+  "deep_source_dir": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913-deep/",
+  "pages_entry_path": "docs/lessons/software-engineering-two-hour-primer-20260913.html",
+  "expanded_sections": 6,
+  "deep_sections": ["frontend-request", "data-state", "auth-tenant", "async-payment", "mobile", "delivery"],
+  "published_commit": "797d924a539b19ff9a758c64d8f3b7d966b34bbf"
+}

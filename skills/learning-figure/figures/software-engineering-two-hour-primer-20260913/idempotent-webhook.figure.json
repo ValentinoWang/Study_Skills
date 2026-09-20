@@ -1,0 +1,180 @@
+{
+  "schema_version": "2.0",
+  "evidence_type": "teaching-example",
+  "id": "idempotent-webhook",
+  "kind": "sequence",
+  "question": "同一笔付款通知两次，为什么余额只增加 100 元？",
+  "takeaway": "“已收到通知”不等于“业务已提交”。唯一业务占位、账本和余额同事务提交；重复到达不重复记账。",
+  "reading_order": "从上往下比较首次通知与提交后的重复通知。每次数据库处理都有独立行，返回箭头与处理结果分开。",
+  "boundary": "前提是已经验签并核对交易、金额和币种。提交前失败须可恢复重试；提交后响应丢失则按已提交业务键去重。不同通知编号也可能描述同一交易，业务键不能简单使用“用户＋金额”。",
+  "bindings": {
+    "event_id": {
+      "label": "通知编号",
+      "definition_id": "lf-def-event-id",
+      "meaning": "支付平台此次通知事件的标识，不等于支付交易编号",
+      "source": "支付平台提供",
+      "example": "evt_42"
+    },
+    "business_key": {
+      "label": "业务键",
+      "definition_id": "lf-def-business-key",
+      "meaning": "渠道、交易、业务效果共同标识的一次入账意图",
+      "source": "按渠道与业务规则派生",
+      "example": "pay_42_credit"
+    },
+    "balance": {
+      "label": "余额",
+      "definition_id": "lf-def-balance",
+      "meaning": "示例账户当前可用金额，单位元",
+      "source": "数据库事务维护",
+      "example": "0 → 100 元"
+    },
+    "Ledger": {
+      "label": "账本",
+      "definition_id": "lf-def-ledger",
+      "meaning": "逐笔保存金额变化和原因的记录",
+      "source": "与余额同事务提交",
+      "example": "增加一笔 100 元分录"
+    }
+  },
+  "actors": [
+    {
+      "id": "provider",
+      "label": "支付平台"
+    },
+    {
+      "id": "handler",
+      "label": "接收服务"
+    },
+    {
+      "id": "database",
+      "label": "数据库"
+    }
+  ],
+  "initial_state": {
+    "balance": 0
+  },
+  "expected_final": {
+    "balance": 100,
+    "ledger_entries": 1
+  },
+  "events": [
+    {
+      "id": "notify-first",
+      "type": "message",
+      "from": "provider",
+      "to": "handler",
+      "label": "首次成功通知",
+      "payload": {
+        "event_id": "evt_42"
+      }
+    },
+    {
+      "id": "request-first",
+      "type": "message",
+      "from": "handler",
+      "to": "database",
+      "label": "验签、字段校验后请求入账",
+      "payload": {
+        "business_key": "pay_42_credit"
+      },
+      "after": [
+        "notify-first"
+      ]
+    },
+    {
+      "id": "credit-first",
+      "type": "atomic_credit",
+      "actor": "database",
+      "label": "同一数据库事务",
+      "business_key": "pay_42_credit",
+      "amount": 100,
+      "verified": true,
+      "after": [
+        "request-first"
+      ]
+    },
+    {
+      "id": "db-first",
+      "type": "message",
+      "from": "database",
+      "to": "handler",
+      "label": "确认事务结果",
+      "result_of": "credit-first",
+      "after": [
+        "credit-first"
+      ]
+    },
+    {
+      "id": "ack-first",
+      "type": "message",
+      "from": "handler",
+      "to": "provider",
+      "label": "返回处理结果",
+      "result_of": "credit-first",
+      "after": [
+        "db-first"
+      ]
+    },
+    {
+      "id": "notify-again",
+      "type": "message",
+      "from": "provider",
+      "to": "handler",
+      "label": "相同通知再次到达",
+      "payload": {
+        "event_id": "evt_42"
+      },
+      "after": [
+        "credit-first"
+      ]
+    },
+    {
+      "id": "request-again",
+      "type": "message",
+      "from": "handler",
+      "to": "database",
+      "label": "仍请求同一业务效果",
+      "payload": {
+        "business_key": "pay_42_credit"
+      },
+      "after": [
+        "notify-again"
+      ]
+    },
+    {
+      "id": "credit-again",
+      "type": "atomic_credit",
+      "actor": "database",
+      "label": "核对已提交的业务键",
+      "business_key": "pay_42_credit",
+      "amount": 100,
+      "verified": true,
+      "after": [
+        "request-again"
+      ]
+    },
+    {
+      "id": "db-again",
+      "type": "message",
+      "from": "database",
+      "to": "handler",
+      "label": "确认已经处理",
+      "result_of": "credit-again",
+      "after": [
+        "credit-again"
+      ]
+    },
+    {
+      "id": "ack-again",
+      "type": "message",
+      "from": "handler",
+      "to": "provider",
+      "label": "返回成功，不再入账",
+      "result_of": "credit-again",
+      "after": [
+        "db-again"
+      ]
+    }
+  ]
+}

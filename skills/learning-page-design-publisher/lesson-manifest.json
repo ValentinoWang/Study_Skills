@@ -1,0 +1,39 @@
+{
+  "proxy-network-judgment-lab-20260920": {
+    "layout": "lesson-microcourse",
+    "term_source": "lesson"
+  },
+  "agent-development-mcp-memory-constrained-tools-20260915": {
+    "term_source": "lesson",
+    "math_mode": "portable_html",
+    "page_figures": [{"id": "agent-runtime-loop", "model": "skills/learning-figure/page-figures/agent-development-mcp-memory-constrained-tools-20260915/agent-runtime-loop.flow.json", "slot": "after-map"}]
+  },
+  "frontend-page-layout-terminology-20260912": {"term_source": "lesson"},
+  "software-engineering-two-hour-primer-20260913": {
+    "layout": "lesson-expanded", "term_source": "lesson",
+    "supplement_source_dir": "skills/learning-page-design-publisher/lessons/software-engineering-two-hour-primer-20260913-deep",
+    "supplement_pages_dir": "docs/_includes/software-engineering-two-hour-primer",
+    "global_prerequisites": {"file": "00-reading-primer.html", "section_id": "symbols", "terms": ["variable", "xxx_id", "AND", "OR", "v3", "?", "UUID"]},
+    "section_prerequisites": {
+      "deep1": {"file": "01-frontend-request.html", "terms": ["Component", "props", "state", "render", "View", "Request", "Response", "Routing", "HTTP", "Endpoint"]},
+      "deep2": {"file": "02-data-state.html", "terms": ["Database", "Schema", "Primary Key", "Foreign Key", "Constraint", "Transaction", "status", "version", "State Machine", "Race Condition", "Migration"]},
+      "deep3": {"file": "03-auth-tenant.html", "terms": ["user_id", "tenant_id", "resource_id", "role", "action", "relation", "Authentication", "Authorization", "RBAC", "ABAC"]},
+      "deep4": {"file": "04-async-payment.html", "terms": ["Synchronous", "Asynchronous", "Queue", "Worker", "Retry", "Webhook", "event_id", "Idempotency", "idempotency_key", "balance", "quota", "Ledger"]},
+      "deep5": {"file": "05-mobile.html", "terms": ["Runtime", "App Lifecycle", "Local Storage", "Sync", "Conflict", "local_uuid", "plan_version", "Push Notification", "Permission"]},
+      "deep6": {"file": "06-delivery.html", "terms": ["Source Code", "Commit", "Build", "Artifact", "artifact_digest", "Release Candidate", "CI", "CD", "Deployment", "Readback", "Observability", "Rollback"]}
+    },
+    "figures": [
+      {"id": "state-to-view", "model": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/state-to-view.figure.json", "section_id": "deep1", "after_id": "lf-slot-state-to-view"},
+      {"id": "optimistic-lock-race", "model": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.figure.json", "section_id": "deep2", "after_id": "lf-slot-optimistic-lock-race"},
+      {"id": "idempotent-webhook", "model": "skills/learning-figure/figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.figure.json", "section_id": "deep4", "after_id": "lf-slot-idempotent-webhook"}
+    ]
+  },
+  "cadenvo-generation-pipeline-20260915": {
+    "layout": "lesson-cadenvo", "term_source": "lesson",
+    "supplement_source_dir": "skills/learning-page-design-publisher/lessons/cadenvo-generation-pipeline-20260915-parts",
+    "supplement_pages_dir": "docs/_includes/cadenvo-generation-pipeline",
+    "global_prerequisites": {"file": "00-reading-primer.html", "section_id": "symbols", "terms": ["Variable", "Function", "Object", "Array", "AND", "OR", "assert", "pageId", "jobId", "manifestId", "status", "promptDigest", "confirmedPromptSha256", "consumerSurfaceDigest", "revision", "selectionEpoch", "Bound", "Valid", "SHA-256"]}
+  },
+  "sub2api-hong-kong-ingress-network-path-20260910": {"page_figures": [{"id": "hk-ingress-path", "model": "skills/learning-figure/page-figures/sub2api-hong-kong-ingress-network-path-20260910/hk-ingress-path.flow.json", "slot": "after-orient"}]},
+  "tencent-cloud-dns-icp-mainland-origin-20260831": {"page_figures": [{"id": "domain-request-gates", "model": "skills/learning-figure/page-figures/tencent-cloud-dns-icp-mainland-origin-20260831/domain-request-gates.flow.json", "slot": "after-orient"}]}
+}

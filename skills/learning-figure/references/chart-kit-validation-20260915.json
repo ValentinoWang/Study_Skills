@@ -1,0 +1,108 @@
+{
+  "date": "2026-09-15",
+  "base_commit": "3577d8f16df88eb46b22ee8895aece2766e09644",
+  "scope": "learning-figure skill, optional static chart exporter and preview QA; no existing lessons or deployment settings changed",
+  "unit_tests": {
+    "status": "PASS",
+    "tests": 23,
+    "command": "python skills/learning-figure/scripts/test-render-chart.py"
+  },
+  "export_identity": {
+    "status": "PASS",
+    "command": "render-chart.py ... --check"
+  },
+  "offline_browser": {
+    "scope": "Offline standalone export DOM; embeds the same CSS/SVG bytes. Not Jekyll, network or Pages QA.",
+    "export_report_sha256": "b3ad49cc3dfe7d7c4f37d92f8482faa49151886df1fdbb83623ddedcbe2ff49e",
+    "pages_build": "NOT_RUN",
+    "public_readback": "NOT_RUN",
+    "pagination": "NOT_RUN",
+    "independent_visual_review": "NOT_RUN",
+    "cases": [
+      {
+        "rootOverflow": false,
+        "dataVisible": false,
+        "definitionsBeforeImage": true,
+        "scripts": 0,
+        "visibleFontMinimum": 16,
+        "name": "desktop",
+        "imageLoaded": true,
+        "status": "PASS",
+        "screenshot_sha256": "95f9606c53a02b96863d9fa2815f2d78376fe23d13c5e337eb78fb8a63648389"
+      },
+      {
+        "rootOverflow": false,
+        "dataVisible": true,
+        "definitionsBeforeImage": true,
+        "scripts": 0,
+        "visibleFontMinimum": 16,
+        "name": "mobile",
+        "keyboardExpanded": true,
+        "expandedImageWidth": 720,
+        "expandedRootOverflow": false,
+        "status": "PASS",
+        "screenshot_sha256": "5775560171669f8a9523be5422908479e200ecfaa5d034b3cbc21fa721efcf03"
+      },
+      {
+        "rootOverflow": false,
+        "dataVisible": true,
+        "definitionsBeforeImage": true,
+        "scripts": 0,
+        "visibleFontMinimum": 16,
+        "name": "small",
+        "keyboardExpanded": true,
+        "expandedImageWidth": 720,
+        "expandedRootOverflow": false,
+        "status": "PASS",
+        "screenshot_sha256": "1bd02a777cde02b98bcc659bb7557bf7c8cd2f86e65fb6a465e10fd6c06ef114"
+      },
+      {
+        "rootOverflow": false,
+        "dataVisible": false,
+        "definitionsBeforeImage": true,
+        "scripts": 0,
+        "visibleFontMinimum": 16,
+        "name": "no-js",
+        "imageLoaded": true,
+        "status": "PASS",
+        "screenshot_sha256": "95f9606c53a02b96863d9fa2815f2d78376fe23d13c5e337eb78fb8a63648389"
+      },
+      {
+        "rootOverflow": false,
+        "dataVisible": true,
+        "definitionsBeforeImage": true,
+        "scripts": 0,
+        "visibleFontMinimum": 16,
+        "name": "print",
+        "status": "PASS",
+        "screenshot_sha256": "370e4b7792a794dbac43b3d26d1d0110a70c26f29bc88b8b1d788d249f0ef8c6"
+      }
+    ],
+    "status": "PASS"
+  },
+  "assistant_visual_review": {
+    "status": "PASS",
+    "scope": "desktop and 390px screenshots inspected; not independent acceptance"
+  },
+  "repository_v2_full_regressions": "NOT_RUN",
+  "actual_jekyll_build": "NOT_RUN",
+  "public_pages_readback": "NOT_RUN",
+  "webkit": "NOT_RUN",
+  "pdf_pagination": "NOT_RUN",
+  "environment_limits": [
+    "Container cannot resolve github.com for git clone; repository reads/writes use the GitHub connector.",
+    "Browser file navigation blocked by administrator; explicit offline DOM inspection used."
+  ],
+  "source_blobs": {
+    "skills/learning-figure/SKILL.md": "774e0cf297d2b6d9cb6ab393212105c3d8c8df68",
+    "skills/learning-figure/assets/chart.css": "6e0ff49e9081d26f3eca115474bcc2dc8966c53c",
+    "skills/learning-figure/examples/convergence.chart.json": "358e97b0a8bfdbb73765186ee4f500f228f951b5",
+    "skills/learning-figure/references/github-pages.md": "d4dd2a28df815bbb8d03fc728850a22e20cd4665",
+    "skills/learning-figure/references/scientific-charts.md": "c978654923e8a7491e9c05eb40106fd9ae67965f",
+    "skills/learning-figure/references/visual-design.md": "48b054cc1450a4e50d46c63dbc71f3bdc5208f98",
+    "skills/learning-figure/scripts/check-chart-preview.py": "c2710d6faf22001ea4544918770285518e638256",
+    "skills/learning-figure/scripts/render-chart.py": "cb5067615d06888cb7df926bd153df0770a31444",
+    "skills/learning-figure/scripts/requirements-chart.txt": "59d0f85c1d60c787ca36c7ccd905c45d6c3b4ccf",
+    "skills/learning-figure/scripts/test-render-chart.py": "dde6444e5ba1a64fb4601a7cfa58e59f0013923c"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "domain-request-gates": {
+    "schema_version": "1.0",
+    "id": "domain-request-gates",
+    "kind": "pipeline",
+    "question": "“域名打不开”到底要依次穿过哪些独立的门？",
+    "takeaway": "DNS 只解决名称到地址；后面仍有 TCP、TLS、HTTP 路由、应用依赖和浏览器 CORS 等独立条件。若中国大陆云资源用于公开网站或 APP，还存在备案/接入这一条件性合规门，因此“解析成功”绝不等于“页面一定能打开”。",
+    "reading_order": "前六个步骤按一次 HTTPS 请求的诊断顺序从左到右阅读；第七个是中国大陆公开服务场景的附加合规门，不是 TLS/HTTP 之后又多出的一层网络协议。",
+    "boundary": "这是故障定位顺序，不表示每个协议在所有实现中严格串行，也不替代云厂商、工信部或浏览器的当前规则；实际排障应逐层取得可重复证据。",
+    "evidence_type": "schematic",
+    "steps": [
+      {
+        "id": "dns",
+        "label": "① DNS 名称解析",
+        "detail": "先确认权威记录、递归解析器与缓存最终把域名解析到预期地址；这一层不检查 Web 服务是否存活。",
+        "tone": "info"
+      },
+      {
+        "id": "tcp",
+        "label": "② IP 路由 + TCP 443",
+        "detail": "地址正确后还必须能建立传输连接；超时、拒绝连接和安全组拦截都发生在 HTTP 之前。",
+        "tone": "neutral"
+      },
+      {
+        "id": "tls",
+        "label": "③ TLS / SNI",
+        "detail": "客户端携带目标主机名完成握手，并校验证书链、有效期和域名匹配；直接访问 IP 不能等价替代这一步。",
+        "tone": "success"
+      },
+      {
+        "id": "http",
+        "label": "④ HTTP Host / Reverse Proxy",
+        "detail": "Nginx/Caddy 根据 Host、路径与规则把请求路由到正确站点或 upstream；默认站点和错误 upstream 会产生另一类失败。",
+        "tone": "info"
+      },
+      {
+        "id": "app",
+        "label": "⑤ 应用进程与依赖",
+        "detail": "反向代理命中后，还要确认应用、数据库、Redis 等依赖真正可用；健康检查与业务日志在这里给证据。",
+        "tone": "neutral"
+      },
+      {
+        "id": "browser",
+        "label": "⑥ 浏览器 Origin / CORS",
+        "detail": "服务器即使返回 200，浏览器仍可能因为同源策略和 CORS 拒绝把响应交给 JavaScript；curl 成功并不能排除这一层。",
+        "tone": "warn"
+      },
+      {
+        "id": "compliance",
+        "label": "⑦ 条件性合规门：ICP / 接入",
+        "detail": "当中国大陆云资源对公众提供网站或 APP 服务时，需要单独检查备案与接入要求；这是合规条件，不是 DNS 协议的一部分。",
+        "tone": "risk"
+      }
+    ],
+    "slot": "after-orient",
+    "model_digest": "3b004cb99f3cde0cbd2197253cc959198de0c51a342b9a3c7a272e1a12bca6ed"
+  }
+}

@@ -1,0 +1,676 @@
+{
+  "state-to-view": {
+    "model_digest": "c8ddf0c5c9c6051611b414b5c3a93764de8f03bca76893adc0d398e4ee79a35f",
+    "question": "计划仍是 4 组，为什么界面从 2／4 变成 3／4？",
+    "takeaway": "外部计划保持不变，本地填写进度变化，重新渲染后显示结果随之变化。",
+    "reading_order": "左右对照同一行：先看计划要求，再看本地填写进度，最后看显示结果。用户在这两刻之间又填写了一组。",
+    "boundary": "图只描述组件中的本地界面变化，不表示已经发送请求，也不证明服务器保存成功。",
+    "svg_include": "learning-figures/software-engineering-two-hour-primer-20260913/state-to-view.svg",
+    "prefix": "software-engineering-two-hour-primer-20260913--state-to-view",
+    "min_width": 693,
+    "expected": {
+      "guides": [],
+      "labels": {
+        "panel-before-title": {
+          "text": "① 再填一组之前",
+          "owner": "panel-before",
+          "role": "node",
+          "terms": []
+        },
+        "before-props-text": {
+          "text": "计划要求 · props\n要求 4 组",
+          "owner": "before-props",
+          "role": "node",
+          "terms": [
+            "props"
+          ]
+        },
+        "before-state-text": {
+          "text": "已填写 · state\n已填写 2 组",
+          "owner": "before-state",
+          "role": "node",
+          "terms": [
+            "state"
+          ]
+        },
+        "before-render-text": {
+          "text": "计算界面 · render\n根据 4 和 2 计算",
+          "owner": "before-render",
+          "role": "node",
+          "terms": [
+            "render"
+          ]
+        },
+        "before-View-text": {
+          "text": "显示结果 · View\n已填写 2／4 组",
+          "owner": "before-View",
+          "role": "node",
+          "terms": [
+            "View"
+          ]
+        },
+        "panel-after-title": {
+          "text": "② 再填一组之后",
+          "owner": "panel-after",
+          "role": "node",
+          "terms": []
+        },
+        "after-props-text": {
+          "text": "计划要求 · props\n要求 4 组",
+          "owner": "after-props",
+          "role": "node",
+          "terms": [
+            "props"
+          ]
+        },
+        "after-state-text": {
+          "text": "已填写 · state\n已填写 3 组（变化）",
+          "owner": "after-state",
+          "role": "node",
+          "terms": [
+            "state"
+          ]
+        },
+        "after-render-text": {
+          "text": "计算界面 · render\n根据 4 和 3 重新计算",
+          "owner": "after-render",
+          "role": "node",
+          "terms": [
+            "render"
+          ]
+        },
+        "after-View-text": {
+          "text": "显示结果 · View\n已填写 3／4 组",
+          "owner": "after-View",
+          "role": "node",
+          "terms": [
+            "View"
+          ]
+        }
+      },
+      "nodes": {
+        "panel-before": {
+          "parent": "",
+          "role": "panel"
+        },
+        "before-props": {
+          "parent": "panel-before",
+          "role": "event"
+        },
+        "before-state": {
+          "parent": "panel-before",
+          "role": "event"
+        },
+        "before-render": {
+          "parent": "panel-before",
+          "role": "event"
+        },
+        "before-View": {
+          "parent": "panel-before",
+          "role": "event"
+        },
+        "panel-after": {
+          "parent": "",
+          "role": "panel"
+        },
+        "after-props": {
+          "parent": "panel-after",
+          "role": "event"
+        },
+        "after-state": {
+          "parent": "panel-after",
+          "role": "event"
+        },
+        "after-render": {
+          "parent": "panel-after",
+          "role": "event"
+        },
+        "after-View": {
+          "parent": "panel-after",
+          "role": "event"
+        }
+      },
+      "edges": {}
+    },
+    "svg_digest": "8355a72a0a47b4ba8a3479d134eec7009712b2588d6e1224d697a59532aec83a",
+    "trace": [
+      {
+        "id": "before",
+        "route": "① 再填一组之前",
+        "lines": [
+          "计划要求 · props：要求 4 组",
+          "已填写 · state：已填写 2 组",
+          "计算界面 · render：根据 4 和 2 计算",
+          "显示结果 · View：已填写 2／4 组"
+        ],
+        "after": []
+      },
+      {
+        "id": "after",
+        "route": "② 再填一组之后",
+        "lines": [
+          "计划要求 · props：要求 4 组",
+          "已填写 · state：已填写 3 组（变化）",
+          "计算界面 · render：根据 4 和 3 重新计算",
+          "显示结果 · View：已填写 3／4 组"
+        ],
+        "after": []
+      }
+    ],
+    "generator_digest": "011e8092c32486ad87784a5c4129d23cf7475b5753914bafc807c9dd315305c9"
+  },
+  "optimistic-lock-race": {
+    "model_digest": "191639036bd5921de0b7776159c46b09c2bfa71655c618f98eb8550ae5aaa0ed",
+    "question": "两人都读到版本 7，为什么只有一个保存成功？",
+    "takeaway": "服务器原子地比较期望版本与当前版本；版本已经改变，就拒绝旧修改，不静默覆盖。",
+    "reading_order": "从上往下沿三列读。本例画 A 先成功；两次读取的先后并非业务要求，换成 B 先提交，结果对称。",
+    "boundary": "冲突检测不等于自动合并。B 需要先读取新版、比较改动，再决定如何重新提交；示例省略身份认证和权限检查。",
+    "svg_include": "learning-figures/software-engineering-two-hour-primer-20260913/optimistic-lock-race.svg",
+    "prefix": "software-engineering-two-hour-primer-20260913--optimistic-lock-race",
+    "min_width": 760,
+    "expected": {
+      "guides": [
+        "coach-a",
+        "server",
+        "coach-b"
+      ],
+      "labels": {
+        "coach-a-text": {
+          "text": "教练 A",
+          "owner": "coach-a",
+          "role": "node",
+          "terms": []
+        },
+        "server-text": {
+          "text": "服务器",
+          "owner": "server",
+          "role": "node",
+          "terms": []
+        },
+        "coach-b-text": {
+          "text": "教练 B",
+          "owner": "coach-b",
+          "role": "node",
+          "terms": []
+        },
+        "read-a-label": {
+          "text": "读取计划\n当前版本：7",
+          "owner": "read-a",
+          "role": "message",
+          "terms": [
+            "version"
+          ]
+        },
+        "read-b-label": {
+          "text": "读取计划\n当前版本：7",
+          "owner": "read-b",
+          "role": "message",
+          "terms": [
+            "version"
+          ]
+        },
+        "save-a-label": {
+          "text": "提交修改\n期望版本：7",
+          "owner": "save-a",
+          "role": "message",
+          "terms": [
+            "expected_version"
+          ]
+        },
+        "commit-a-text": {
+          "text": "原子比较与写入\n期望：7；当前：7\n匹配，原子写入 → 8",
+          "owner": "commit-a",
+          "role": "node",
+          "terms": [
+            "version"
+          ]
+        },
+        "reply-a-label": {
+          "text": "返回保存结果\n200 · 已提交",
+          "owner": "reply-a",
+          "role": "message",
+          "terms": []
+        },
+        "save-b-label": {
+          "text": "仍提交旧版修改\n期望版本：7",
+          "owner": "save-b",
+          "role": "message",
+          "terms": [
+            "expected_version"
+          ]
+        },
+        "reject-b-text": {
+          "text": "再次原子比较版本\n期望：7；当前：8\n不匹配，拒绝写入\n当前版本保持 8",
+          "owner": "reject-b",
+          "role": "node",
+          "terms": [
+            "version"
+          ]
+        },
+        "reply-b-label": {
+          "text": "返回结果，不覆盖 A\n409 · 版本冲突",
+          "owner": "reply-b",
+          "role": "message",
+          "terms": []
+        }
+      },
+      "nodes": {
+        "coach-a": {
+          "parent": "",
+          "role": "actor"
+        },
+        "server": {
+          "parent": "",
+          "role": "actor"
+        },
+        "coach-b": {
+          "parent": "",
+          "role": "actor"
+        },
+        "commit-a": {
+          "parent": "",
+          "role": "event"
+        },
+        "reject-b": {
+          "parent": "",
+          "role": "event"
+        }
+      },
+      "edges": {
+        "read-a": {
+          "from": "server",
+          "to": "coach-a"
+        },
+        "read-b": {
+          "from": "server",
+          "to": "coach-b"
+        },
+        "save-a": {
+          "from": "coach-a",
+          "to": "server"
+        },
+        "reply-a": {
+          "from": "server",
+          "to": "coach-a"
+        },
+        "save-b": {
+          "from": "coach-b",
+          "to": "server"
+        },
+        "reply-b": {
+          "from": "server",
+          "to": "coach-b"
+        }
+      }
+    },
+    "svg_digest": "1b9ca8d620aaa2db5fe465a186011944a403b9854290e33179131f1cfaa3dbf8",
+    "trace": [
+      {
+        "id": "read-a",
+        "route": "服务器 → 教练 A",
+        "lines": [
+          "读取计划",
+          "当前版本：7"
+        ],
+        "after": []
+      },
+      {
+        "id": "read-b",
+        "route": "服务器 → 教练 B",
+        "lines": [
+          "读取计划",
+          "当前版本：7"
+        ],
+        "after": []
+      },
+      {
+        "id": "save-a",
+        "route": "教练 A → 服务器",
+        "lines": [
+          "提交修改",
+          "期望版本：7"
+        ],
+        "after": [
+          "read-a",
+          "read-b"
+        ]
+      },
+      {
+        "id": "commit-a",
+        "route": "服务器 · 本地步骤",
+        "lines": [
+          "原子比较与写入",
+          "期望：7；当前：7",
+          "匹配，原子写入 → 8"
+        ],
+        "after": [
+          "save-a"
+        ]
+      },
+      {
+        "id": "reply-a",
+        "route": "服务器 → 教练 A",
+        "lines": [
+          "返回保存结果",
+          "200 · 已提交"
+        ],
+        "after": [
+          "commit-a"
+        ]
+      },
+      {
+        "id": "save-b",
+        "route": "教练 B → 服务器",
+        "lines": [
+          "仍提交旧版修改",
+          "期望版本：7"
+        ],
+        "after": [
+          "commit-a",
+          "read-b"
+        ]
+      },
+      {
+        "id": "reject-b",
+        "route": "服务器 · 本地步骤",
+        "lines": [
+          "再次原子比较版本",
+          "期望：7；当前：8",
+          "不匹配，拒绝写入\n当前版本保持 8"
+        ],
+        "after": [
+          "save-b"
+        ]
+      },
+      {
+        "id": "reply-b",
+        "route": "服务器 → 教练 B",
+        "lines": [
+          "返回结果，不覆盖 A",
+          "409 · 版本冲突"
+        ],
+        "after": [
+          "reject-b"
+        ]
+      }
+    ],
+    "generator_digest": "011e8092c32486ad87784a5c4129d23cf7475b5753914bafc807c9dd315305c9"
+  },
+  "idempotent-webhook": {
+    "model_digest": "f12f37c6f5262945898de305933de72e7ac515ce94515ad0c462ba0692b6e4f4",
+    "question": "同一笔付款通知两次，为什么余额只增加 100 元？",
+    "takeaway": "“已收到通知”不等于“业务已提交”。唯一业务占位、账本和余额同事务提交；重复到达不重复记账。",
+    "reading_order": "从上往下比较首次通知与提交后的重复通知。每次数据库处理都有独立行，返回箭头与处理结果分开。",
+    "boundary": "前提是已经验签并核对交易、金额和币种。提交前失败须可恢复重试；提交后响应丢失则按已提交业务键去重。不同通知编号也可能描述同一交易，业务键不能简单使用“用户＋金额”。",
+    "svg_include": "learning-figures/software-engineering-two-hour-primer-20260913/idempotent-webhook.svg",
+    "prefix": "software-engineering-two-hour-primer-20260913--idempotent-webhook",
+    "min_width": 760,
+    "expected": {
+      "guides": [
+        "provider",
+        "handler",
+        "database"
+      ],
+      "labels": {
+        "provider-text": {
+          "text": "支付平台",
+          "owner": "provider",
+          "role": "node",
+          "terms": []
+        },
+        "handler-text": {
+          "text": "接收服务",
+          "owner": "handler",
+          "role": "node",
+          "terms": []
+        },
+        "database-text": {
+          "text": "数据库",
+          "owner": "database",
+          "role": "node",
+          "terms": []
+        },
+        "notify-first-label": {
+          "text": "首次成功通知\n通知编号：evt_42",
+          "owner": "notify-first",
+          "role": "message",
+          "terms": [
+            "event_id"
+          ]
+        },
+        "request-first-label": {
+          "text": "验签、字段校验后请求入账\n业务键：pay_42_credit",
+          "owner": "request-first",
+          "role": "message",
+          "terms": [
+            "business_key"
+          ]
+        },
+        "credit-first-text": {
+          "text": "同一数据库事务\n业务键：pay_42_credit\n唯一占位、记账、余额一起提交\n余额：100 元；账本：1 笔",
+          "owner": "credit-first",
+          "role": "node",
+          "terms": []
+        },
+        "db-first-label": {
+          "text": "确认事务结果\n200 · 已提交",
+          "owner": "db-first",
+          "role": "message",
+          "terms": []
+        },
+        "ack-first-label": {
+          "text": "返回处理结果\n200 · 已提交",
+          "owner": "ack-first",
+          "role": "message",
+          "terms": []
+        },
+        "notify-again-label": {
+          "text": "相同通知再次到达\n通知编号：evt_42",
+          "owner": "notify-again",
+          "role": "message",
+          "terms": [
+            "event_id"
+          ]
+        },
+        "request-again-label": {
+          "text": "仍请求同一业务效果\n业务键：pay_42_credit",
+          "owner": "request-again",
+          "role": "message",
+          "terms": [
+            "business_key"
+          ]
+        },
+        "credit-again-text": {
+          "text": "核对已提交的业务键\n业务键：pay_42_credit\n已提交：本次不再记账\n余额：100 元；账本：1 笔",
+          "owner": "credit-again",
+          "role": "node",
+          "terms": []
+        },
+        "db-again-label": {
+          "text": "确认已经处理\n200 · 已处理，不重复",
+          "owner": "db-again",
+          "role": "message",
+          "terms": []
+        },
+        "ack-again-label": {
+          "text": "返回成功，不再入账\n200 · 已处理，不重复",
+          "owner": "ack-again",
+          "role": "message",
+          "terms": []
+        }
+      },
+      "nodes": {
+        "provider": {
+          "parent": "",
+          "role": "actor"
+        },
+        "handler": {
+          "parent": "",
+          "role": "actor"
+        },
+        "database": {
+          "parent": "",
+          "role": "actor"
+        },
+        "credit-first": {
+          "parent": "",
+          "role": "event"
+        },
+        "credit-again": {
+          "parent": "",
+          "role": "event"
+        }
+      },
+      "edges": {
+        "notify-first": {
+          "from": "provider",
+          "to": "handler"
+        },
+        "request-first": {
+          "from": "handler",
+          "to": "database"
+        },
+        "db-first": {
+          "from": "database",
+          "to": "handler"
+        },
+        "ack-first": {
+          "from": "handler",
+          "to": "provider"
+        },
+        "notify-again": {
+          "from": "provider",
+          "to": "handler"
+        },
+        "request-again": {
+          "from": "handler",
+          "to": "database"
+        },
+        "db-again": {
+          "from": "database",
+          "to": "handler"
+        },
+        "ack-again": {
+          "from": "handler",
+          "to": "provider"
+        }
+      }
+    },
+    "svg_digest": "8767b0479eca690fbfc749bffb41a0cc35ed2261dceeeada05b4f46db4a0e537",
+    "trace": [
+      {
+        "id": "notify-first",
+        "route": "支付平台 → 接收服务",
+        "lines": [
+          "首次成功通知",
+          "通知编号：evt_42"
+        ],
+        "after": []
+      },
+      {
+        "id": "request-first",
+        "route": "接收服务 → 数据库",
+        "lines": [
+          "验签、字段校验后请求入账",
+          "业务键：pay_42_credit"
+        ],
+        "after": [
+          "notify-first"
+        ]
+      },
+      {
+        "id": "credit-first",
+        "route": "数据库 · 本地步骤",
+        "lines": [
+          "同一数据库事务",
+          "业务键：pay_42_credit",
+          "唯一占位、记账、余额一起提交",
+          "余额：100 元；账本：1 笔"
+        ],
+        "after": [
+          "request-first"
+        ]
+      },
+      {
+        "id": "db-first",
+        "route": "数据库 → 接收服务",
+        "lines": [
+          "确认事务结果",
+          "200 · 已提交"
+        ],
+        "after": [
+          "credit-first"
+        ]
+      },
+      {
+        "id": "ack-first",
+        "route": "接收服务 → 支付平台",
+        "lines": [
+          "返回处理结果",
+          "200 · 已提交"
+        ],
+        "after": [
+          "db-first"
+        ]
+      },
+      {
+        "id": "notify-again",
+        "route": "支付平台 → 接收服务",
+        "lines": [
+          "相同通知再次到达",
+          "通知编号：evt_42"
+        ],
+        "after": [
+          "credit-first"
+        ]
+      },
+      {
+        "id": "request-again",
+        "route": "接收服务 → 数据库",
+        "lines": [
+          "仍请求同一业务效果",
+          "业务键：pay_42_credit"
+        ],
+        "after": [
+          "notify-again"
+        ]
+      },
+      {
+        "id": "credit-again",
+        "route": "数据库 · 本地步骤",
+        "lines": [
+          "核对已提交的业务键",
+          "业务键：pay_42_credit",
+          "已提交：本次不再记账",
+          "余额：100 元；账本：1 笔"
+        ],
+        "after": [
+          "request-again"
+        ]
+      },
+      {
+        "id": "db-again",
+        "route": "数据库 → 接收服务",
+        "lines": [
+          "确认已经处理",
+          "200 · 已处理，不重复"
+        ],
+        "after": [
+          "credit-again"
+        ]
+      },
+      {
+        "id": "ack-again",
+        "route": "接收服务 → 支付平台",
+        "lines": [
+          "返回成功，不再入账",
+          "200 · 已处理，不重复"
+        ],
+        "after": [
+          "db-again"
+        ]
+      }
+    ],
+    "generator_digest": "011e8092c32486ad87784a5c4129d23cf7475b5753914bafc807c9dd315305c9"
+  }
+}
