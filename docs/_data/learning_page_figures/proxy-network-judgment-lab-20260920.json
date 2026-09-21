@@ -1,0 +1,46 @@
+{
+  "proxy-request-overview": {
+    "schema_version": "1.0",
+    "id": "proxy-request-overview",
+    "kind": "pipeline",
+    "question": "一条“生成文字”的请求：谁发起，谁转送，谁办理？",
+    "reading_order": "沿箭头看一种选用代理的路径；它画的是各处职责，不是术语目录。",
+    "takeaway": "中间几处负责送达，最后的业务窗口决定怎么办。请求送到了，不等于事情办成了。",
+    "boundary": "中间三个位置不是必需；直接访问可不经过它们，多个角色也可在同一台机器。图示只讨论转送，不表示中间处都能解密正文。",
+    "evidence_type": "teaching-example",
+    "steps": [
+      {
+        "id": "tool",
+        "label": "① 你用的工具",
+        "detail": "发起要求：“请生成一句介绍。”先确定它在你的电脑，还是远程机器上运行。",
+        "tone": "neutral"
+      },
+      {
+        "id": "local",
+        "label": "② 本机代理",
+        "detail": "接住交给它的请求，再按选择或规则决定怎么转送。它没收到的请求，不受站内规则安排。",
+        "tone": "info"
+      },
+      {
+        "id": "relay",
+        "label": "③ 远处中转机",
+        "detail": "接力搬运通信。租来的服务器只是能运行程序的电脑，不会买来就自动完成转送。",
+        "tone": "info"
+      },
+      {
+        "id": "exit",
+        "label": "④ 最后出面的出口",
+        "detail": "从这里向目标建立最后一段连接。判断出口地址，要站在目标这一端看来源。",
+        "tone": "success"
+      },
+      {
+        "id": "service",
+        "label": "⑤ 对方的业务窗口",
+        "detail": "收到要求后办理：可能返回文字，也可能回复“凭证无效”。收到回复不等于取得结果。",
+        "tone": "warn"
+      }
+    ],
+    "slot": "after-orient",
+    "model_digest": "1f649c54a304fe2a16cb73179da978cca71f4d7bbd2b7277da84528418f006f2"
+  }
+}
